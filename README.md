@@ -51,8 +51,8 @@ Column names are matched loosely. The first sheet that has a Ship To column plus
 | Ship To | Ship To, Ship To Number, Account, Customer Number… |
 | Name | Ship To Name, Customer Name, Name… |
 | Address | Address, or Address Line 1–4 / Town / County joined |
-| Eircode | Eircode, Postcode |
+| Eircode | Eircode, Postcode, Postal Code |
 | Coordinates | Latitude / Longitude (or Lat / Lng) |
-| Bay | Bay, Delivery Bay, Trip Tag |
-| Delivery days | Delivery Days (`Mon, Wed`, `MON/THU` or `.M.W...`), or one column per day (Mon … Sat) |
+| Bay | Bay, BAYS, Delivery Bay, Trip Tag |
+| Delivery days | Delivery Days (`Mon, Wed`, `MON/THU` or `.M.W...`), or one column per day (Monday … Friday, or Mon … Sat) |
 | Time window | Time Window, or Open / Close (From / To) |

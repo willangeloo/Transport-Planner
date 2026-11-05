@@ -2,7 +2,7 @@
 const XLSX=require('xlsx'); const out=process.argv[2]||'.';
 const wr=(name,sheet,rows)=>{ const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),sheet); XLSX.writeFile(wb,out+'/'+name); };
 wr('MASTER_DEL_DETAILS.xlsx','Master',[
- ['Ship To','Ship To Name','Address','Eircode','Latitude','Longitude','Bay','Delivery Days','Time Window'],
+ ['Ship To','Ship To Name','Address','Eircode','Latitude','Longitude','BAYS','Delivery Days','Time Window'],
  [90000001,'TEST PUB ONE','1 Main St, Dublin','D01 AA11',53.35,-6.26,'BAY001','Mon, Wed','08:00-12:00'],
  [90000002,'TEST PUB TWO','2 High St, Dublin','D02 BB22',53.33,-6.25,'BAY 2','.M.W...','10:00-15:00'],
  [90000003,'TEST HOTEL','3 Quay, Wicklow','A67 CC33',52.98,-6.04,'BAY 03','TUE/THU',''],

@@ -1341,10 +1341,10 @@ function parseFixed(f){
 const CUST_COLS={
   id:['SHIP TO','SHIP TO NUMBER','SHIP-TO','SHIPTO','ADDRESS NUMBER SHIP TO','SHIP TO NO','ACCOUNT','ACCOUNT NUMBER','CUSTOMER NUMBER','CUSTOMER NO','CUSTOMER ID'],
   name:['SHIP TO NAME','CUSTOMER NAME','OUTLET NAME','ACCOUNT NAME','NAME'],
-  pc:['EIRCODE','EIR CODE','POSTCODE','POST CODE'],
+  pc:['EIRCODE','EIR CODE','POSTCODE','POST CODE','POSTAL CODE'],
   addr:['FULL ADDRESS','DELIVERY ADDRESS','ADDRESS'],
   lat:['LATITUDE','LAT'], lng:['LONGITUDE','LONG','LNG','LON'],
-  bay:['BAY','DELIVERY BAY','TRIP TAG'],
+  bay:['BAY','BAYS','DELIVERY BAY','TRIP TAG'],
   days:['DELIVERY DAYS','DEL DAYS','DELIVERY DAY','DAYS','DAY'],
   tw:['TIME WINDOW','DELIVERY WINDOW','WINDOW'],
   twFrom:['WINDOW FROM','TIME FROM','OPEN TIME','OPEN','FROM'], twTo:['WINDOW TO','TIME TO','CLOSE TIME','CLOSE','TO']
@@ -1360,6 +1360,7 @@ function findCustHeader(rows){
   }
   return null;
 }
+const round6 = n => n==null ? null : Math.round(n*1e6)/1e6;
 const coord = v => { if(v==null||v==='') return null; const n=Number(String(v).replace(',','.').trim()); return isFinite(n)&&n!==0?n:null; };
 function timeTxt(v){
   if(v==null||v==='') return '';
@@ -1393,8 +1394,8 @@ function parseCust(f){
       let tw=timeTxt(g('tw'));
       if(!tw && (c('twFrom')!=null||c('twTo')!=null)){ const a=timeTxt(g('twFrom')), b=timeTxt(g('twTo')); tw=a||b?`${a}-${b}`:''; }
       const bayRaw=cleanStr(g('bay'));
-      const cu={id, name:cleanStr(g('name'))||id, pc:(cleanStr(g('pc'))||'').replace(/\s+/g,''), addr:addrCols.map(j=>cleanStr(row[j])).filter(Boolean).join(', '),
-        lat:coord(g('lat')), lng:coord(g('lng')), bay:bayRaw?normBay(bayRaw):'', days, tw};
+      const cu={id, name:cleanStr(g('name'))||'(no name)', pc:cleanStr(g('pc')), addr:addrCols.map(j=>cleanStr(row[j])).filter(Boolean).join(', ')||null,
+        lat:round6(coord(g('lat'))), lng:round6(coord(g('lng'))), bay:normBay(bayRaw), days, tw:tw||null};
       if(cu.lat==null||cu.lng==null){ cu.lat=null; cu.lng=null; noLoc++; }
       list.push(cu);
     });
