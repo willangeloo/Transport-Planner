@@ -34,6 +34,10 @@ The repo mirrors the shared "Planning app" folder. Data folders exist only on yo
 | `PROMPTS/` | no | Requirement notes |
 | `_ARCHIVE/` | no | Old app versions and samples |
 
+## Contributing
+
+Branch names, the PR flow and versioning are described in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Versions
 
 There is one file name. Each release is a git tag (`v0.9.1`, …), and older versions can be downloaded from the tags page. The version shown in the app header comes from `APP_VERSION` in the file.
