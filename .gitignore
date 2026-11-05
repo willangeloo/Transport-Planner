@@ -1,0 +1,41 @@
+# ---------------------------------------------------------------
+# Transport Planner — this repository is PUBLIC.
+# Folder names match the shared Drive / SharePoint "Planning app" folder,
+# so that folder can become this git folder later.
+# ---------------------------------------------------------------
+
+# Business data (customers, daily reports, saved plans)
+/MASTER_DATA/
+/REPORTS/
+/PLANS/
+
+# Requirement notes / LLM prompts and handoffs, old material
+/PROMPTS/
+/_ARCHIVE/
+/_RESTORED/
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
+# Plans and snapshots the app saves into the main folder
+/v[0-9]*.json
+/v[0-9]*.html
+/[0-9][0-9][0-9][0-9]-*.json
+/[0-9][0-9][0-9][0-9]-*.html
+
+# Old app builds (they contain the built-in customer list)
+/Route Planner BETA v*.html
+/route-planner-prototype*.html
+
+# Safety net: never commit spreadsheets or data exports anywhere
+*.xlsx
+*.xls
+*.xlsm
+*.csv
+
+# OS / editor / tooling
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+node_modules/

@@ -1,0 +1,6 @@
+{
+  "name": "route-planner-tests",
+  "private": true,
+  "scripts": { "test": "node run.js" },
+  "devDependencies": { "leaflet": "1.9.4", "xlsx": "0.18.5", "playwright": "^1.47.0" }
+}
