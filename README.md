@@ -20,6 +20,17 @@ This repository is public, so no customer or operational data is committed. The 
 | Planning + RESOURCES (`DIPS_Plan_<wd>.xlsx`, `RES_<wd>.xlsx`) | **Load day** |
 | `FIXED_ROUTES_DIPSDATA.xls` | **Load day** |
 
+## Shared folder
+
+Each user links the shared **Planning app** folder once (👤 button). After that, the app reads its subfolders:
+
+- **Load day** lists the files by section (DIPS Plan, Resources, Products, Uplifts, POD, Customer master, Fixed routes), with one chip per `week_XX` folder. It opens on the week with the newest files.
+- **Dates:** a report named only with its weekday (`RES_Tue.xlsx`) gets its date from the week folder plus the weekday. For example, `REPORTS/week_45/RES_Tue.xlsx` is Tue 03.11. Planning files still take the date from the *Date Promised Shipment* column.
+- **Old names:** `Tue - 03.11.xlsx`, `Tue - 03.11 RESOURCES.xlsx` and `… - PRODUCTS.xlsx` are recognised too, and folder names are matched without case (`REPORT` / `REPORTS`, `Week_45` / `week_45`).
+- **Skipped:** `_ARCHIVE`, `_RESTORED` and `PROMPTS` are ignored. Products, Uplifts and POD are listed but can't be imported yet.
+- **Save / share** saves into `PLANS/week_XX` (the ISO week of the day being planned) as `v<version>_<date>_<time>_<user>.json` / `.html`, for example `v0.9.2_2026-11-05_15.58_Willian.json`.
+- **Open plan** lists `PLANS/week_XX` the same way.
+
 ## Folder layout
 
 The repo mirrors the shared "Planning app" folder. Data folders exist only on your PC / Drive and are git-ignored:

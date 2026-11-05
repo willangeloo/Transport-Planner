@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.9.1</title>
+<title>Route Planner BETA v0.9.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -250,7 +250,7 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.9.1</span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.9.2</span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
@@ -363,7 +363,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.9.1';
+const APP_VERSION='0.9.2';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1285,14 +1285,25 @@ function guessYear(mm){
   if(+mm - (now.getMonth()+1) > 6) y--; else if((now.getMonth()+1) - +mm > 6) y++;
   return y;
 }
-// "Tue - 03.11", "Thu 29.10", "Tue - 03.11 RESOURCES.xlsx" -> {dow, dm, date}
-function nameDate(name){
-  const n=String(name||'').trim(); const dow=DAY_PREFIX[n.slice(0,3).toUpperCase()];
+// "Tue - 03.11", "Thu 29.10", "Tue - 03.11 RESOURCES.xlsx", "RES_Tue.xlsx" -> {dow, dm, date}
+// week: the ISO week of the folder the file came from (REPORTS/week_45) — gives the date when the name has no dd.mm
+function nameDate(name, week){
+  const n=String(name||'').trim(); let dow=DAY_PREFIX[n.slice(0,3).toUpperCase()];
+  if(dow==null){ const w=n.toUpperCase().match(/(?:^|[^A-Z])(MON|TUE|WED|THU|FRI|SAT|SUN)(?:[^A-Z]|$)/); if(w) dow=DAY_PREFIX[w[1]]; }
   const m=n.match(/(\d{1,2})\s*[.\/-]\s*(\d{1,2})(?!\d)/);
   if(!m && dow==null) return null;
+  if(!m && week && dow!=null){ const date=isoWeekDate(+week,dow); return {dow, dm:fmtDM(date), date, fromWeek:true}; }
   const dd=m?m[1].padStart(2,'0'):null, mm=m?m[2].padStart(2,'0'):null;
   return {dow, dm:m?dd+'.'+mm:null, date:m&&+mm>=1&&+mm<=12?`${guessYear(mm)}-${mm}-${dd}`:null};
 }
+// date of weekday dow (0 = Mon) in ISO week w, in the year that puts it closest to today
+function isoWeekDate(w, dow){
+  const t=todayStr(); let best=null;
+  [-1,0,1].forEach(dy=>{ const y=+t.slice(0,4)+dy; const j4=new Date(Date.UTC(y,0,4)); const mon=new Date(j4); mon.setUTCDate(j4.getUTCDate()-((j4.getUTCDay()+6)%7)+(w-1)*7+dow);
+    const d=mon.toISOString().slice(0,10); if(!best || Math.abs(new Date(d)-new Date(t))<Math.abs(new Date(best)-new Date(t))) best=d; });
+  return best;
+}
+const weekOfPath = path => { const m=String(path||'').match(/(?:^|\/)week[_ -]?(\d{1,2})(?:\/|$)/i); return m?+m[1]:null; };
 function parseDateCell(v){
   if(v==null||v==='') return null;
   if(typeof v==='number'){ if(v>20000&&v<80000){ const p=XLSX.SSF.parse_date_code(v); if(p) return ymd(p.y,p.m,p.d); } return null; }
@@ -1414,12 +1425,14 @@ function resDiff(oldLoads, newLoads){
   });
   return out;
 }
-function parseDays(planFiles, resFiles){
+// cm: the customer master to check against (the one being imported with these files, if any)
+function parseDays(planFiles, resFiles, cm){
+  const CM=cm||custMap;
   const issues=[], byDate={};
   const resSheets=[];
   resFiles.forEach(f=>f.wb.SheetNames.forEach(n=>{
     const rows=sheetRows(f.wb.Sheets[n]); const h=findHeader(rows,['SHIPMENT','BAY']); if(!h) return;
-    const nd=nameDate(n)||nameDate(f.name)||{};
+    const cands=[nameDate(n,f.week),nameDate(f.name,f.week)].filter(Boolean); const nd=cands.find(x=>x.dm)||cands[0]||{};
     resSheets.push({file:f.name, sheet:n, rows, h, dm:nd.dm||null, dow:nd.dow, used:false});
   }));
   planFiles.forEach(f=>f.wb.SheetNames.forEach(n=>{
@@ -1428,7 +1441,7 @@ function parseDays(planFiles, resFiles){
     const miss=['LOAD NUMBER','ORDER NUMBER','ADDRESS NUMBER SHIP TO'].filter(k=>col(k)==null);
     if(miss.length){ issues.push({lvl:'err',t:`${f.name} › “${n}” skipped — missing column ${miss.join(', ')}.`}); return; }
     let dcol=col('DATE PROMISED SHIPMENT'); if(dcol==null){ const dn=h.names.find(x=>x.includes('DATE')); if(dn) dcol=h.idx[dn]; }
-    const fb=nameDate(n)&&nameDate(n).date ? nameDate(n) : nameDate(f.name);
+    const fb=nameDate(n)&&nameDate(n).date ? nameDate(n) : nameDate(f.name,f.week);
     const fbDate=fb&&fb.date;
     let noDate=0; const seen=new Set();
     rows.slice(h.row+1).forEach(row=>{
@@ -1443,10 +1456,10 @@ function parseDays(planFiles, resFiles){
       const rc=col('ROUTE CODE')!=null?cleanStr(row[col('ROUTE CODE')]):null;
       (byDate[date]=byDate[date]||{date, files:new Set(), orders:[]});
       byDate[date].files.add(f.name);
-      byDate[date].orders.push({o, l, s:st, n:cleanStr(row[col('SHIP TO NAME')])||(custMap[st]&&custMap[st].name)||st, a:[a2,a3].filter(Boolean).join(', '), w:toNum(row[col('WEIGHT')])||0, r:rc});
+      byDate[date].orders.push({o, l, s:st, n:cleanStr(row[col('SHIP TO NAME')])||(CM[st]&&CM[st].name)||st, a:[a2,a3].filter(Boolean).join(', '), w:toNum(row[col('WEIGHT')])||0, r:rc});
     });
     if(noDate) issues.push({lvl:'err',t:`${f.name}: ${noDate} order${noDate>1?'s':''} skipped — no date in the “Date Promised Shipment” column or the file name.`});
-    if(dcol==null && seen.size) issues.push({lvl:'info',t:`${f.name}: no date column — used the date in the ${nameDate(n)&&nameDate(n).date?'sheet':'file'} name (${[...seen].map(dayLbl).join(', ')}).`});
+    if(dcol==null && seen.size) issues.push({lvl:'info',t:`${f.name}: no date column — used the date in the ${nameDate(n)&&nameDate(n).date?'sheet':f.week&&!/\d{1,2}\s*[.\/-]\s*\d{1,2}/.test(f.name)?'week folder and file':'file'} name (${[...seen].map(dayLbl).join(', ')}).`});
     else if(dcol!=null && fbDate && seen.size && !seen.has(fbDate)) issues.push({lvl:'warn',t:`${f.name}: name says ${dayLbl(fbDate)} but the date column says ${[...seen].map(dayLbl).join(', ')} — using the date column.`});
   }));
   const days=[];
@@ -1460,7 +1473,7 @@ function parseDays(planFiles, resFiles){
     const noMaster=new Set(), noRes=new Set();
     g.orders.forEach(o=>{
       if(!loads[o.l]){ loads[o.l]={id:o.l,bay:'ROUTE '+(o.r||o.l),driver:null,helper:null,truck:null,pallets:null,km:null,mins:null,area:null}; if(r) noRes.add(o.l); }
-      if(!custMap[o.s]) noMaster.add(o.s);
+      if(!CM[o.s]) noMaster.add(o.s);
     });
     if(noRes.size) issues.push({lvl:'warn',t:`${lbl}: load${noRes.size>1?'s':''} ${[...noRes].join(', ')} not in the RESOURCES file — shown by route code.`});
     if(noMaster.size) issues.push({lvl:'warn',t:`${lbl}: ${noMaster.size} Ship To${noMaster.size>1?'s':''} not in the customer master (${[...noMaster].slice(0,4).join(', ')}${noMaster.size>4?'…':''}) — listed but not on the map until you add them.`});
@@ -1494,7 +1507,7 @@ function renderUpload(){
   const noLib = typeof XLSX==='undefined';
   let body = noLib ? `<div class="note warn">The Excel reader needs an internet connection to load. Connect and reopen the file to use uploads.</div>` :
    `<div class="drop-zone" id="dz"><b>Drop planning, RESOURCES or fixed-routes files here</b><span class="muted">or click to choose — e.g. <i>Tue - 03.11.xlsx</i> and <i>Tue - 03.11 RESOURCES.xlsx</i>. Several days at once is fine. RESOURCES alone create the day or update its routes.<br>The customer master (<i>MASTER_DEL_DETAILS.xlsx</i>) can be dropped here too. A saved plan (.json) or snapshot (.html) dropped here opens as a plan.</span><input type="file" id="fi" accept=".xlsx,.xls,.xlsm,.json,.html,.htm" multiple hidden></div>`;
-  if(UP.files.length) body+=`<div class="fchips">${UP.files.map(f=>`<span class="fchip ${f.kind}">${f.kind==='plan'?'📋 Planning':f.kind==='fixed'?'🗓 Fixed routes':f.kind==='cust'?'👥 Customer master':'🚚 Resources'} · ${esc(f.name)}</span>`).join('')}</div>`;
+  if(UP.files.length) body+=`<div class="fchips">${UP.files.map(f=>`<span class="fchip ${f.kind}">${f.kind==='plan'?'📋 Planning':f.kind==='fixed'?'🗓 Fixed routes':f.kind==='cust'?'👥 Customer master':'🚚 Resources'} · ${esc(f.path||f.name)}</span>`).join('')}</div>`;
   if(UP.err) body+=`<div class="note warn">${esc(UP.err)}</div>`;
   if(UP.busy) body+=`<div class="note info">Reading files…</div>`;
   let ok='';
@@ -1502,7 +1515,7 @@ function renderUpload(){
     const p=UP.parsed;
     if(p.days.length){
       body+=`<table class="ptbl"><thead><tr><th>Day (from file)</th><th>Week</th><th style="text-align:right">Routes</th><th style="text-align:right">Drops</th><th style="text-align:right">Orders</th><th style="text-align:right">Kg</th><th style="text-align:right">On map</th><th>Status</th></tr></thead><tbody>${p.days.map(d=>{
-        const drops=new Set(d.orders.map(o=>o.l+'|'+o.s)).size; const ships=new Set(d.orders.map(o=>o.s)); const mapped=[...ships].filter(s=>custMap[s]&&custMap[s].lat!=null).length;
+        const drops=new Set(d.orders.map(o=>o.l+'|'+o.s)).size; const ships=new Set(d.orders.map(o=>o.s)); const CM=p.cmap||custMap; const mapped=[...ships].filter(s=>CM[s]&&CM[s].lat!=null).length;
         const ex=dayKeyForDate(d.date); const ch=ex?originChanges(ex):null;
         const status = ex ? `<span style="color:var(--warn)">Replaces loaded day${ch.logs.length?` · clears ${ch.logs.length} change${ch.logs.length>1?'s':''}`:''}</span>` : '<span style="color:var(--ok)">New</span>';
         return `<tr><td><b>${esc(d.label)}</b> <span class="muted">${d.date.slice(0,4)}</span></td><td>${esc(d.week)}</td><td class="n">${d.loads.length}</td><td class="n">${drops}</td><td class="n">${d.orders.length}</td><td class="n">${kg(d.orders.reduce((s,o)=>s+o.w,0))}</td><td class="n">${mapped}/${ships.size}</td><td>${status}</td></tr>`;}).join('')}</tbody></table>`;
@@ -1552,12 +1565,13 @@ async function takeFiles(files){
       if(!/\.xls[xm]?$/i.test(f.name)){ errs.push(`“${f.name}” is not an Excel file.`); continue; }
       const wb=await readWorkbook(f); const kind=classifyWorkbook(wb);
       if(!kind){ errs.push(`“${f.name}” doesn't look like a planning, RESOURCES, fixed-routes or customer master file — ignored.`); continue; }
-      UP.files=UP.files.filter(x=>x.name!==f.name); UP.files.push({name:f.name, kind, wb});
+      const key=f.rpPath||f.name; UP.files=UP.files.filter(x=>x.key!==key); UP.files.push({key, name:f.name, path:f.rpPath||'', week:f.rpPath?weekOfPath(f.rpPath):null, kind, wb});
     }
     const plans=UP.files.filter(f=>f.kind==='plan'), ress=UP.files.filter(f=>f.kind==='res'), fx=UP.files.filter(f=>f.kind==='fixed'), cm=UP.files.filter(f=>f.kind==='cust');
-    UP.parsed = (plans.length||ress.length) ? parseDays(plans, ress) : {days:[], resDays:[], issues:[]};
-    UP.parsed.fixed=null; UP.parsed.cust=null;
-    if(cm.length){ UP.parsed.cust=parseCust(cm[cm.length-1]); if(!UP.parsed.cust) errs.push(`“${cm[cm.length-1].name}”: no customer rows found.`); }
+    let cust=null; if(cm.length){ cust=parseCust(cm[cm.length-1]); if(!cust) errs.push(`“${cm[cm.length-1].name}”: no customer rows found.`); }
+    const cmap=cust?Object.fromEntries(cust.list.map(c=>[c.id,c])):null;
+    UP.parsed = (plans.length||ress.length) ? parseDays(plans, ress, cmap) : {days:[], resDays:[], issues:[]};
+    UP.parsed.fixed=null; UP.parsed.cust=cust; UP.parsed.cmap=cmap;
     if(fx.length){ UP.parsed.fixed=parseFixed(fx[fx.length-1]); if(!UP.parsed.fixed) errs.push(`“${fx[fx.length-1].name}”: no “Trip Tag” / “Day” rows found.`); }
   }catch(e){ errs.push('Could not read the file: '+(e&&e.message||e)); }
   UP.err=errs.join(' '); UP.busy=false; renderUpload();
@@ -1917,66 +1931,107 @@ $('userBtn').onclick=()=>{
     {onAct:a=>{ if(a==='users') showUserPicker(); if(a==='link') linkFolder(); if(a==='retry') selectUser(FOLDER.user); if(a==='browse') openFolderBrowser('data'); }});
 };
 // ---- folder browser (a window inside the app listing the files in the shared folder)
+// File types by name. Follows File_Arch: MASTER_DATA/, REPORTS/week_XX/<REPORT>_<wd>.xlsx, PLANS/week_XX/.
+// The older names ("Tue - 03.11.xlsx", "Tue - 03.11 RESOURCES.xlsx", "… - PRODUCTS.xlsx") are recognised too.
 function fileKind(n){
   const s=n.toLowerCase();
   if(/\.json$/.test(s)) return 'plan';
-  if(/\.html?$/.test(s)) return /^v\d+\.\d+/.test(n) ? 'snap' : null;
+  if(/\.html?$/.test(s)) return /^v\d+\.\d+/.test(n) || /\(snapshot\)/i.test(n) ? 'snap' : null;
   if(!/\.(xlsx|xls|xlsm)$/.test(s)) return null;
   if(s.includes('fixed_routes')||s.includes('fixed routes')) return 'fixed';
   if(s.includes('master_del')||s.includes('master del')) return 'cust';
-  if(s.includes('product')||s.includes('manifest')) return 'skip';
-  if(s.includes('resource')) return 'res';
+  if(s.includes('manifest')) return null;
+  if(/(^|[^a-z])uplift/.test(s)) return 'upl';
+  if(/^pod[ _-]|[ _-]pod[ _.-]/.test(s)) return 'pod';
+  if(/^prod[ _-]|product/.test(s)) return 'prod';
+  if(/^res[ _-]|resource/.test(s)) return 'res';
   return 'planning';
 }
-const FB={mode:'data', files:[], sel:new Set()};
+const FB={mode:'data', files:[], sel:new Set(), week:''};
+const SKIP_DIRS=/^(_archive|_restored|prompts|node_modules|\..*)$/i;
+// all files in the linked folder and its subfolders (3 levels: REPORTS/week_45/file.xlsx)
+async function scanFolder(dir, prefix, depth, out){
+  for await (const [name,h] of dir.entries()){
+    if(h.kind==='directory'){ if(depth<3 && !SKIP_DIRS.test(name)) await scanFolder(h, prefix+name+'/', depth+1, out); continue; }
+    const k=fileKind(name); if(!k) continue;
+    const f=await h.getFile(); const path=prefix+name;
+    try{ f.rpPath=path; }catch(e){}
+    out.push({name, path, dir:prefix.replace(/\/$/,''), week:weekOfPath(path), kind:k, mod:f.lastModified, size:f.size, file:f});
+  }
+  return out;
+}
 async function openFolderBrowser(mode){
   if(FOLDER.status!=='ok'){ if(mode==='plan') openPlanPicker(); else { UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); } return; }
   FB.mode=mode; FB.sel.clear();
-  openModal(`<div class="mh"><h2>📁 ${esc(FOLDER.name)}</h2><div class="muted small">Reading the shared folder…</div></div><div class="mb"></div>`);
+  openModal(`<div class="mh"><h2>📁 ${esc(FOLDER.name)}</h2><div class="muted small">Reading the shared folder and its subfolders…</div></div><div class="mb"></div>`);
   $('modal').classList.add('wide');
   try{
     const st=await folderCheck(FOLDER.handle,true);
     if(st!=='ok'){ FOLDER.status=st==='prompt'?'prompt':'missing'; renderUserBtn(); manualAlert('Shared folder not available',`“${esc(FOLDER.name)}” can't be read on this computer.`); return; }
-    const files=[];
-    for await (const [name,h] of FOLDER.handle.entries()){
-      if(h.kind!=='file') continue; const k=fileKind(name); if(!k) continue;
-      const f=await h.getFile(); files.push({name, kind:k, mod:f.lastModified, size:f.size, file:f});
-    }
-    FB.files=files.sort((a,b)=>b.mod-a.mod);
+    FB.files=(await scanFolder(FOLDER.handle,'',0,[])).sort((a,b)=>b.mod-a.mod);
+    const weeks=fbWeeks(); if(!weeks.includes(+FB.week)) FB.week=weeks.length?String(weeks[0]):'';
     renderFolderBrowser();
   }catch(e){ manualAlert('Shared folder not available','Could not read the folder: '+esc(e&&e.message||e)); }
 }
+// weeks that have files for the current mode; the week with the newest file first
+function fbWeeks(){
+  const want=FB.mode==='plan'?['plan','snap']:['planning','res','prod','upl','pod']; const last={};
+  FB.files.forEach(f=>{ if(want.includes(f.kind)&&f.week) last[f.week]=Math.max(last[f.week]||0,f.mod); });
+  return Object.keys(last).map(Number).sort((a,b)=>last[b]-last[a]);
+}
 function renderFolderBrowser(){
-  const groups = FB.mode==='plan'
+  const plan=FB.mode==='plan';
+  const groups = plan
     ? [['plan','📄 Saved plans (.json) — to keep working'],['snap','📸 Snapshots (.html) — read-only copies']]
-    : [['planning','📋 Planning files'],['res','🚚 RESOURCES'],['fixed','🗓 Fixed routes'],['cust','👥 Customer master'],['skip','Products / manifest (not used yet)']];
+    : [['planning','📋 DIPS Plan'],['res','🚚 Resources'],['prod','📦 Products — not used yet'],['upl','↩ Uplifts — not used yet'],['pod','✍ POD — not used yet'],['cust','👥 Customer master'],['fixed','🗓 Fixed routes']];
+  const off=g=>['prod','upl','pod'].includes(g);
+  const weekly=g=>!['cust','fixed'].includes(g);
+  const weeks=fbWeeks();
+  const inView=f=>!weekly(f.kind) || !FB.week || (FB.week==='other' ? !f.week : f.week===+FB.week);
   const fmtD=ms=>{ const d=new Date(ms); return d.toLocaleDateString('en-IE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}); };
-  const single=FB.mode==='plan';
-  const rows=g=>{ const fs=FB.files.filter(f=>f.kind===g); if(!fs.length) return '<div class="muted small" style="padding:4px 8px">None in this folder.</div>';
-    return fs.map(f=>{ const nd=nameDate(f.name); const ld=nd&&nd.date&&dayKeyForDate(nd.date); const cur=lineage().current===f.name.replace(/\.(json|html?)$/i,'');
-      return `<label class="fbrow ${g==='skip'?'dis':''}"><input type="${single?'radio':'checkbox'}" name="fb" value="${esc(f.name)}" ${g==='skip'?'disabled':''} ${FB.sel.has(f.name)?'checked':''}>
-        <span class="fn">${esc(f.name)}${ld?' <span class="flag mv">day loaded</span>':''}${cur?' <span class="flag ad">working on</span>':''}</span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`; }).join(''); };
-  openModal(`<div class="mh"><h2>📁 ${esc(FOLDER.name)}</h2><div class="muted small">${single?'Choose the plan to open':'Tick the files to import — planning + RESOURCES for each day, RESOURCES alone, or the fixed routes'} · newest first</div></div>
+  const rows=g=>{ const fs=FB.files.filter(f=>f.kind===g && inView(f)); if(!fs.length) return '<div class="muted small" style="padding:4px 8px">None here.</div>';
+    return fs.map(f=>{ const nd=nameDate(f.name,f.week); const ld=nd&&nd.date&&dayKeyForDate(nd.date); const cur=lineage().current===f.name.replace(/\.(json|html?)$/i,'');
+      const when=!plan&&weekly(g)&&nd&&nd.date?`<span class="flag">${esc(dayLbl(nd.date))}</span> `:'';
+      return `<label class="fbrow ${off(g)?'dis':''}"><input type="${plan?'radio':'checkbox'}" name="fb" value="${esc(f.path)}" ${off(g)?'disabled':''} ${FB.sel.has(f.path)?'checked':''}>
+        <span class="fn">${when}${esc(f.name)}${ld?' <span class="flag mv">day loaded</span>':''}${cur?' <span class="flag ad">working on</span>':''} <span class="muted small">${esc(f.dir||'(main folder)')}</span></span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`; }).join(''); };
+  const shown=groups.filter(([g])=>!off(g) || FB.files.some(f=>f.kind===g && inView(f)));
+  const hasOther=FB.files.some(f=>(plan?['plan','snap']:['planning','res']).includes(f.kind) && !f.week);
+  const weekChips = (weeks.length||hasOther) ? `<div class="chips">${weeks.map(w=>`<button class="chip ${String(w)===FB.week?'on':''}" data-act="w:${w}">Week ${w}</button>`).join('')}${hasOther?`<button class="chip ${FB.week==='other'?'on':''}" data-act="w:other">Main folder</button>`:''}<button class="chip ${FB.week===''?'on':''}" data-act="w:">All</button></div>` : '';
+  openModal(`<div class="mh"><h2>📁 ${esc(FOLDER.name)}</h2><div class="muted small">${plan?'Choose the plan to open — from PLANS/week_XX':'Tick the files to import — DIPS Plan + Resources for each day, Resources alone, the customer master or the fixed routes'} · newest first</div></div>
    <div class="mb"><div class="chips"><button class="chip ${FB.mode==='data'?'on':''}" data-act="m:data">Planning data</button><button class="chip ${FB.mode==='plan'?'on':''}" data-act="m:plan">Saved plans</button></div>
-    ${groups.map(([g,t])=>`<div><label>${t}</label><div class="mlist fblist" style="max-height:220px">${rows(g)}</div></div>`).join('')}</div>
-   <div class="mf"><button class="btn" data-act="manual" style="margin-right:auto">Choose files manually…</button><button class="btn" data-act="refresh">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="fbOk" ${FB.sel.size?'':'disabled'}>${single?'Open plan':'Import selected'}</button></div>`,
+    ${weekChips}
+    ${shown.map(([g,t])=>`<div><label>${t}</label><div class="mlist fblist" style="max-height:${off(g)?120:220}px">${rows(g)}</div></div>`).join('')}</div>
+   <div class="mf"><button class="btn" data-act="manual" style="margin-right:auto">Choose files manually…</button><button class="btn" data-act="refresh">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="fbOk" ${FB.sel.size?'':'disabled'}>${plan?'Open plan':'Import selected'}</button></div>`,
    {onAct:a=>{
-     if(a.startsWith('m:')){ FB.mode=a.slice(2); FB.sel.clear(); renderFolderBrowser(); return; }
+     if(a.startsWith('m:')){ FB.mode=a.slice(2); FB.sel.clear(); const ws=fbWeeks(); FB.week=ws.length?String(ws[0]):''; renderFolderBrowser(); return; }
+     if(a.startsWith('w:')){ FB.week=a.slice(2); FB.sel.clear(); renderFolderBrowser(); return; }
      if(a==='refresh') return openFolderBrowser(FB.mode);
      if(a==='manual'){ if(FB.mode==='plan') openPlanPicker(); else { UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); } return; }
-     if(a==='import'){ const fs=FB.files.filter(f=>FB.sel.has(f.name)).map(f=>f.file); if(!fs.length) return;
+     if(a==='import'){ const fs=FB.files.filter(f=>FB.sel.has(f.path)).map(f=>f.file); if(!fs.length) return;
        if(FB.mode==='plan') handlePlanFile(fs[0]); else { UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); takeFiles(fs); } }
    }});
   $('modal').classList.add('wide');
   $('modal').querySelectorAll('input[name=fb]').forEach(i=>i.addEventListener('change',()=>{
-    if(single) FB.sel=new Set([i.value]); else i.checked?FB.sel.add(i.value):FB.sel.delete(i.value);
+    if(plan) FB.sel=new Set([i.value]); else i.checked?FB.sel.add(i.value):FB.sel.delete(i.value);
     $('fbOk').disabled=!FB.sel.size; }));
 }
-// save straight into the shared folder (never overwrites: adds (2), (3)… if the name exists)
-async function saveToFolder(base, ext, content, mime){
+// a subfolder, matched without case ("PLANS" / "Plans", "week_45" / "Week_45"); created if missing
+async function subDir(dir, name, alts){
+  const want=[name].concat(alts||[]).map(x=>x.toLowerCase());
+  for await (const [n,h] of dir.entries()) if(h.kind==='directory' && want.includes(n.toLowerCase())) return h;
+  return dir.getDirectoryHandle(name,{create:true});
+}
+// where plans are saved: PLANS/week_XX, XX = ISO week of the day being planned (today if none)
+async function planDir(){
+  const d=(P.day&&dayMap[P.day]&&dayMap[P.day].date)||todayStr(); const w=String(isoWeek(d)).padStart(2,'0');
+  const plans=await subDir(FOLDER.handle,'PLANS'); const wk=await subDir(plans,'week_'+w,['week '+w,'week'+w,'week_'+(+w)]);
+  return {dir:wk, path:`${plans.name}/${wk.name}`};
+}
+// save into a folder (never overwrites: adds (2), (3)… if the name exists)
+async function saveToFolder(dir, base, ext, content, mime){
   let name=base, n=1;
-  for(;;){ try{ await FOLDER.handle.getFileHandle(name+ext); n++; name=`${base} (${n})`; }catch(e){ break; } }
-  const fh=await FOLDER.handle.getFileHandle(name+ext,{create:true}); const w=await fh.createWritable(); await w.write(new Blob([content],{type:mime})); await w.close();
+  for(;;){ try{ await dir.getFileHandle(name+ext); n++; name=`${base} (${n})`; }catch(e){ break; } }
+  const fh=await dir.getFileHandle(name+ext,{create:true}); const w=await fh.createWritable(); await w.write(new Blob([content],{type:mime})); await w.close();
   return name;
 }
 async function startUser(){
@@ -2026,9 +2081,10 @@ function planObject(fileName){
     savedAt:new Date().toISOString(), savedBy:PREFS.name||'', day:P.day&&dayMap[P.day]?dayMap[P.day].label:'',
     state:clone0(S), uploads:clone0(UPLOADS), prefs:{hideSample:!!PREFS.hideSample}, customers:MASTER?clone0(MASTER):null};
 }
+// File_Arch: version_date_time_user, e.g. v0.9.2_2026-11-05_15.58_Willian
 function defaultFileName(){
-  const d=new Date();
-  return safeName(`v${APP_VERSION} - ${ymd(d.getFullYear(),d.getMonth()+1,d.getDate())} ${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`);
+  const d=new Date(); const user=(FOLDER.user||PREFS.name||'').replace(/[^\w.-]+/g,'-').replace(/^-+|-+$/g,'');
+  return safeName(`v${APP_VERSION}_${ymd(d.getFullYear(),d.getMonth()+1,d.getDate())}_${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}${user?'_'+user:''}`);
 }
 const canPickSave = () => typeof window.showSaveFilePicker==='function' && window.self===window.top;
 // Opens the "Save as" window (Chrome / Edge). If the browser can't, it downloads with the same name.
@@ -2036,11 +2092,11 @@ const canPickSave = () => typeof window.showSaveFilePicker==='function' && windo
 async function saveFile(suggested, build, mime, ext, desc){
   if(FOLDER.status==='ok' && FOLDER.handle){
     try{ if(await folderCheck(FOLDER.handle,true)==='ok'){
-      let content=null, used=null;
+      const {dir, path}=await planDir();
       // work out the final name first so it can be written into the file
-      let name=suggested, n=1; for(;;){ try{ await FOLDER.handle.getFileHandle(name+ext); n++; name=`${suggested} (${n})`; }catch(e){ break; } }
-      content=build(name); used=await saveToFolder(name, ext, content, mime);
-      return {name:used, picked:true, folder:true};
+      let name=suggested, n=1; for(;;){ try{ await dir.getFileHandle(name+ext); n++; name=`${suggested} (${n})`; }catch(e){ break; } }
+      const used=await saveToFolder(dir, name, ext, build(name), mime);
+      return {name:used, picked:true, folder:true, path};
     } }catch(e){ toast('Could not save to the shared folder — choose where to save instead'); }
   }
   if(canPickSave()){
@@ -2060,7 +2116,7 @@ async function savePlanFile(){
   const r=await saveFile(defaultFileName(), name=>JSON.stringify(plan=planObject(name)), 'application/json', '.json', 'Route Planner plan');
   if(!r){ toast('Save cancelled'); return; }
   setLineage('Saved', r.name, plan.history);
-  toast(r.folder ? `Saved to 📁 ${FOLDER.name}: “${r.name}.json”` : r.picked ? `Saved “${r.name}.json”` : `“${r.name}.json” saved to your Downloads folder — move it to the SharePoint folder`);
+  toast(r.folder ? `Saved to 📁 ${r.path}: “${r.name}.json”` : r.picked ? `Saved “${r.name}.json”` : `“${r.name}.json” saved to your Downloads folder — move it to the SharePoint folder`);
 }
 async function saveSnapshot(){
   let plan=null;
@@ -2071,7 +2127,7 @@ async function saveSnapshot(){
     return html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(name+' (snapshot)')}</title>`);
   }, 'text/html', '.html', 'Route Planner snapshot');
   if(!r){ toast('Save cancelled'); return; }
-  toast(r.folder ? `Snapshot saved to 📁 ${FOLDER.name}: “${r.name}.html”` : r.picked ? `Snapshot saved “${r.name}.html”` : `“${r.name}.html” saved to your Downloads folder — move it to the SharePoint folder`);
+  toast(r.folder ? `Snapshot saved to 📁 ${r.path}: “${r.name}.html”` : r.picked ? `Snapshot saved “${r.name}.html”` : `“${r.name}.html” saved to your Downloads folder — move it to the SharePoint folder`);
 }
 $('shareBtn').onclick=()=>{
   const sm=planSummary(S,UPLOADS);
@@ -2084,7 +2140,7 @@ $('shareBtn').onclick=()=>{
       <div class="card2"><b>📄 Plan file (.json)</b><div class="muted small">For planners who will <b>keep working</b> on it. They open the Route Planner and click <b>Open plan</b>.</div><button class="btn pri" data-act="json">Save plan file…</button></div>
       <div class="card2"><b>📸 Snapshot (.html)</b><div class="muted small">For anyone who just needs to <b>view or print</b> it. They open the file directly — no import needed.</div><button class="btn" data-act="snap">Save snapshot…</button></div>
     </div>
-    <div class="note info">${FOLDER.status==='ok'?`Files are saved straight into the shared folder <b>📁 ${esc(FOLDER.name)}</b>.`:canPickSave()?'A <b>Save as</b> window opens so you can choose the shared SharePoint folder (or your synced OneDrive / SharePoint folder).':'This browser can\'t show a Save as window here, so the file goes to your <b>Downloads</b> folder — move it to the SharePoint folder. (Open this file in Chrome or Edge from your computer to choose the folder directly, or turn on “Ask where to save each file” in the browser\'s download settings.)'} Agree who owns each day's plan — files don't merge if two people edit at the same time.</div></div>
+    <div class="note info">${FOLDER.status==='ok'?`Files are saved into <b>📁 ${esc(FOLDER.name)} › PLANS › week_XX</b> (the week of the day you are planning).`:canPickSave()?'A <b>Save as</b> window opens so you can choose the shared SharePoint folder (or your synced OneDrive / SharePoint folder).':'This browser can\'t show a Save as window here, so the file goes to your <b>Downloads</b> folder — move it to the SharePoint folder. (Open this file in Chrome or Edge from your computer to choose the folder directly, or turn on “Ask where to save each file” in the browser\'s download settings.)'} Agree who owns each day's plan — files don't merge if two people edit at the same time.</div></div>
    <div class="mf"><button class="btn" data-act="close">Close</button></div>`,
    {onAct:a=>{ PREFS.name=$('shName').value.trim(); savePrefs(); if(a==='json') savePlanFile(); if(a==='snap') saveSnapshot(); }});
   $('modal').classList.add('wide');
