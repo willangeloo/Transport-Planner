@@ -26,7 +26,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   await pick(p);
   ok(!(await p.isVisible('#noMaster')),'banner gone after load');
   const bays=await p.textContent('#cBay'); ok(bays.includes('All bays (5)')&&bays.includes('BAY 01')&&bays.includes('BAY 02')&&bays.includes('BAY 04'),'5 customers, bays normalised: '+bays.replace(/\s+/g,' ').slice(0,120));
-  const days=await p.evaluate(()=>JSON.parse(localStorage.getItem('routePlannerBeta.v082.customers')).list.map(c=>c.id+':'+c.days.join('')+':'+c.tw));
+  const days=await p.evaluate(()=>JSON.parse(localStorage.getItem('routePlannerBeta.v082.customers')).list.map(c=>c.id+':'+c.days.join('')+':'+(c.tw||'')));
   ok(days.join(' ')==='90000001:02:08:00-12:00 90000002:02:10:00-15:00 90000003:13: 90000004:4: 90000005:0:09:00-17:00','days/time windows parsed: '+days.join(' '));
   ok((await p.textContent('#pDay')).includes('03.11'),'planning day loaded');
   await p.screenshot({path:OUT+'/after-load.png'});
