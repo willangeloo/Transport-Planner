@@ -7,7 +7,7 @@
 - move, defer, insert or split orders, add routes, and edit or add customers;
 - produce a change report used to update other systems;
 - share plans as `.json` files or view-only `.html` snapshots;
-- tag every order's docket (Pink & White / Offloading);
+- tag every order's docket (P&W / Check Sheet);
 - give each person a role (Master, Manager, User, Viewer) from a users file.
 
 Open `Route Planner.html` in Chrome or Edge.
@@ -26,7 +26,7 @@ This repository is public, so no customer, staff or operational data is committe
 
 | File | How it gets into the app |
 |---|---|
-| `users.json` (people and roles) | Home page → **Load users file…** once per computer. See [users-config.md](docs/users-config.md) |
+| `users.json` (people, roles, folders) | Read from `MASTER_DATA` on the start window. Nobody can use the planner without picking a name from it and passing the folder check. See [users-config.md](docs/users-config.md) |
 | `MASTER_DEL_DETAILS.xlsx` (customer master) | Read from `MASTER_DATA` when the shared folder is linked (or **Load day** → drop the file). It's kept in the browser and copied into saved plans and snapshots |
 | `FIXED_ROUTES_DIPSDATA.xls` | Same as the customer master |
 | Planning + RESOURCES (`DIPS_Plan_<wd>.xlsx`, `RES_<wd>.xlsx`) | **Load day** |

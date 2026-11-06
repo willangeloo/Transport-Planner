@@ -33,7 +33,9 @@ write('MASTER_DATA/FIXED_ROUTES_DIPSDATA.xlsx','Sheet1',[['Route Id','Driver','T
 fs.writeFileSync(path.join(OUT,'MASTER_DATA','users.json'),JSON.stringify({company:'Demo Transport Ltd', users:[
   {name:'Alex',role:'MASTER',path:'C:\\Users\\alex\\OneDrive - Demo Transport\\Transport\\Route_planning'},
   {name:'Sam',role:'MANAGER',path:'C:\\Users\\sam\\OneDrive - Demo Transport\\Transport\\Route_planning'},
-  {name:'Jordan',role:'USER',path:''},{name:'Casey',role:'USER',path:''},{name:'Warehouse',role:'VIEWER',path:''}]},null,2));
+  {name:'Jordan',role:'USER',path:''},   // no folder yet: shows the "folder check failed" → set your folder steps
+  {name:'Casey',role:'USER',path:'C:\\Users\\casey\\OneDrive - Demo Transport\\Transport\\Route_planning'},
+  {name:'Warehouse',role:'VIEWER',path:'C:\\Users\\warehouse\\OneDrive - Demo Transport\\Transport\\Route_planning'}]},null,2));
 
 // ---- one week of reports: week 46, Mon 09.11 – Fri 13.11.2026
 const WEEK=[['Mon','09/11/2026'],['Tue','10/11/2026'],['Wed','11/11/2026'],['Thu','12/11/2026'],['Fri','13/11/2026']];

@@ -1,10 +1,10 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.10.0). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.10.1). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
-1. [Start: users file, your name and the shared folder](#1-start-users-file-your-name-and-the-shared-folder)
+1. [Start: company folder, your name and the folder check](#1-start-company-folder-your-name-and-the-folder-check)
 2. [Load reports (a planning day)](#2-load-reports-a-planning-day)
 3. [Open a saved plan](#3-open-a-saved-plan)
 4. [Move orders](#4-move-orders)
@@ -14,7 +14,7 @@ How to do each task in the Route Planner (v0.10.0). The screenshots come from th
 8. [Create a route](#8-create-a-route)
 9. [Create a new day](#9-create-a-new-day)
 10. [Edit or add customer details](#10-edit-or-add-customer-details)
-11. [Docket type (Pink & White / Offloading)](#11-docket-type-pink--white--offloading)
+11. [Docket type (P&W / Check Sheet)](#11-docket-type-pw--check-sheet)
 12. [Change report and exporting changes](#12-change-report-and-exporting-changes)
 13. [Save and share](#13-save-and-share)
 14. [Customize (Master only)](#14-customize-master-only)
@@ -22,45 +22,77 @@ How to do each task in the Route Planner (v0.10.0). The screenshots come from th
 
 ---
 
-## 1. Start: users file, your name and the shared folder
+## 1. Start: company folder, your name and the folder check
 
-When the app opens, it asks **who is planning**.
+The planner is **locked** when it opens. Nothing can be used until you choose your name and pass the folder check. The window can't be closed by clicking outside it, pressing Escape or using the keyboard.
 
-1. The first time on a computer, click **📄 Load users file…** and choose `users.json`, which is usually in `MASTER_DATA`. The file lists everyone's name and role, and the app remembers it.
-2. Click your name. Your role is shown next to it.
-3. The first time, the app asks you to **link the shared folder**. Click **Choose folder…** and pick the `Route_planning` folder. The window shows the folder your users file expects.
-4. That's it. The **customer master** and the **fixed routes** are read automatically from `MASTER_DATA`, and they're read again only when those files change.
+1. **Link the company folder.** This is needed once per computer. Click **📁 Choose folder…** and pick the shared `Route_planning` folder.
+2. **Users file.** The app reads `users.json` from `MASTER_DATA`. If there are several users files, choose one, in the same way as opening a plan.
+3. **Who is planning?** Click your name. Names are grouped by role.
+4. **Folder check.** The app checks:
+   - the company folder is available;
+   - you have a folder set in the users file;
+   - the linked folder is your folder;
+   - `MASTER_DATA` and `REPORTS` are there;
+   - the customer master and fixed routes are there.
+5. **The result:**
+   - **✅ Ready:** click **Continue** to open the planner, or **← Go back** to pick another name.
+   - **⛔ Failed:** the planner stays locked. **Continue — fix it** takes you to the fix (set your folder, or choose the right folder). **← Go back** returns to the names.
+6. **Inside the planner:** the customer master and fixed routes are read automatically from `MASTER_DATA`. If someone changes them in the folder later, the app shows what changed and asks before loading the new version.
 
-| Home page | Link the folder |
+| Start: link the folder | Who is planning? | Folder check |
+|---|---|---|
+| ![Link the company folder](img/01-start-link-folder.png) | ![Users](img/02-start-users.png) | ![Folder check](img/03-start-folder-check.png) |
+
+| Check failed | Set your folder |
 |---|---|
-| ![Home page with users](img/02-home-users.png) | ![Link the shared folder](img/03-link-folder.png) |
+| ![Folder check failed](img/24-folder-check-failed.png) | ![Set my folder](img/25-set-my-folder.png) |
 
-> Without a users file the app runs in **open mode**, where everyone can do everything. That's useful for trying it out.
-> The 👤 button at the top shows your name, your role and the linked folder. Click it to switch user, change the folder or (Master and Manager only) manage users.
+**Setting a folder:** paste the full path of the `Route_planning` folder as it is on that person's computer, or use **📁 Browse…** to pick your own. The folder is saved into `MASTER_DATA/users.json` for everyone. Who can set it:
+- **Master:** anyone's folder.
+- **Manager:** their own, and those of Users and Viewers.
+- **Everyone else:** only their own.
+
+> The 👤 button at the top shows your name, role and folder. Click it for **My folder…**, **Manage users…** (Master and Manager), or **Switch user**, which goes back to the locked start window.
 
 ## 2. Load reports (a planning day)
 
-Reports live in `REPORTS/week_XX/`, e.g. `DIPS_Plan_Mon.xlsx` and `RES_Mon.xlsx`.
+Every file type has its own folder, and only files in those folders are listed. Files anywhere else, or with unknown names, aren't shown.
+
+| Folder | Files |
+|---|---|
+| `MASTER_DATA` | `MASTER_DEL_DETAILS`, `FIXED_ROUTES_DIPSDATA`, `users.json` |
+| `REPORTS/week_XX` | `DIPS_Plan_<wd>`, `RES_<wd>`, `PROD_<wd>`, `UPLIFTS_<wd>`, `POD_<wd>` (older names like `Tue - 03.11.xlsx` also work) |
+| `PLANS/week_XX` | saved plans (`.json`) and snapshots (`.html`) |
 
 1. Go to **Plan the day** and click **⤒ Load day**.
-2. The window opens on the **newest week** (use the week chips to switch). Files are grouped as DIPS Plan, Resources, Products, Uplifts, POD, Customer master and Fixed routes. Each one shows its day, worked out from the week folder and the weekday in the name.
-3. Tick the DIPS Plan and Resources files for the days you want. You can load several days at once, or Resources on their own to create or update a day.
+2. The window opens on the **newest week** (use the week chips to switch). Each file shows its day and a tag:
+   - **✓ loaded:** this exact file is in the planner.
+   - **⚠ changed since loaded:** someone changed the file in the folder after it was loaded.
+   - **not loaded**
+3. Tick the DIPS Plan and Resources files for the days you want. You can tick several days at once, or Resources on their own to create or update a day.
 4. Click **Import selected**. Check the preview (routes, drops, orders, kg, how many are on the map, and any warnings), then click **Add**.
+5. **Replacing what's loaded** (a day, the customer master or the fixed routes): a window first shows **what's different**, e.g. orders added or removed, orders on another load, weight changes, and routes. It also warns how many of your changes to that day will be lost. Click **Replace and load** or **← Back**.
 
 | Choose files | Preview |
 |---|---|
 | ![Load day](img/05-load-day.png) | ![Preview](img/06-load-preview.png) |
 
-> Products, Uplifts and POD are listed but can't be imported yet.
-> Without a linked folder, drop the files onto the window or click to choose them.
+| A file changed in the folder | Differences before replacing |
+|---|---|
+| ![Changed since loaded](img/07-file-changed.png) | ![Replace differences](img/08-replace-differences.png) |
+
+Every file loaded is logged in the change report under **Files loaded**: day, file, what changed, who and when.
+
+> Products, Uplifts and POD are listed but can't be imported yet. **Days in the planner…** (bottom left of the window) lists the loaded days, where you can remove one.
 
 ## 3. Open a saved plan
 
 1. Click **⤒ Open plan** (top right).
-2. Pick the week, then the plan file (`.json`) from `PLANS/week_XX`, and click **Open plan**.
+2. Pick the week, then the plan file (`.json`) from `PLANS/week_XX`, and click **Open plan**. Only plans in `PLANS` are listed.
 3. Check who saved it and when, then click **Open this plan**. It replaces what's in your planner, so save your own work first if you need it.
 
-> A **snapshot** (`.html`) opens with a double-click. It's view-only, for people who just need to look at or print the plan.
+> A **snapshot** (`.html`) opens with a double-click on any computer, without the start window. It's strictly view-only, for people who just need to look at or print the plan.
 
 ## 4. Move orders
 
@@ -77,7 +109,7 @@ Reports live in `REPORTS/week_XX/`, e.g. `DIPS_Plan_Mon.xlsx` and `RES_Mon.xlsx`
 
 | One drop | Group selected |
 |---|---|
-| ![Move one](img/08-move-one.png) | ![Select a group](img/09-select-group.png) |
+| ![Move one](img/10-move-one.png) | ![Select a group](img/11-select-group.png) |
 
 ## 5. Defer orders
 
@@ -91,29 +123,29 @@ Reports live in `REPORTS/week_XX/`, e.g. `DIPS_Plan_Mon.xlsx` and `RES_Mon.xlsx`
 
 | One drop, onto a bay | Group, no bay yet |
 |---|---|
-| ![Defer one](img/10-defer-one.png) | ![Defer a group](img/11-defer-group.png) |
+| ![Defer one](img/12-defer-one.png) | ![Defer a group](img/13-defer-group.png) |
 
 **Later:** drops deferred without a bay wait in the change report under **Deferred — not on a bay yet**. Tick them and click **Allocate**. The original line in **Deferred orders** is then updated with the day and bay they ended up on. It doesn't appear again as a reallocation.
 
-![Allocate deferred drops](img/18-allocate.png)
+![Allocate deferred drops](img/20-allocate.png)
 
 ## 6. Split a customer's orders
 
 1. Click **Split** on a drop that has more than one order.
 2. Tick the orders that go on a **new line**.
-3. Choose the **docket type for each line** (new line and remaining line), then click **Split**.
+3. Choose the **docket for each line** (**P&W** or **Check Sheet**, for the new line and the remaining line), then click **Split**.
 4. Each line can now be moved or deferred on its own. **Merge** puts them back together.
 
-![Split](img/12-split.png)
+![Split](img/14-split.png)
 
 ## 7. Insert an order
 
 1. Click **+ Insert order**.
 2. Enter the order number and the Ship To (type the number or start typing a name). The customer's details and usual bay fill in.
 3. Choose the bay and, if you like, the weight, address and note.
-4. Choose the **docket type** (required): 🩷 Pink & White or 📄 Offloading. Then click **Insert order**.
+4. Choose the **docket** (required): **P&W** or **Check Sheet**. The chosen button turns solid. Then click **Insert order**.
 
-![Insert order](img/13-insert-order.png)
+![Insert order](img/15-insert-order.png)
 
 ## 8. Create a route
 
@@ -121,7 +153,7 @@ Reports live in `REPORTS/week_XX/`, e.g. `DIPS_Plan_Mon.xlsx` and `RES_Mon.xlsx`
 2. Fill in bay, loading number, driver, helper and truck (required), plus pallets, km, area and note (optional).
 3. Click **Add route**. It appears on the day and in the change report under **New routes**.
 
-![New route](img/14-new-route.png)
+![New route](img/16-new-route.png)
 
 ## 9. Create a new day
 
@@ -129,7 +161,7 @@ Reports live in `REPORTS/week_XX/`, e.g. `DIPS_Plan_Mon.xlsx` and `RES_Mon.xlsx`
 2. Pick the date. The window shows which **fixed routes** run that weekday.
 3. Click **Create day**. When its DIPS Plan and Resources files arrive, load them and they fill in the same day.
 
-![New day](img/15-new-day.png)
+![New day](img/17-new-day.png)
 
 ## 10. Edit or add customer details
 
@@ -139,20 +171,22 @@ Reports live in `REPORTS/week_XX/`, e.g. `DIPS_Plan_Mon.xlsx` and `RES_Mon.xlsx`
 
 Customer changes are listed in the change report. The master file isn't changed, so the edits are what staff copy into the other systems.
 
-![Edit customer](img/16-edit-customer.png)
+![Edit customer](img/18-edit-customer.png)
 
-## 11. Docket type (Pink & White / Offloading)
+## 11. Docket type (P&W / Check Sheet)
 
-Every order has a docket type:
+Every order has a docket:
 
-- **From the planning file:** always **Offloading**.
+- **From the planning file:** always **Check Sheet**.
 - **Inserted orders:** you choose when inserting (required).
 - **Split lines:** you choose for each line when splitting.
+
+The buttons: **P&W** has a pink outline and turns solid pink when chosen; **Check Sheet** has a grey outline and turns solid grey.
 
 You can change it in the **Change report**:
 
 - **Any order:** type the order number in the 🧾 **Docket type** box at the top and click **Change…**.
-- **Orders in the tables:** click its tag (**Offload** / **P&W**).
+- **Orders in the tables:** click its tag (**Check Sheet** / **P&W**).
 
 Each change is listed under **Docket type changed** and can be undone. The plan shows the tag on every line.
 
@@ -160,7 +194,7 @@ Each change is listed under **Docket type changed** and can be undone. The plan 
 
 The **Change report** tab lists every change, with the order numbers staff need in order to update the other systems.
 
-- **Sections:** Deferred, Reallocated, Inserted, New routes, Route details from RESOURCES, Docket type, Customer details and Deferred not on a bay yet.
+- **Sections:** Deferred, Reallocated, Inserted, New routes, **Files loaded**, Route details from RESOURCES, Docket type, Customer details and Deferred not on a bay yet.
 - **Boxes at the top** show only that section (click again to show everything).
 - **Search** looks across everything, including driver, helper and truck. **Filter this section** works within one section.
 - **Click a column heading** to sort that section (click again to reverse).
@@ -169,7 +203,7 @@ The **Change report** tab lists every change, with the order numbers staff need 
 
 | Report | After allocating and sorting |
 |---|---|
-| ![Report](img/17-report.png) | ![Report after](img/19-report-after.png) |
+| ![Report](img/19-report.png) | ![Report after](img/21-report-after.png) |
 
 ## 13. Save and share
 
@@ -185,7 +219,7 @@ The **Change report** tab lists every change, with the order numbers staff need 
 - customer edits;
 - the users file and shared-folder links.
 
-The app then reopens on the home page, ready to load the users file again. Files in the shared folder aren't touched, so save first if you want to keep the plan.
+The app then reopens on the locked start window (link the folder, then choose your name). Files in the shared folder aren't touched, so save first if you want to keep the plan.
 
 ## 14. Customize (Master only)
 
@@ -194,7 +228,7 @@ The **Customize** tab is only visible to Master users. Changes are saved with th
 - **Bay colours:** pick a colour for each bay, used on both maps and the route list. **Default** goes back to the automatic colour.
 - **Route names for one day:** give a route a name for one day only, e.g. "City Express" instead of BAY 01.
 
-![Customize](img/20-customize.png)
+![Customize](img/22-customize.png)
 
 ## 15. Roles: who can do what
 
@@ -203,7 +237,8 @@ The **Customize** tab is only visible to Master users. Changes are saved with th
 | View plans, maps and report; print and export | ✅ | ✅ | ✅ | ✅ |
 | Load days, move, defer, split, insert, routes, days, customers, dockets, save | ✅ | ✅ | ✅ | — |
 | Undo, remove days or fixed routes, full reset | ✅ | ✅ | — | — |
-| Manage users (roles and folders) | ✅ | ✅ except Master users; can't add users | — | — |
+| Manage users (roles) | ✅ | ✅ Users and Viewers only; can't add users | — | — |
+| Set the folder path of… | anyone | themselves, Users and Viewers | themselves | themselves |
 | Add or remove users | ✅ | — | — | — |
 | Customize tab | ✅ | — | — | — |
 
@@ -211,4 +246,4 @@ A **Viewer** sees the planner like a snapshot, with no editing buttons. Roles ar
 
 | Viewer | Manage users (Manager) |
 |---|---|
-| ![Viewer](img/21-viewer.png) | ![Manage users](img/22-manage-users.png) |
+| ![Viewer](img/23-viewer.png) | ![Manage users](img/26-manage-users.png) |

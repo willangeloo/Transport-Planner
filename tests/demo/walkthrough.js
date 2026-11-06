@@ -33,22 +33,30 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const shot=async name=>{ if(!IMG) return; n++; await p.waitForTimeout(250); await p.screenshot({path:path.join(IMG,`${String(n).padStart(2,'0')}-${name}.png`)}); };
   const modalText=async()=>(await p.textContent('#modal')).replace(/\s+/g,' ');
   const closeModal=async()=>{ if(await p.isVisible('#scrim.on')) await p.evaluate(()=>{ const x=document.querySelector('#modal [data-act=close]'); if(x) x.click(); }); };
-  const pickUser=async name=>{ await p.waitForSelector(`[data-act="u:${name}"]`,{state:'visible'}); await p.click(`[data-act="u:${name}"]`); };
-  // link the folder; the first time MASTER_DATA is read and the page reloads
-  const link=async()=>{ await p.waitForSelector('#modal [data-act=link]',{state:'visible'});
-    await Promise.all([p.waitForEvent('load',{timeout:6000}).catch(()=>null), p.click('#modal [data-act=link]')]);
-    await p.waitForTimeout(400); if(await p.isVisible('#modal [data-act=link]')) await p.click('#modal [data-act=link]');
-    await p.waitForFunction(()=>document.getElementById('userBtn').textContent.includes('Route_planning')); };
+  // the start window: link the company folder (when the browser asks), pick the user, pass the folder check
+  const enter=async name=>{ const done=()=>p.evaluate(n=>{ const b=document.getElementById('userBtn'); return !!b && b.textContent.includes(n) && !document.body.classList.contains('gated'); },name).catch(()=>false);
+    const settled=async()=>{ if(!(await done())) return false; await p.waitForTimeout(1200); return await done(); };   // the app may reload itself once (new customer master)
+    for(let i=0;i<40 && !(await settled());i++){
+      if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=link]').catch(()=>{})]);
+      else if(await p.isVisible(`#modal [data-act="u:${name}"]`).catch(()=>false)) await p.click(`#modal [data-act="u:${name}"]`).catch(()=>{});
+      else if(await p.isVisible('#modal [data-act=go]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=go]').catch(()=>{})]);
+      await p.waitForTimeout(300); }
+    ok(await done(), `${name} passed the start window`); };
+  const switchTo=async name=>{ await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); await enter(name); };
   const planTab=async()=>{ await p.click('nav [data-tab=plan]'); await p.click('#expAll'); };
 
-  // 1. HOME: load the users file, pick a user, link the shared folder
+  // 1. START WINDOW: the tool is locked until a user from MASTER_DATA/users.json passes the folder check
   await p.goto('file://'+APP);
-  await p.waitForSelector('[data-act=cfgload]'); await shot('home-no-users-file');
-  const [fc]=await Promise.all([p.waitForEvent('filechooser'), p.click('[data-act=cfgload]')]); await fc.setFiles(path.join(DEMO,'MASTER_DATA','users.json'));
-  await p.waitForSelector('[data-act="u:Alex"]'); const home=await modalText();
-  ok(home.includes('Demo Transport Ltd') && /Alex\s*Master/.test(home) && /Warehouse\s*Viewer/.test(home),'home page lists the users file with roles'); await shot('home-users');
-  await pickUser('Alex'); await p.waitForSelector('#modal [data-act=link]'); ok((await modalText()).includes('Route_planning'),'link window shows the folder from the users file'); await shot('link-folder');
-  await link();
+  await p.waitForSelector('#modal [data-act=link]'); await shot('start-link-folder');
+  ok(await p.evaluate(()=>document.querySelector('header').inert && document.querySelector('main').inert),'locked: header and page are inert');
+  await p.keyboard.press('Escape'); await p.mouse.click(5,790); await p.waitForTimeout(200);
+  ok(await p.isVisible('#modal [data-act=link]'),'locked: Escape and clicking outside do not close the start window');
+  await p.click('#modal [data-act=link]'); await p.waitForSelector('[data-act="u:Alex"]');
+  const home=await modalText(); ok(home.includes('Demo Transport Ltd') && home.includes('users.json') && /Master\s*👤 Alex/.test(home) && /Viewer\s*👤 Warehouse/.test(home),'users listed from MASTER_DATA › users.json, by role'); await shot('start-users');
+  ok(!(await p.isVisible('text=Continue without a user')),'no way in without a user');
+  await p.click('[data-act="u:Alex"]'); await p.waitForSelector('#modal [data-act=go]'); const chk=await modalText();
+  ok(chk.includes('Ready') && chk.includes('MASTER_DATA') && chk.includes('Route_planning'),'folder check passed for Alex'); await shot('start-folder-check');
+  await Promise.all([p.waitForEvent('load',{timeout:8000}).catch(()=>null), p.click('#modal [data-act=go]')]); await enter('Alex');
   ok((await p.textContent('#cBay')).includes('All bays (58)'),'customer master read from MASTER_DATA automatically (58 customers)');
   ok(/Alex\s*Master/.test(await p.textContent('#userBtn')),'header shows user and role'); await shot('customers');
 
@@ -58,8 +66,19 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   for(const wd of ['Mon','Tue','Wed','Thu','Fri']) for(const k of ['DIPS_Plan','RES']) await p.check(`input[value="REPORTS/week_46/${k}_${wd}.xlsx"]`);
   await p.click('#fbOk'); await p.waitForSelector('[data-act=add]'); await shot('load-preview');
   await p.click('[data-act=add]'); await p.waitForTimeout(400);
+  await p.click('#uploadBtn'); await p.waitForSelector('input[name=fb]');
+  ok(/DIPS_Plan_Mon\.xlsx\s*✓ loaded/.test(await modalText()) && /PROD_Mon\.xlsx/.test(await modalText()),'loaded reports are tagged “✓ loaded”'); await p.click('#modal [data-act=close]');
   const days=(await p.textContent('#pDay')).replace(/\s+/g,' ');
   ok(['Mon 09.11','Tue 10.11','Wed 11.11','Thu 12.11','Fri 13.11'].every(d=>days.includes(d)),'all five days loaded: '+days.trim());
+  // someone updates Friday's report in the company folder: it is flagged, and replacing the day shows what changes
+  await p.evaluate(()=>{ const t=window.__TREE.REPORTS.week_46['DIPS_Plan_Fri.xlsx']; const wb=XLSX.read(t.b64,{type:'base64'}); const n=wb.SheetNames[0];
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1}); rows[1][7]=999; rows.splice(2,1); wb.Sheets[n]=XLSX.utils.aoa_to_sheet(rows); t.b64=XLSX.write(wb,{type:'base64',bookType:'xlsx'}); t.mod=Date.now(); });
+  await p.click('#uploadBtn'); await p.waitForSelector('input[name=fb]');
+  ok(/DIPS_Plan_Fri\.xlsx\s*⚠ changed since loaded/.test(await modalText()),'a report changed in the folder after loading is tagged “⚠ changed since loaded”'); await shot('file-changed');
+  await p.check('input[value="REPORTS/week_46/DIPS_Plan_Fri.xlsx"]'); await p.check('input[value="REPORTS/week_46/RES_Fri.xlsx"]'); await p.click('#fbOk'); await p.waitForSelector('[data-act=add]'); await p.click('[data-act=add]');
+  await p.waitForSelector('#modal [data-act=go]'); const rep1=await modalText();
+  ok(rep1.includes('Replace what is loaded') && rep1.includes('Fri 13.11') && /−1\s*order/.test(rep1) && /1\s*weight change/.test(rep1),'replacing a day first shows the differences (−1 order, 1 weight change)'); await shot('replace-differences');
+  await p.click('#modal [data-act=go]'); await p.waitForTimeout(300);
   await p.selectOption('#pDay','D2026-11-09'); await p.click('#expAll');
   ok((await p.textContent('#pRoutes')).includes('BAY 07'),'fixed route BAY 07 shown on Monday (from FIXED_ROUTES)'); await shot('plan-monday');
 
@@ -141,8 +160,8 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const at=async t=>{ await p.clock.setFixedTime(new Date(t)); };
   await at('2026-11-06T16:05:00'); await p.click('#saveBtn'); await p.waitForTimeout(500);
   let saved=await p.evaluate(()=>Object.keys((window.__TREE.PLANS||{}).week_46||{}));
-  ok(saved.some(f=>/^v0\.10\.0_.*_Alex\.json$/.test(f)),'Save wrote the plan into PLANS/week_46: '+saved.join(', '));
-  ok(/Saved: "v0\.10\.0_/.test(await p.textContent('#lineage')) && !(await p.textContent('#lineage')).includes('Previous'),'header shows only the current file');
+  ok(saved.some(f=>/^v\d+\.\d+\.\d+_.*_Alex\.json$/.test(f)),'Save wrote the plan into PLANS/week_46: '+saved.join(', '));
+  ok(/Saved: "v\d+\.\d+\.\d+_/.test(await p.textContent('#lineage')) && !(await p.textContent('#lineage')).includes('Previous'),'header shows only the current file');
   await at('2026-11-06T16:07:00'); await p.click('#shareBtn'); await p.click('[data-act=snap]'); await p.waitForTimeout(500); await closeModal();
   for(const [dk,t] of [['D2026-11-10','2026-11-09T15:40:00'],['D2026-11-11','2026-11-10T15:35:00'],['D2026-11-12','2026-11-11T15:50:00'],['D2026-11-13','2026-11-12T15:45:00']]){
     await p.selectOption('#pDay',dk); await p.click('#expAll');
@@ -152,27 +171,39 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   }
   saved=await p.evaluate(()=>Object.keys(window.__TREE.PLANS.week_46)); ok(saved.filter(f=>f.endsWith('.json')).length===5 && saved.some(f=>f.endsWith('.html')),`5 plan files + 1 snapshot in PLANS/week_46`);
 
-  // 13. ROLES — Viewer and User see fewer buttons
-  await p.click('#userBtn'); await p.click('#modal [data-act=users]'); await pickUser('Warehouse'); await closeModal();
+  // 13. ROLES — Viewer and User see fewer buttons; a user without a folder can't get in until it is set
+  await switchTo('Warehouse');
   await p.click('nav [data-tab=plan]'); await p.click('#expAll');
   ok(!(await p.isVisible('.drop [data-act=move] >> nth=0')) && !(await p.isVisible('#saveBtn')) && !(await p.isVisible('#navCustom')),'Viewer: no move / save / customize');
   await shot('viewer');
-  await p.click('#userBtn'); await p.click('#modal [data-act=users]'); await pickUser('Jordan'); await closeModal();
+  await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); await p.click('#modal [data-act="u:Jordan"]'); await p.waitForSelector('#modal [data-act=go]');
+  const bad=await modalText(); ok(bad.includes('Folder check failed') && bad.includes('No folder is defined'),'Jordan: folder check fails (no folder in users.json)'); await shot('folder-check-failed');
+  await p.click('#modal [data-act=go]'); await p.waitForSelector('#pPath'); await p.fill('#pPath','C:\\Users\\jordan\\OneDrive - Demo Transport\\Transport\\Route_planning'); await shot('set-my-folder');
+  await p.click('#modal [data-act=save]'); await p.waitForSelector('#modal [data-act=go]'); ok((await modalText()).includes('Ready'),'Jordan sets their own folder → check passes');
+  ok(await p.evaluate(()=>JSON.parse(window.__TREE.MASTER_DATA['users.json'].text).users.find(u=>u.name==='Jordan').path.endsWith('Route_planning')),'the folder is saved into MASTER_DATA › users.json');
+  await p.click('#modal [data-act=go]'); await enter('Jordan');
   await p.click('nav [data-tab=report]'); ok(!(await p.isVisible('[data-undo] >> nth=0')) && await p.isVisible('#rBody'),'User: no undo (cannot remove changes)');
-  await p.click('#userBtn'); await p.click('#modal [data-act=users]'); await pickUser('Sam'); await closeModal();
+  ok((await p.textContent('[data-sec=load]')).includes('DIPS_Plan_Fri.xlsx'),'“Files loaded” lists every report loaded, incl. the replaced Friday');
+  await switchTo('Sam');
   await p.click('#userBtn'); await p.click('#modal [data-act=admin]'); await p.waitForSelector('[data-ua="role:0"]');
-  ok(await p.isDisabled('[data-ua="role:0"]') && !(await p.isVisible('#modal [data-act=add]')),'Manager: cannot change Master users or add users'); await shot('manage-users'); await closeModal();
-  // write the saved plans back into the demo folder (collected before the full reset below)
+  ok(await p.isDisabled('[data-ua="role:0"]') && await p.isDisabled('[data-ua="path:0"]') && !(await p.isDisabled('[data-ua="path:2"]')) && !(await p.isVisible('#modal [data-act=add]')),'Manager: folders of Users/Viewers only; cannot change Masters or add users'); await shot('manage-users'); await closeModal();
+  // the saved plans (collected before the full reset below)
   const plans=await p.evaluate(()=>window.__TREE.PLANS.week_46);
 
-  // 14. FULL RESET (Master) — everything cleared, back to the home page
-  await p.click('#userBtn'); await p.click('#modal [data-act=users]'); await pickUser('Alex'); await closeModal();
+  // 14. A SNAPSHOT opens on any computer, view-only, without the start window
+  const snapName=Object.keys(plans).find(f=>f.endsWith('.html')); const snapFile=path.join(require('os').tmpdir(),'rp-snap-'+Date.now()+'.html'); fs.writeFileSync(snapFile,plans[snapName].text);
+  { const c2=await b.newContext(); await c2.route('**/*',r=>{ const u=r.request().url(); if(u.startsWith('file:')) return r.continue(); const k=Object.keys(libs).find(k=>u.endsWith('/'+k)); return k?r.fulfill({path:libs[k]}):r.abort(); });
+    const s2=await c2.newPage(); await s2.goto('file://'+snapFile); await s2.waitForTimeout(500);
+    ok((await s2.textContent('#userBtn')).includes('view only') && (await s2.textContent('#cBay')).includes('All bays (59)') && !(await s2.isVisible('#modal [data-act=link]')),'snapshot opens on a fresh browser: view-only, with its customers'); await c2.close(); }
+
+  // 15. FULL RESET (Master) — everything cleared, back to the start window
+  await switchTo('Alex');
   await p.click('#resetBtn'); await p.waitForSelector('#modal [data-act=ok]'); ok((await modalText()).includes('users file'),'reset window lists plan, customer master, fixed routes and users file');
   await Promise.all([p.waitForEvent('load'), p.click('#modal [data-act=ok]')]);
-  await p.waitForSelector('[data-act=cfgload]',{state:'visible'});
+  await p.waitForSelector('#modal [data-act=link]',{state:'visible'});
   // the app writes a fresh, empty plan as it starts again; nothing else may be left
   const left=await p.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !(k.endsWith('.state') && JSON.parse(localStorage.getItem(k)).log.length===0)));
-  ok(left.length===0 && (await modalText()).includes('No users file loaded') && (await p.textContent('#cBay')).includes('All bays (0)'),'after reset: no users file, no customers, home page open'+(left.length?' — left: '+left.join(','):''));
+  ok(left.length===0 && (await p.textContent('#cBay')).includes('All bays (0)'),'after reset: nothing kept, start window open'+(left.length?' — left: '+left.join(','):''));
   ok(errs.length===0,'no page errors'+(errs.length?': '+errs.join(' | '):''));
 
   const out=path.join(DEMO,'PLANS','week_46'); fs.rmSync(path.join(DEMO,'PLANS'),{recursive:true,force:true}); fs.mkdirSync(out,{recursive:true});

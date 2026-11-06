@@ -76,6 +76,9 @@ Each rule below is in the prototype today. Build each one as an API command that
 | Undo | Allowed only if nothing later changed the same orders (current state = the event's "after"). RESOURCES updates can't be undone. In the backend, undo is a **compensating event**: the audit trail is never deleted. | `canUndo`, `undo` |
 | Change report | A query over `change_event` grouped into sections, with search (incl. driver, helper, truck), per-section filter, sort, export, and "Deferred — not on a bay yet" computed from placements. | `sectionData`, `exportRow` |
 | Roles | Master / Manager / User / Viewer, as in [users-config.md](users-config.md). **Enforced in the API**, and the UI only hides buttons. | `ROLES`, `guard` |
+| Access | Nothing is visible until a known user is signed in and their folder/workspace is valid. In the backend this becomes Entra sign-in plus a check that the user belongs to a role group. | `gateHome`, `validateUser` |
+| Folder paths | Masters set anyone's path, Managers their own plus Users' and Viewers', others only their own. With a backend, paths are replaced by server-side ingestion, so no path per user is needed. | `canSetPath`, `openPathEdit` |
+| File fingerprints | Each file loaded keeps its SHA-256. The same file shows as loaded, and a changed file is flagged. Replacing a day, the master or the fixed routes shows the differences first. Every load is logged (`load` events). | `fileHash`, `fileStatus`, `dayDiff`, `custDiff`, `fixedDiff` |
 
 ## 5. Working together (concurrency)
 
@@ -122,6 +125,6 @@ A saved plan (`.json`) has: `app`, `fmt`, `version`, `fileName`, `history[]`, `s
 | `fixed` | fixed routes `{file, at, bays:[{bay, days:[0-6]}]}` |
 | `dock` | order uid → `PW` / `OFF` (only when different from the default) |
 | `look` | `{colors:{bay:#hex}, names:{"dayKey|load": name}}` |
-| `log[]` | change events: `move`, `allocate`, `defer`, `add`, `route`, `resupd`, `cust`, `dock`, with `prev` / `next` placements for undo |
+| `log[]` | change events: `move`, `allocate`, `defer`, `add`, `route`, `resupd`, `cust`, `dock`, `load` (files loaded, with a summary of what changed), with `prev` / `next` placements for undo |
 
 An order uid is `D<date>#<row>` for file orders and `A<n>` for inserted ones. A one-off import script can load the demo plans (`demo/Route_planning/PLANS/week_46`) into the new database to check that the migration is lossless.

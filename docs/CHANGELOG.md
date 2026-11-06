@@ -4,11 +4,33 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.10.1 — 2026-11-06
+
+### Bug fixes
+- **No way into the tool without a valid user.** The planner opens locked until a user from `MASTER_DATA/users.json` is chosen and passes the folder check.
+  - Clicking outside the window, Escape and keyboard navigation are blocked.
+  - "Continue without a user" and open mode are gone.
+  - A user without a valid folder can't get in until it's fixed.
+  - Snapshots are strictly view-only.
+
+### Features
+- **Start window:** link the company folder (once per computer), then the users file is read from `MASTER_DATA` (several files are listed like plans), then pick your name, then the **folder check** (OK or failed, with **Go back** / **Continue**).
+- **Folder paths by role:** Masters set anyone's, Managers their own plus Users' and Viewers', everyone else their own. Paths are pasted or picked with **Browse…** and saved straight into `MASTER_DATA/users.json`.
+- **Each file type has its own folder:** `MASTER_DATA` (master, fixed routes, users), `REPORTS/week_XX` (DIPS Plan, RES, PROD, UPLIFTS, POD) and `PLANS/week_XX`. Only files there, with known names, are listed. Manual drop or choose has been removed.
+- **File fingerprints:** files show **✓ loaded**, **⚠ changed since loaded** or **not loaded**, compared by content, so changes made in the folder outside the app are visible.
+- **Replacing what's loaded** (a day, the customer master, the fixed routes) first shows the differences (orders added or removed, other load, weight, routes, customers, bays) and how many of your changes would be lost.
+- **"Files loaded"** section in the change report: every file loaded, with what changed, who and when.
+- **Customer master and fixed routes updated in `MASTER_DATA`:** the app shows the differences and asks before loading the new version.
+
+### Edits
+- **Docket names:** **P&W** and **Check Sheet** everywhere. The buttons: P&W has a pink outline and is solid pink when chosen; Check Sheet has a grey outline and is solid grey when chosen.
+- **Tests:** the old manual-upload test was removed. The walkthrough now covers the start window, file fingerprints and snapshots (68 checks in total).
+
 ## v0.10.0 — 2026-11-06
 
 ### Features
 - **Users file and roles.** The home page loads the company's `users.json` (names, roles and each person's folder). There are four roles: **Master**, **Manager**, **User** and **Viewer**; see the [user guide](user-guide.md#15-roles-who-can-do-what). Master and Manager can manage users and export the file. No names are built into the app any more. Without a users file the app runs in open mode.
-- **Docket type** on every order: **Pink & White** or **Offloading**.
+- **Docket type** on every order: **Pink & White** or **Offloading** (renamed P&W / Check Sheet in v0.10.1).
   - Orders from the planning file are Offloading.
   - Inserted orders must choose one, and split lines choose one per line.
   - It can be changed from the change report, by order number or by clicking an order's tag. Changes get their own report section, are exported, and can be undone.
