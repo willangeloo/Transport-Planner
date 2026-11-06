@@ -30,10 +30,11 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
     window.addEventListener('beforeunload',()=>{ try{ sessionStorage.setItem('__tree',JSON.stringify(window.__TREE)); }catch(e){} }); }, JSON.stringify(TREE));
   await c.addInitScript(MOCK);
   const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message));
+  const shot2=async(pg,name)=>{ if(!IMG) return; n++; await pg.waitForTimeout(250); await pg.screenshot({path:path.join(IMG,`${String(n).padStart(2,'0')}-${name}.png`)}); };
   const shot=async name=>{ if(!IMG) return; n++; await p.waitForTimeout(250); await p.screenshot({path:path.join(IMG,`${String(n).padStart(2,'0')}-${name}.png`)}); };
   const modalText=async()=>(await p.textContent('#modal')).replace(/\s+/g,' ');
   const closeModal=async()=>{ if(await p.isVisible('#scrim.on')) await p.evaluate(()=>{ const x=document.querySelector('#modal [data-act=close]'); if(x) x.click(); }); };
-  // the start window: link the company folder (when the browser asks), pick the user, pass the folder check
+  // the start window: link the company folder (when the browser asks), pick the user, pass the computer / path / files check
   const enter=async name=>{ const done=()=>p.evaluate(n=>{ const b=document.getElementById('userBtn'); return !!b && b.textContent.includes(n) && !document.body.classList.contains('gated'); },name).catch(()=>false);
     const settled=async()=>{ if(!(await done())) return false; await p.waitForTimeout(1200); return await done(); };   // the app may reload itself once (new customer master)
     for(let i=0;i<40 && !(await settled());i++){
@@ -55,7 +56,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const home=await modalText(); ok(home.includes('Demo Transport Ltd') && home.includes('users.json') && /Master\s*👤 Alex/.test(home) && /Viewer\s*👤 Warehouse/.test(home),'users listed from MASTER_DATA › users.json, by role'); await shot('start-users');
   ok(!(await p.isVisible('text=Continue without a user')),'no way in without a user');
   await p.click('[data-act="u:Alex"]'); await p.waitForSelector('#modal [data-act=go]'); const chk=await modalText();
-  ok(chk.includes('Ready') && chk.includes('MASTER_DATA') && chk.includes('Route_planning'),'folder check passed for Alex'); await shot('start-folder-check');
+  ok(chk.includes('Ready') && chk.indexOf('Your folder')<chk.indexOf('MASTER_DATA folder'),'checks in order: path → files; all passed for Alex'); await shot('start-folder-check');
   await Promise.all([p.waitForEvent('load',{timeout:8000}).catch(()=>null), p.click('#modal [data-act=go]')]); await enter('Alex');
   ok((await p.textContent('#cBay')).includes('All bays (58)'),'customer master read from MASTER_DATA automatically (58 customers)');
   ok(/Alex\s*Master/.test(await p.textContent('#userBtn')),'header shows user and role'); await shot('customers');
@@ -176,12 +177,16 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=plan]'); await p.click('#expAll');
   ok(!(await p.isVisible('.drop [data-act=move] >> nth=0')) && !(await p.isVisible('#saveBtn')) && !(await p.isVisible('#navCustom')),'Viewer: no move / save / customize');
   await shot('viewer');
-  await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); await p.click('#modal [data-act="u:Jordan"]'); await p.waitForSelector('#modal [data-act=go]');
-  const bad=await modalText(); ok(bad.includes('Folder check failed') && bad.includes('No folder is defined'),'Jordan: folder check fails (no folder in users.json)'); await shot('folder-check-failed');
-  await p.click('#modal [data-act=go]'); await p.waitForSelector('#pPath'); await p.fill('#pPath','C:\\Users\\jordan\\OneDrive - Demo Transport\\Transport\\Route_planning'); await shot('set-my-folder');
-  await p.click('#modal [data-act=save]'); await p.waitForSelector('#modal [data-act=go]'); ok((await modalText()).includes('Ready'),'Jordan sets their own folder → check passes');
-  ok(await p.evaluate(()=>JSON.parse(window.__TREE.MASTER_DATA['users.json'].text).users.find(u=>u.name==='Jordan').path.endsWith('Route_planning')),'the folder is saved into MASTER_DATA › users.json');
-  await p.click('#modal [data-act=go]'); await enter('Jordan');
+  // Jordan has no folder: the check fails and there is NO way to set it from the start window
+  await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); await p.click('#modal [data-act="u:Jordan"]');
+  await p.waitForSelector('#modal [data-act=back]'); await p.waitForTimeout(300); const bad=await modalText();
+  ok(bad.includes('Check failed') && bad.includes('No folder is defined') && bad.includes('Ask a Master or Manager') && !(await p.isVisible('#modal [data-act=go]')) && !(await p.isVisible('#pPath')),'Jordan: no folder → blocked, cannot set a folder from the start window'); await shot('folder-check-failed');
+  // a Master (inside the planner) sets Jordan's folder, then Jordan can get in
+  await p.click('#modal [data-act=back]'); await enter('Alex');
+  await p.click('#userBtn'); await p.click('#modal [data-act=admin]'); await p.waitForSelector('[data-ua="path:2"]');
+  await p.fill('[data-ua="path:2"]','C:\\Users\\jordan\\OneDrive - Demo Transport\\Transport\\Route_planning'); await shot('master-sets-folder'); await p.click('#modal [data-act=save]'); await p.waitForTimeout(300);
+  ok(await p.evaluate(()=>JSON.parse(window.__TREE.MASTER_DATA['users.json'].text).users.find(u=>u.name==='Jordan').path.endsWith('Route_planning')),"Master saved Jordan's folder into MASTER_DATA › users.json");
+  await switchTo('Jordan');
   await p.click('nav [data-tab=report]'); ok(!(await p.isVisible('[data-undo] >> nth=0')) && await p.isVisible('#rBody'),'User: no undo (cannot remove changes)');
   ok((await p.textContent('[data-sec=load]')).includes('DIPS_Plan_Fri.xlsx'),'“Files loaded” lists every report loaded, incl. the replaced Friday');
   await switchTo('Sam');
@@ -196,7 +201,26 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
     const s2=await c2.newPage(); await s2.goto('file://'+snapFile); await s2.waitForTimeout(500);
     ok((await s2.textContent('#userBtn')).includes('view only') && (await s2.textContent('#cBay')).includes('All bays (59)') && !(await s2.isVisible('#modal [data-act=link]')),'snapshot opens on a fresh browser: view-only, with its customers'); await c2.close(); }
 
-  // 15. FULL RESET (Master) — everything cleared, back to the start window
+  // 15. ONE LAPTOP PER PERSON (the company setting): a laptop is registered to its owner the first time
+  { const tree=JSON.parse(JSON.stringify(TREE)); const uj=JSON.parse(Buffer.from(tree.MASTER_DATA['users.json'].b64,'base64').toString()); delete uj.shareComputers; uj.users.forEach(u=>{ if(!u.path) u.path='C:\\Users\\x\\Route_planning'; });
+    tree.MASTER_DATA['users.json']={text:JSON.stringify(uj),mod:Date.now()}; delete tree.MASTER_DATA['MASTER_DEL_DETAILS.xlsx'];
+    const laptop=async t=>{ const cx=await b.newContext({viewport:{width:1360,height:800}}); await cx.route('**/*',r=>{ const u=r.request().url(); if(u.startsWith('file:')) return r.continue(); const k=Object.keys(libs).find(k=>u.endsWith('/'+k)); return k?r.fulfill({path:libs[k]}):r.abort(); });
+      await cx.addInitScript(tt=>{ window.__TREE=JSON.parse(tt); }, JSON.stringify(t)); await cx.addInitScript(MOCK); const pg=await cx.newPage(); await pg.goto('file://'+APP); await pg.click('#modal [data-act=link]'); await pg.waitForSelector('[data-act="u:Alex"]'); return {cx,pg}; };
+    const txt=async pg=>(await pg.textContent('#modal')).replace(/\s+/g,' ');
+    const A=await laptop(tree);   // Alex's laptop
+    await A.pg.click('[data-act="u:Alex"]'); await A.pg.waitForSelector('#modal [data-act=go]'); ok((await txt(A.pg)).includes('will be registered to Alex'),"first time on a laptop: it will be registered to its owner"); await A.pg.click('#modal [data-act=go]');
+    await A.pg.waitForFunction(()=>!document.body.classList.contains('gated')); const reg=JSON.parse(await A.pg.evaluate(()=>window.__TREE.MASTER_DATA['users.json'].text));
+    ok(!!reg.users.find(u=>u.name==='Alex').device,"Alex's laptop registered in users.json");
+    await A.pg.click('#userBtn'); await A.pg.click('#modal [data-act=switch]'); const only=await txt(A.pg);
+    ok(only.includes('registered to Alex') && !(await A.pg.isVisible('[data-act="u:Sam"]')),"on Alex's laptop only Alex can be chosen"); await shot2(A.pg,'laptop-registered');
+    tree.MASTER_DATA['users.json']={text:JSON.stringify(reg),mod:Date.now()};
+    const B=await laptop(tree);   // another person's laptop
+    await B.pg.click('[data-act="u:Alex"]'); await B.pg.waitForSelector('#modal [data-act=back]'); await B.pg.waitForTimeout(300); const other=await txt(B.pg);
+    ok(other.includes('registered on another computer') && !(await B.pg.isVisible('#modal [data-act=go]')),"Alex can't be used on another laptop"); await shot2(B.pg,'other-laptop');
+    await B.pg.click('#modal [data-act=back]'); await B.pg.click('[data-act="u:Sam"]'); await B.pg.waitForSelector('#modal [data-act=go]'); ok((await txt(B.pg)).includes('will be registered to Sam'),'the other laptop can be registered to its own owner (Sam)');
+    await A.cx.close(); await B.cx.close(); }
+
+  // 16. FULL RESET (Master) — everything cleared, back to the start window
   await switchTo('Alex');
   await p.click('#resetBtn'); await p.waitForSelector('#modal [data-act=ok]'); ok((await modalText()).includes('users file'),'reset window lists plan, customer master, fixed routes and users file');
   await Promise.all([p.waitForEvent('load'), p.click('#modal [data-act=ok]')]);

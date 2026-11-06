@@ -23,11 +23,13 @@ demo/Route_planning/
    - **Load day:** pick week 46 and the DIPS Plan + RES files, then follow the [user guide](../docs/user-guide.md); or
    - **Open plan:** open one of the plans in `PLANS/week_46` to see a week already planned, with moves, deferrals, a split, an inserted order, a new route, a new day, customer edits, docket changes and customization.
 
-Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how roles change what you can do. **Jordan** has no folder in the users file, so use Jordan to show the failed folder check and how to fix it.
+Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how roles change what you can do. **Jordan** has no folder in the users file, so use Jordan to show the failed check and how a Master fixes it.
+
+> The demo users file has `"shareComputers": true`, so you can switch between users on one laptop while presenting. The company file leaves it out, so each laptop is registered to one person and nobody else can use it.
 
 ## Presenting to the team (suggested order)
 
-1. Start window: it's locked, so link the folder, pick a name and pass the folder check. Then try **Jordan**: the check fails because no folder is set, and Jordan sets it.
+1. Start window: it's locked, so link the folder, pick a name and pass the checks. Then try **Jordan**: the check fails because no folder is set. Only a Master or Manager can fix it, from inside the planner.
 2. **Customers** map (master and fixed routes loaded automatically).
 3. **Load day:** the whole week in one go.
 4. **Plan the day:**

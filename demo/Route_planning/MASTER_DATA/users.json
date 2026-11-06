@@ -1,5 +1,6 @@
 {
   "company": "Demo Transport Ltd",
+  "shareComputers": true,
   "users": [
     {
       "name": "Alex",

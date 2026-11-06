@@ -1,10 +1,10 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.10.1). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.10.2). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
-1. [Start: company folder, your name and the folder check](#1-start-company-folder-your-name-and-the-folder-check)
+1. [Start: company folder, your name, computer / path / files check](#1-start-company-folder-your-name-computer--path--files-check)
 2. [Load reports (a planning day)](#2-load-reports-a-planning-day)
 3. [Open a saved plan](#3-open-a-saved-plan)
 4. [Move orders](#4-move-orders)
@@ -22,38 +22,44 @@ How to do each task in the Route Planner (v0.10.1). The screenshots come from th
 
 ---
 
-## 1. Start: company folder, your name and the folder check
+## 1. Start: company folder, your name, computer / path / files check
 
-The planner is **locked** when it opens. Nothing can be used until you choose your name and pass the folder check. The window can't be closed by clicking outside it, pressing Escape or using the keyboard.
+The planner is **locked** when it opens. Nothing can be used, viewed or changed until you choose your name and pass the checks. The window can't be closed by clicking outside it, pressing Escape or using the keyboard.
 
-1. **Link the company folder.** This is needed once per computer. Click **📁 Choose folder…** and pick the shared `Route_planning` folder.
-2. **Users file.** The app reads `users.json` from `MASTER_DATA`. If there are several users files, choose one, in the same way as opening a plan.
-3. **Who is planning?** Click your name. Names are grouped by role.
-4. **Folder check.** The app checks:
-   - the company folder is available;
-   - you have a folder set in the users file;
-   - the linked folder is your folder;
-   - `MASTER_DATA` and `REPORTS` are there;
-   - the customer master and fixed routes are there.
+1. **Link the company folder.** This is needed once per laptop. Click **📁 Choose folder…** and pick the shared `Route_planning` folder.
+2. **Users file.** The app reads `users.json` from `MASTER_DATA`. If there are several, choose one.
+3. **Who is planning?** Click your name. On a laptop that's already registered, **only its owner** is shown.
+4. **Checks, in order:**
+   1. **Computer:** each laptop belongs to one person, and staff can't use another person's laptop.
+      - **First time:** the laptop is registered to you when you continue.
+      - **Afterwards:** only you can use it, and you can't use another laptop.
+   2. **Path:** your folder is set in the users file, and the linked folder is your folder.
+   3. **Files:** `MASTER_DATA` and `REPORTS` are there, plus the customer master and fixed routes.
 5. **The result:**
-   - **✅ Ready:** click **Continue** to open the planner, or **← Go back** to pick another name.
-   - **⛔ Failed:** the planner stays locked. **Continue — fix it** takes you to the fix (set your folder, or choose the right folder). **← Go back** returns to the names.
-6. **Inside the planner:** the customer master and fixed routes are read automatically from `MASTER_DATA`. If someone changes them in the folder later, the app shows what changed and asks before loading the new version.
+   - **✅ Ready:** click **Continue** to open the planner, or **← Go back**.
+   - **⛔ Check failed:** the planner stays locked.
+     - **Someone else's laptop, or no folder set for you:** there's only **← Go back**. A Master or Manager has to fix it (see below).
+     - **Wrong folder linked:** **Continue — choose the folder** lets you pick the right one.
+6. **Inside the planner:** the customer master and fixed routes are read automatically from `MASTER_DATA`. If someone changes them in the folder later, the app shows what changed and asks before loading.
 
-| Start: link the folder | Who is planning? | Folder check |
+| Link the folder | Who is planning? | Checks |
 |---|---|---|
-| ![Link the company folder](img/01-start-link-folder.png) | ![Users](img/02-start-users.png) | ![Folder check](img/03-start-folder-check.png) |
+| ![Link the company folder](img/01-start-link-folder.png) | ![Users](img/02-start-users.png) | ![Checks](img/03-start-folder-check.png) |
 
-| Check failed | Set your folder |
-|---|---|
-| ![Folder check failed](img/24-folder-check-failed.png) | ![Set my folder](img/25-set-my-folder.png) |
+| A registered laptop shows only its owner | Your user on another laptop | No folder set: blocked |
+|---|---|---|
+| ![Laptop registered](img/27-laptop-registered.png) | ![Other laptop](img/28-other-laptop.png) | ![No folder](img/24-folder-check-failed.png) |
 
-**Setting a folder:** paste the full path of the `Route_planning` folder as it is on that person's computer, or use **📁 Browse…** to pick your own. The folder is saved into `MASTER_DATA/users.json` for everyone. Who can set it:
-- **Master:** anyone's folder.
-- **Manager:** their own, and those of Users and Viewers.
-- **Everyone else:** only their own.
+**Folders and laptops are managed only from inside the planner**, under 👤 → **My folder…** / **Manage users…**. Changes are saved into `MASTER_DATA/users.json`.
 
-> The 👤 button at the top shows your name, role and folder. Click it for **My folder…**, **Manage users…** (Master and Manager), or **Switch user**, which goes back to the locked start window.
+| | Master | Manager | User / Viewer |
+|---|---|---|---|
+| **Set a folder** | anyone | their own, Users and Viewers | their own |
+| **Unregister a laptop** (e.g. a replacement laptop) | anyone else | Users and Viewers | — |
+
+![A Master sets a folder](img/25-master-sets-folder.png)
+
+> A browser can't read a folder's full path or the Windows user. That's why the laptop registration is what ties a laptop to a person. Use **one browser** (Chrome or Edge) on your laptop: a different browser counts as a different computer.
 
 ## 2. Load reports (a planning day)
 
@@ -219,7 +225,7 @@ The **Change report** tab lists every change, with the order numbers staff need 
 - customer edits;
 - the users file and shared-folder links.
 
-The app then reopens on the locked start window (link the folder, then choose your name). Files in the shared folder aren't touched, so save first if you want to keep the plan.
+The app then reopens on the locked start window (link the folder, then choose your name). The laptop stays registered to its owner. Files in the shared folder aren't touched, so save first if you want to keep the plan.
 
 ## 14. Customize (Master only)
 
@@ -239,6 +245,7 @@ The **Customize** tab is only visible to Master users. Changes are saved with th
 | Undo, remove days or fixed routes, full reset | ✅ | ✅ | — | — |
 | Manage users (roles) | ✅ | ✅ Users and Viewers only; can't add users | — | — |
 | Set the folder path of… | anyone | themselves, Users and Viewers | themselves | themselves |
+| Unregister someone's laptop | anyone else | Users and Viewers | — | — |
 | Add or remove users | ✅ | — | — | — |
 | Customize tab | ✅ | — | — | — |
 

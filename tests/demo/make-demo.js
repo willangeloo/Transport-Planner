@@ -29,13 +29,16 @@ write('MASTER_DATA/MASTER_DEL_DETAILS.xlsx','Sheet1',[['Ship To','Name','Postal 
 write('MASTER_DATA/FIXED_ROUTES_DIPSDATA.xlsx','Sheet1',[['Route Id','Driver','Trip Tag','Vehicle','Day'],
   ['FR01','Driver 21','BAY 07','TRK-21','.M.W.F.'],['FR02','Driver 22','BAY 06','TRK-22','..T.T..'],['FR03','Driver 23','BAY 01','TRK-23','.MTWTF.']]);
 
-// ---- users file (fake people) — see docs/users-config.md
-fs.writeFileSync(path.join(OUT,'MASTER_DATA','users.json'),JSON.stringify({company:'Demo Transport Ltd', users:[
-  {name:'Alex',role:'MASTER',path:'C:\\Users\\alex\\OneDrive - Demo Transport\\Transport\\Route_planning'},
-  {name:'Sam',role:'MANAGER',path:'C:\\Users\\sam\\OneDrive - Demo Transport\\Transport\\Route_planning'},
-  {name:'Jordan',role:'USER',path:''},   // no folder yet: shows the "folder check failed" → set your folder steps
-  {name:'Casey',role:'USER',path:'C:\\Users\\casey\\OneDrive - Demo Transport\\Transport\\Route_planning'},
-  {name:'Warehouse',role:'VIEWER',path:'C:\\Users\\warehouse\\OneDrive - Demo Transport\\Transport\\Route_planning'}]},null,2));
+// ---- users file (fake people) — see docs/users-config.md.
+// "shareComputers": true is a DEMO setting so one presenter can switch users on one laptop. The company file leaves it out:
+// then each laptop is registered to one person the first time they get in, and nobody else can use it.
+const P=n=>`C:\\Users\\${n.toLowerCase()}\\OneDrive - Demo Transport\\Transport\\Route_planning`;
+fs.writeFileSync(path.join(OUT,'MASTER_DATA','users.json'),JSON.stringify({company:'Demo Transport Ltd', shareComputers:true, users:[
+  {name:'Alex',role:'MASTER',path:P('alex')},
+  {name:'Sam',role:'MANAGER',path:P('sam')},
+  {name:'Jordan',role:'USER',path:''},   // no folder yet: blocked until a Master/Manager sets it
+  {name:'Casey',role:'USER',path:P('casey')},
+  {name:'Warehouse',role:'VIEWER',path:P('warehouse')}]},null,2));
 
 // ---- one week of reports: week 46, Mon 09.11 – Fri 13.11.2026
 const WEEK=[['Mon','09/11/2026'],['Tue','10/11/2026'],['Wed','11/11/2026'],['Thu','12/11/2026'],['Fri','13/11/2026']];

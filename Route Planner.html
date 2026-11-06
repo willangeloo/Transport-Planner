@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.10.1</title>
+<title>Route Planner BETA v0.10.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -173,6 +173,8 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .wk{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
 .wk:last-child{border-bottom:0}
 .modal.wide{width:min(680px,100%)}
+.modal.xwide{width:min(1100px,100%)}
+.uatbl td{padding:4px 6px} .uatbl select{min-width:105px} .uatbl input[data-ua^=name]{width:130px} .uatbl input[data-ua^=path]{min-width:330px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .card2{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .card2 .btn{margin-top:auto}
@@ -281,7 +283,7 @@ th.sortable:hover{text-decoration:underline}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.1</span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.2</span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
@@ -397,7 +399,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.10.1';
+const APP_VERSION='0.10.2';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -943,8 +945,8 @@ $('selDefer').onclick=()=>openDefer([...P.sel]);
 
 // ---------- modals ----------
 let modalOpts=null;
-function openModal(html,opts){ $('modal').classList.remove('wide'); $('modal').innerHTML=html; modalOpts=opts||{}; $('scrim').classList.add('on'); }
-function closeModal(force){ if(!force && modalOpts && modalOpts.lock) return; if(modalOpts&&modalOpts.onClose) modalOpts.onClose(); $('scrim').classList.remove('on'); $('modal').classList.remove('wide'); modalOpts=null;
+function openModal(html,opts){ $('modal').classList.remove('wide','xwide'); $('modal').innerHTML=html; modalOpts=opts||{}; $('scrim').classList.add('on'); }
+function closeModal(force){ if(!force && modalOpts && modalOpts.lock) return; if(modalOpts&&modalOpts.onClose) modalOpts.onClose(); $('scrim').classList.remove('on'); $('modal').classList.remove('wide','xwide'); modalOpts=null;
   if(typeof GATE!=='undefined' && GATE && !EMB) setTimeout(()=>{ if(GATE && !$('scrim').classList.contains('on')) gateHome(); },50); }
 $('scrim').addEventListener('click',e=>{
   if(e.target===$('scrim')) return closeModal();   // ignored for the locked start window
@@ -1385,7 +1387,7 @@ $('resetBtn').onclick=()=>{
 // v0.10: full reset — browser storage, users file and folder links; the app reopens on the home page
 async function fullReset(){
   try{ Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta')).forEach(k=>localStorage.removeItem(k)); }catch(e){}
-  try{ ['rp.user','rp.msg'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Application reset — load the users file to start again'); }catch(e){}
+  try{ ['rp.user','rp.auth','rp.msg'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Application reset — link the folder and choose your user to start again'); }catch(e){}
   try{ const db=await idb.open(); await new Promise(res=>{ const t=db.transaction('kv','readwrite'); t.objectStore('kv').clear(); t.oncomplete=res; t.onerror=res; t.onabort=res; }); db.close(); }catch(e){}
   location.reload();
 }
@@ -2093,9 +2095,14 @@ function dkLookup(){ const q=$('dkFind').value.trim(); if(!q) return; const hits
   if(!hits.length) return toast(`Order ${q} is not in the loaded days`); openDockEdit(hits.map(o=>o.uid)); }
 $('dkGo').onclick=dkLookup; $('dkFind').addEventListener('keydown',e=>{ if(e.key==='Enter') dkLookup(); });
 
-// ================= USERS, COMPANY FOLDER & ACCESS (v0.10.1) =================
-// The tool is LOCKED until a user from the company's users file (MASTER_DATA/users*.json) is chosen and passes the
-// folder check. No names are built into the app and there is no "continue without a user".
+// ================= USERS, COMPUTER + PATH CHECK & ACCESS (v0.10.2) =================
+// The tool is LOCKED until a user from the company's users file (MASTER_DATA/users*.json) passes, in this order:
+//   1. computer — each laptop belongs to one person: the first time someone gets in on a laptop it is registered to them
+//      in users.json; after that only they can use it, and they can't use another laptop (a Master can unregister it);
+//   2. path — their folder is set in users.json (only a Master/Manager sets it) and the linked folder is that folder;
+//   3. files — MASTER_DATA, REPORTS, customer master, fixed routes.
+// A browser can't read a folder's full path or the Windows user, so the computer registration is what ties a laptop to
+// a person. Nobody can change a user, a path or a registration without having passed these checks.
 // Roles are guardrails for the prototype, not security: see docs/backend-blueprint.md.
 const UCFGKEY='routePlannerBeta.usersConfig', UFILEKEY='routePlannerBeta.usersFile';
 const ROLES={MASTER:{edit:1,del:1,users:1,custom:1}, MANAGER:{edit:1,del:1,users:1}, USER:{edit:1}, VIEWER:{}, NONE:{}};
@@ -2128,7 +2135,8 @@ function checkUsersCfg(j){
 }
 function setUsersCfg(j, file){
   UCFG = {company:String(j.company||'').trim(), file, at:new Date().toISOString(),
-    users:j.users.map(u=>({name:String(u.name).trim(), role:String(u.role).toUpperCase(), path:String(u.path||'').trim()}))};
+    shareComputers:!!j.shareComputers,
+    users:j.users.map(u=>({name:String(u.name).trim(), role:String(u.role).toUpperCase(), path:String(u.path||'').trim(), device:u.device&&u.device.id?{id:String(u.device.id), since:String(u.device.since||'')}:null}))};
   store(UCFGKEY,UCFG); store(UFILEKEY,file);
 }
 const fsSupported = () => typeof window.showDirectoryPicker==='function' && window.self===window.top && !!window.indexedDB;
@@ -2155,9 +2163,23 @@ function renderUserBtn(){
   b.title = FOLDER.user ? `${FOLDER.user} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}”. Click for your folder, users or to switch user.` : 'Choose your user';
 }
 
-// ---- 1. the company folder (linked once per computer)
+// ---- this computer: a random id kept in this browser (IndexedDB, survives the app's Reset; not the browser's "clear data")
+let DEVICE='';
+async function deviceId(){
+  if(DEVICE) return DEVICE;
+  try{ DEVICE=await idb.get('device')||''; }catch(e){}
+  if(!DEVICE){ try{ DEVICE=localStorage.getItem('routePlannerDevice')||''; }catch(e){} }
+  if(!DEVICE){ DEVICE=[...crypto.getRandomValues(new Uint8Array(8))].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+  try{ await idb.set('device',DEVICE); }catch(e){} try{ localStorage.setItem('routePlannerDevice',DEVICE); }catch(e){}
+  return DEVICE;
+}
+const ownerOfThisComputer = () => UCFG && !UCFG.shareComputers ? UCFG.users.find(u=>u.device&&u.device.id===DEVICE) : null;
+// the session token: this tab may reload without asking again, only for the user who passed the checks on this computer
+const sessionOk=n=>{ const u=cfgUser(n); let a=''; try{ a=sessionStorage.getItem('rp.auth')||''; }catch(e){} return !!(u && a===n+'|'+DEVICE && (UCFG.shareComputers || (u.device&&u.device.id===DEVICE))); };
+
+// ---- 1. the company folder (linked once per computer — only to read the users file until someone logs in)
 async function gateHome(msg){
-  if(EMB) return;
+  if(EMB) return; await deviceId();
   setGate(true); FOLDER.user=''; renderUserBtn();
   if(!fsSupported()) return gateModal(`<div class="mh"><h2>Open the Route Planner in Chrome or Edge</h2></div><div class="mb"><div class="note warn">This browser can't open the company folder from a web page. Open <b>Route Planner.html</b> from your computer in <b>Google Chrome</b> or <b>Microsoft Edge</b>.</div></div>`);
   let h=null; try{ h=await idb.get('folder:root'); }catch(e){ h=null; }
@@ -2204,16 +2226,17 @@ async function readUsersFile(f, msg){
   const err=checkUsersCfg(j); if(err) return gateUsersFile(`“${esc(f.name)}”: ${esc(err)}`, true);
   setUsersCfg(j, f.name);
   let u=null; try{ u=sessionStorage.getItem('rp.user'); }catch(e){}
-  if(u && cfgUser(u)) return validateUser(u, true);      // the app reloaded itself: check again, quietly when it's fine
+  if(u && sessionOk(u)) return validateUser(u, true);      // the app reloaded itself in this tab: check again, quietly when it's fine
   gatePicker(msg);
 }
 // ---- 3. who is planning?
 function gatePicker(msg){
-  setGate(true); FOLDER.user=''; try{ sessionStorage.removeItem('rp.user'); }catch(e){} renderUserBtn();
-  const byRole=['MASTER','MANAGER','USER','VIEWER'].map(r=>({r, us:UCFG.users.filter(u=>u.role===r)})).filter(x=>x.us.length);
+  setGate(true); FOLDER.user=''; try{ sessionStorage.removeItem('rp.user'); sessionStorage.removeItem('rp.auth'); }catch(e){} renderUserBtn();
+  const own=ownerOfThisComputer();
+  const byRole=['MASTER','MANAGER','USER','VIEWER'].map(r=>({r, us:UCFG.users.filter(u=>u.role===r && (!own || u===own))})).filter(x=>x.us.length);
   gateModal(`<div class="mh"><h2>${UCFG.company?esc(UCFG.company)+' · ':''}Who is planning?</h2><div class="muted small">📁 ${esc(FOLDER.name)} › MASTER_DATA › ${esc(UCFG.file)}</div></div>
-   <div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}
-    ${byRole.map(g=>`<div><label>${ROLE_TXT[g.r]}</label><div class="chips" style="gap:8px">${g.us.map(u=>`<button class="chip" data-act="u:${esc(u.name)}" style="padding:8px 14px;font-size:13px">👤 ${esc(u.name)}${u.path?'':' <span class="flag nl">no folder</span>'}</button>`).join('')}</div></div>`).join('')}</div>
+   <div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}${own?`<div class="note info">💻 This computer is registered to <b>${esc(own.name)}</b>. Staff can't use another person's computer.</div>`:''}
+    ${byRole.map(g=>`<div><label>${ROLE_TXT[g.r]}</label><div class="chips" style="gap:8px">${g.us.map(u=>`<button class="chip" data-act="u:${esc(u.name)}" style="padding:8px 14px;font-size:13px">👤 ${esc(u.name)}</button>`).join('')}</div></div>`).join('')}</div>
    <div class="mf"><button class="btn" data-act="relink" style="margin-right:auto">📁 Change folder…</button><button class="btn" data-act="ufile">Other users file…</button></div>`,
    {onAct:a=>{ if(a.startsWith('u:')) return validateUser(a.slice(2)); if(a==='relink') return linkRoot(); if(a==='ufile') return gateUsersFile('',true); }});
   $('modal').classList.add('wide');
@@ -2222,13 +2245,20 @@ function gatePicker(msg){
 async function folderChecks(name){
   const u=cfgUser(name), h=FOLDER.handle, out=[];
   const add=(ok,txt,fix,warn)=>out.push({ok,txt,fix,warn});
-  add(!!h && await folderCheck(h,false)==='ok', `Company folder <b>${esc(FOLDER.name)}</b> is available on this computer`, 'folder');
+  // 1. this computer
+  if(!UCFG.shareComputers){ const own=ownerOfThisComputer();
+    if(own && own!==u) add(false, `This computer is registered to <b>${esc(own.name)}</b> — staff can't use another person's computer`, 'device');
+    else if(u.device && u.device.id!==DEVICE) add(false, `<b>${esc(name)}</b> is registered on another computer${u.device.since?' (since '+esc(fmtTime(u.device.since))+')':''} — use your own computer, or ask a Master to unregister it`, 'device');
+    else if(u.device) add(true, `This computer is registered to <b>${esc(name)}</b>`);
+    else add(true, `This computer will be registered to <b>${esc(name)}</b> when you continue (first time)`, null, true); }
+  // path first (whose folder is this?), then the files inside it
   add(!!(u&&u.path), u&&u.path?`Your folder: <code>${esc(u.path)}</code>`:'No folder is defined for you in the users file', 'path');
+  add(!!h && await folderCheck(h,false)==='ok', `Company folder <b>${esc(FOLDER.name)}</b> is available on this computer`, 'folder');
   if(u&&u.path) add(leafOf(u.path).toLowerCase()===String(FOLDER.name).toLowerCase(), `The linked folder is “${esc(FOLDER.name)}”${leafOf(u.path).toLowerCase()===String(FOLDER.name).toLowerCase()?'':` but your folder is “${esc(leafOf(u.path))}”`}`, 'folder');
   if(h){ const md=await subDirIf(h,['MASTER_DATA']), rp=await subDirIf(h,['REPORTS','REPORT']), pl=await subDirIf(h,['PLANS']);
     add(!!md, '<b>MASTER_DATA</b> folder found', 'folder'); add(!!rp, '<b>REPORTS</b> folder found', 'folder');
     add(true, pl?'<b>PLANS</b> folder found':'<b>PLANS</b> folder not there yet — it is created on the first save', null, !pl);
-    if(md){ let m=0,f=0; for await (const [n,x] of md.entries()){ if(x.kind!=='file') continue; const k=fileKind(n,'MASTER_DATA'); if(k==='cust') m++; if(k==='fixed') f++; }
+    if(md){ let m=0,f=0; for await (const [n,x] of md.entries()){ if(x.kind!=='file') continue; const k=fileKind(n); if(k==='cust') m++; if(k==='fixed') f++; }
       add(true, m?'Customer master found in MASTER_DATA':'No MASTER_DEL_DETAILS file in MASTER_DATA — customers won\'t be on the map', null, !m);
       add(true, f?'Fixed routes found in MASTER_DATA':'No FIXED_ROUTES file in MASTER_DATA', null, !f); } }
   return out;
@@ -2236,15 +2266,15 @@ async function folderChecks(name){
 async function validateUser(name, quiet){
   const checks=await folderChecks(name); const ok=checks.every(c=>c.ok);
   if(ok && quiet){ return enterAs(name); }
-  const fixes=[...new Set(checks.filter(c=>!c.ok).map(c=>c.fix))];
-  gateModal(`<div class="mh"><h2>${ok?'✅ Ready':'⛔ Folder check failed'} · ${esc(name)}</h2><div class="muted small">${ROLE_TXT[cfgUser(name).role]} · ${esc(UCFG.file)}</div></div>
+
+  const fixes=[...new Set(checks.filter(c=>!c.ok).map(c=>c.fix))]; const noPath=fixes.includes('path')||fixes.includes('device'); const who=cfgUser(name).role==='MASTER'||cfgUser(name).role==='MANAGER'?'a Master':'a Master or Manager';
+  gateModal(`<div class="mh"><h2>${ok?'✅ Ready':'⛔ Check failed'} · ${esc(name)}</h2><div class="muted small">${ROLE_TXT[cfgUser(name).role]} · ${esc(UCFG.file)}</div></div>
    <div class="mb"><ul class="checks">${checks.map(c=>`<li class="${c.ok?(c.warn?'warn':'ok'):'bad'}">${c.ok?(c.warn?'⚠':'✓'):'✗'} ${c.txt}</li>`).join('')}</ul>
-    ${ok?'<div class="note info">Everything is in place. Continue to the planner.</div>':`<div class="note warn">The planner stays locked until this check passes. <b>Continue</b> to ${fixes.includes('path')?'set your folder':'choose the right folder'}, or go back and pick another user.</div>`}</div>
-   <div class="mf"><button class="btn" data-act="back" style="margin-right:auto">← Go back</button><button class="btn pri" data-act="go">Continue${ok?'':' — fix it'}</button></div>`,
+    ${ok?'<div class="note info">Everything is in place. Continue to the planner.</div>':fixes.includes('device')?`<div class="note warn">The planner stays locked on this computer for ${esc(name)}.</div>`:noPath?`<div class="note warn">The planner stays locked: no folder is set for you. Ask ${who} to set your folder in <b>Manage users</b>, then try again.</div>`:`<div class="note warn">The planner stays locked until this check passes. <b>Continue</b> to choose the right folder, or go back.</div>`}</div>
+   <div class="mf"><button class="btn" data-act="back" style="margin-right:auto">← Go back</button>${noPath?'':`<button class="btn pri" data-act="go">Continue${ok?'':' — choose the folder'}</button>`}</div>`,
    {onAct:a=>{ if(a==='back') return gatePicker(); if(a!=='go') return;
      if(ok) return enterAs(name);
-     if(fixes.includes('path')) return openPathEdit(name, true);
-     return relinkThenCheck(name); }});
+     if(!noPath) return relinkThenCheck(name); }});
   $('modal').classList.add('wide');
 }
 async function relinkThenCheck(name){
@@ -2252,56 +2282,63 @@ async function relinkThenCheck(name){
   catch(e){ if(!(e&&e.name==='AbortError')) toast('Could not link the folder: '+(e&&e.message||e)); return validateUser(name); }
   validateUser(name);
 }
-function enterAs(name){
+async function enterAs(name){
+  const u=cfgUser(name); if(!u) return gatePicker();
+  if(!UCFG.shareComputers){ const own=ownerOfThisComputer(); if((own&&own!==u) || (u.device&&u.device.id!==DEVICE)) return validateUser(name);
+    if(!u.device){ u.device={id:DEVICE, since:new Date().toISOString()}; try{ await writeUsersFile(); }catch(e){ u.device=null; return gateUsersFile('Could not register this computer in the users file: '+esc(e&&e.message||e)); } } }
+  try{ sessionStorage.setItem('rp.auth',name+'|'+DEVICE); }catch(e){}
   FOLDER.user=name; FOLDER.status='ok'; try{ sessionStorage.setItem('rp.user',name); }catch(e){}
   PREFS.name=name; savePrefs(); GATE=false; closeModal(true); setGate(false); toast(`${name} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}” ready`); autoRef();
 }
 // ---- folder paths (Master: anyone; Manager: themselves, Users and Viewers; others: themselves)
 async function writeUsersFile(){
   const md=await subDirIf(FOLDER.handle,['MASTER_DATA']); if(!md) throw new Error('MASTER_DATA not found');
-  const j={company:UCFG.company, users:UCFG.users.map(u=>({name:u.name, role:u.role, path:u.path||''}))};
+  const j=Object.assign({company:UCFG.company}, UCFG.shareComputers?{shareComputers:true}:{}, {users:UCFG.users.map(u=>Object.assign({name:u.name, role:u.role, path:u.path||''}, u.device?{device:u.device}:{}))});
   const fh=await md.getFileHandle(UCFG.file,{create:true}); const w=await fh.createWritable(); await w.write(new Blob([JSON.stringify(j,null,2)],{type:'application/json'})); await w.close();
   store(UCFGKEY,UCFG);
 }
-function openPathEdit(target, fromGate){
-  const me=fromGate?target:FOLDER.user;
-  if(!fromGate && !canSetPath(target)) return toast(`You can't set the folder of ${target}`);
-  const t=cfgUser(target); const self=me===target;
-  const show=fromGate?gateModal:openModal;
-  show(`<div class="mh"><h2>Folder for ${esc(target)}</h2><div class="muted small">${ROLE_TXT[t.role]} · saved in MASTER_DATA › ${esc(UCFG.file)}</div></div>
+function openPathEdit(target){
+  if(GATE || !FOLDER.user || !sessionOk(FOLDER.user)) return toast('Choose your user first');
+  if(!canSetPath(target)) return toast(`You can't set the folder of ${target}`);
+  const t=cfgUser(target); const self=FOLDER.user===target;
+  openModal(`<div class="mh"><h2>Folder for ${esc(target)}</h2><div class="muted small">${ROLE_TXT[t.role]} · saved in MASTER_DATA › ${esc(UCFG.file)}</div></div>
    <div class="mb"><div class="note info">Paste the full path of the <b>Route_planning</b> folder as it is on ${self?'your':esc(target)+'\'s'} computer, e.g. <code>C:\\Users\\name\\OneDrive - Company\\Transport\\Route_planning</code>.${self?' Or click <b>Browse…</b> to pick the folder in the explorer.':''}</div>
     <div class="row"><input type="text" id="pPath" value="${esc(t.path||'')}" placeholder="C:\\Users\\…\\Route_planning" style="flex:1">${self?'<button class="btn" data-act="browse">📁 Browse…</button>':''}</div>
-    ${self?'<div class="muted small">Browsers don\'t reveal the full path of a picked folder: Browse links the folder on this computer and fills in its name — paste the full path if you have it.</div>':''}<div id="pErr"></div></div>
-   <div class="mf"><button class="btn" data-act="cancel" style="margin-right:auto">${fromGate?'← Go back':'Cancel'}</button><button class="btn pri" data-act="save">Save</button></div>`,
+    ${self?'<div class="muted small">Browsers don\'t reveal the full path of a picked folder: Browse fills in its name — paste the full path if you have it.</div>':''}<div id="pErr"></div></div>
+   <div class="mf"><button class="btn" data-act="close" style="margin-right:auto">Cancel</button><button class="btn pri" data-act="save">Save</button></div>`,
    {onAct:async a=>{
-     if(a==='cancel') return fromGate?validateUser(target):closeModal();
-     if(a==='browse'){ try{ const h=await window.showDirectoryPicker({id:'routeplanner', mode:'readwrite'}); try{ await idb.set('folder:root',h); }catch(e){ ROOT_MEM=h; } FOLDER.handle=h; FOLDER.name=h.name;
-         const cur=$('pPath').value.trim(); $('pPath').value = cur ? cur.replace(/[\\/][^\\/]*[\\/]?$/,'')+'\\'+h.name : '…\\'+h.name; }catch(e){} return; }
+     if(a==='browse'){ try{ const h=await window.showDirectoryPicker({id:'routeplanner', mode:'read'}); const cur=$('pPath').value.trim(); $('pPath').value = cur ? cur.replace(/[\\/][^\\/]*[\\/]?$/,'')+'\\'+h.name : '…\\'+h.name; }catch(e){} return; }
      if(a!=='save') return;
+     if(!sessionOk(FOLDER.user) || !canSetPath(target)) return toast('Not allowed');
      const v=$('pPath').value.trim(); if(!v){ $('pErr').innerHTML='<div class="note warn">Enter the folder path.</div>'; return; }
-     t.path=v; try{ await writeUsersFile(); }catch(e){ $('pErr').innerHTML=`<div class="note warn">Could not save ${esc(UCFG.file)}: ${esc(e&&e.message||e)}</div>`; return; }
-     if(fromGate) return validateUser(target);
+     const keep=t.path; t.path=v; try{ await writeUsersFile(); }catch(e){ t.path=keep; $('pErr').innerHTML=`<div class="note warn">Could not save ${esc(UCFG.file)}: ${esc(e&&e.message||e)}</div>`; return; }
      closeModal(); toast(`Folder saved for ${target} in ${UCFG.file}`);
    }});
   $('modal').classList.add('wide');
 }
 // Master / Manager: the users list, saved straight into MASTER_DATA
 function openUsersAdmin(){
-  if(!guard('users','manage users')) return;
+  if(!guard('users','manage users') || !sessionOk(FOLDER.user)) return;
   const me=role(), master=me==='MASTER'; const draft=clone(UCFG.users);
   const draw=()=>{ const rows=draft.map((u,i)=>{ const lockRole=!master && (u.role==='MASTER'||u.role==='MANAGER'&&u.name!==FOLDER.user);
       const pathOk=master || u.name===FOLDER.user || RANK[u.role]<RANK.MANAGER;
       const opts=Object.keys(RANK).filter(r=>master||RANK[r]<RANK.MANAGER||r===u.role).map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_TXT[r]}</option>`).join('');
-      return `<tr><td>${master?`<input type="text" data-ua="name:${i}" value="${esc(u.name)}">`:`<b>${esc(u.name)}</b>`}</td><td><select data-ua="role:${i}" ${lockRole?'disabled':''}>${opts}</select></td><td><input type="text" data-ua="path:${i}" value="${esc(u.path||'')}" placeholder="C:\\Users\\…\\Route_planning" ${pathOk?'':'disabled'}></td><td>${master?`<button class="btn sm" data-act="rm:${i}">Remove</button>`:''}</td></tr>`; }).join('');
+      const pcOk=u.name!==FOLDER.user && (master || RANK[u.role]<RANK.MANAGER);
+      const pc=u.device?`<span class="flag ad" title="Registered ${esc(fmtTime(u.device.since))}">💻 registered${u.device.id===DEVICE?' (this one)':''}</span>`:'<span class="flag" style="background:#eef1f4;color:#4b5563">not yet</span>';
+      return `<tr><td>${master?`<input type="text" data-ua="name:${i}" value="${esc(u.name)}">`:`<b>${esc(u.name)}</b>`}</td><td><select data-ua="role:${i}" ${lockRole?'disabled':''}>${opts}</select></td><td><input type="text" data-ua="path:${i}" value="${esc(u.path||'')}" placeholder="C:\\Users\\…\\Route_planning" ${pathOk?'':'disabled'}></td><td style="white-space:nowrap">${pc} ${pcOk&&u.device?`<button class="btn sm" data-act="pc:${i}" title="Lets ${esc(u.name)} register a new computer">Unregister</button>`:''}</td><td>${master&&u.name!==FOLDER.user?`<button class="btn sm" data-act="rm:${i}">Remove</button>`:''}</td></tr>`; }).join('');
     openModal(`<div class="mh"><h2>Users${UCFG.company?' · '+esc(UCFG.company):''}</h2><div class="muted small">${master?'Master: add, edit and remove users, and set anyone\'s folder.':'Manager: roles and folders of Users and Viewers, and your own folder.'} Saved into MASTER_DATA › ${esc(UCFG.file)} for everyone.</div></div>
-     <div class="mb"><table><thead><tr><th>Name</th><th>Role</th><th>Route_planning folder on their computer</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+     <div class="mb"><table><thead><tr><th>Name</th><th>Role</th><th>Route_planning folder on their computer</th><th>Computer</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       ${master?'<div class="row"><button class="btn sm" data-act="add">+ Add user</button></div>':''}<div id="uaErr"></div></div>
      <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="save">Save to MASTER_DATA</button></div>`,
      {onAct:async a=>{
        if(a==='add'){ draft.push({name:'',role:'USER',path:''}); return draw(); }
        if(a.startsWith('rm:')){ draft.splice(+a.slice(3),1); return draw(); }
-       if(a==='save'){ const j={company:UCFG.company, users:draft.filter(u=>u.name.trim())}; const err=checkUsersCfg(j); if(err){ $('uaErr').innerHTML=`<div class="note warn">${esc(err)}</div>`; return; }
+       if(a.startsWith('pc:')){ draft[+a.slice(3)].device=null; return draw(); }
+       if(a==='save'){ const j={company:UCFG.company, shareComputers:UCFG.shareComputers, users:draft.filter(u=>u.name.trim())}; const err=checkUsersCfg(j); if(err){ $('uaErr').innerHTML=`<div class="note warn">${esc(err)}</div>`; return; }
          if(!j.users.some(u=>u.name===FOLDER.user)){ $('uaErr').innerHTML='<div class="note warn">You can\'t remove yourself.</div>'; return; }
+         // only what this role may change is taken from the draft
+         const me0=cfgUser(FOLDER.user); const okTarget=u=>{ const o=UCFG.users.find(x=>x.name===u.name); return master || !o || RANK[o.role]<RANK.MANAGER || o.name===me0.name; };
+         if(!master && draft.some((u,i)=>{ const o=UCFG.users[i]; return o && !okTarget(o) && (o.role!==u.role || o.path!==u.path || JSON.stringify(o.device)!==JSON.stringify(u.device)); })){ $('uaErr').innerHTML='<div class="note warn">You can only change Users and Viewers.</div>'; return; }
          const keep=UCFG.users; setUsersCfg(j,UCFG.file); try{ await writeUsersFile(); }catch(e){ UCFG.users=keep; $('uaErr').innerHTML=`<div class="note warn">Could not save: ${esc(e&&e.message||e)}</div>`; return; }
          closeModal(); applyRole(); toast(`Users saved to MASTER_DATA › ${UCFG.file}`); }
      }});

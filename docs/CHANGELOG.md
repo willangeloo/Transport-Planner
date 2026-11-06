@@ -4,6 +4,22 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.10.2 — 2026-11-06
+
+### Bug fixes
+- **Another user's name could be used on your laptop.** The folder check only compared the folder's name, which is the same (`Route_planning`) for everyone, so it passed for any user. Now:
+  - **One laptop per person:** each laptop is registered to its owner the first time they get in (stored in `users.json`). After that only the owner is listed on it, and their name fails on any other laptop.
+  - **Order of the checks:** computer, then path, then files.
+- **A folder could be set for a user before getting in.** The start window no longer lets anyone set a path. A user without one stays blocked until a Master or Manager sets it from inside the planner.
+- **Manage users:** what a Manager may change (Users and Viewers only) is now also checked when saving.
+
+### Features
+- **Unregister a laptop** in Manage users (Master: anyone else; Manager: Users and Viewers), e.g. for a replacement laptop.
+- **`shareComputers: true`** in `users.json`: lets anyone use any computer. For demos only (the demo week uses it).
+
+### Edits
+- Wider **Manage users** window.
+
 ## v0.10.1 — 2026-11-06
 
 ### Bug fixes
