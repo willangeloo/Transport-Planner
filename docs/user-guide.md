@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.10.3). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.10.4). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
@@ -90,7 +90,7 @@ Every file type has its own folder, and only files in those folders are listed. 
 |---|---|
 | ![Changed since loaded](img/07-file-changed.png) | ![Replace differences](img/08-replace-differences.png) |
 
-Every file loaded is logged in the change report under **Files loaded**: day, file, what changed, who and when.
+Every file loaded is logged in the change report under **Files loaded**: day, file, what changed, who and when. It's information only, so it isn't counted as a change in the tab's number or the boxes; its count is a flag in the section heading.
 
 > Products, Uplifts and POD are listed but can't be imported yet. **Days in the planner…** (bottom left of the window) lists the loaded days, where you can remove one.
 

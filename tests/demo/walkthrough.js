@@ -189,6 +189,8 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await switchTo('Jordan');
   await p.click('nav [data-tab=report]'); ok(!(await p.isVisible('[data-undo] >> nth=0')) && await p.isVisible('#rBody'),'User: no undo (cannot remove changes)');
   ok((await p.textContent('[data-sec=load]')).includes('DIPS_Plan_Fri.xlsx'),'“Files loaded” lists every report loaded, incl. the replaced Friday');
+  { const nav=+(await p.textContent('#navCount')); const real=await p.evaluate(()=>JSON.parse(localStorage.getItem('routePlannerBeta.v082.state')).log.filter(e=>e.type!=='load').length);
+    ok(nav===real && !(await p.textContent('#rKpis')).includes('files loaded') && /\d+ files? · info/.test(await p.textContent('[data-sec=load] h2')),'files loaded are not counted as changes (tab badge, boxes); their count is a flag in the section'); }
   await switchTo('Sam');
   await p.click('#userBtn'); await p.click('#modal [data-act=admin]'); await p.waitForSelector('[data-ua="role:0"]');
   ok(await p.isDisabled('[data-ua="role:0"]') && await p.isDisabled('[data-ua="path:0"]') && !(await p.isDisabled('[data-ua="path:2"]')) && !(await p.isVisible('#modal [data-act=add]')),'Manager: folders of Users/Viewers only; cannot change Masters or add users'); await shot('manage-users'); await closeModal();

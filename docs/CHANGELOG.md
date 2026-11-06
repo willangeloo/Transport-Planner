@@ -4,6 +4,11 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.10.4 — 2026-11-06
+
+### Edits
+- **"Files loaded" is information, not a planning change.** It no longer counts in the Change report tab's number, the boxes at the top of the report, the Reset window or the plan summary. Its count is shown as a flag in the section heading ("N files · info").
+
 ## v0.10.3 — 2026-11-06
 
 ### Edits

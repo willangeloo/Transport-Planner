@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.10.3</title>
+<title>Route Planner BETA v0.10.4</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -283,7 +283,7 @@ th.sortable:hover{text-decoration:underline}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.3</span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.4</span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
@@ -399,7 +399,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.10.3';
+const APP_VERSION='0.10.4';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1372,16 +1372,19 @@ function undo(id){
   if(e.type==='cust') afterCustChange(); else { if(pInit) renderPlan(); }
   renderReport(); updateNav(); toast('Change undone');
 }
-function updateNav(){ $('navCount').textContent=S.log.length; }
+// v0.10.4: "Files loaded" entries are information, not planning changes — they don't count in the tab or the boxes
+const isChange = e => e.type!=='load';
+const changeCount = () => S.log.filter(isChange).length;
+function updateNav(){ $('navCount').textContent=changeCount(); }
 $('resetBtn').onclick=()=>{
   if(!EMB && !guard('del','reset the planner')) return;
   if(EMB){ openModal(`<div class="mh"><h2>Go back to the original snapshot?</h2></div><div class="mb">Any changes you made while viewing this snapshot are discarded and the plan goes back to how ${esc(EMB.savedBy||'the planner')} saved it on ${esc(fmtTime(EMB.savedAt))}.</div><div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="ok">Restore snapshot</button></div>`,
     {onAct:a=>{ if(a!=='ok') return; [KEY,UPKEY,PREFKEY].forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} }); location.reload(); }}); return; }
   const nu=UPLOADS.length, nc=Object.keys(S.cust).length;
   openModal(`<div class="mh"><h2>Reset the planner?</h2></div><div class="mb"><div class="note warn">The planner is cleared and you go back to <b>Who is planning?</b>:</div>
-    <ul class="small" style="margin:6px 0 0 18px;line-height:1.7"><li>the plan: ${S.log.length} change${S.log.length!==1?'s':''}${nu?` and ${nu} loaded day${nu>1?'s':''}`:''}</li><li>the customer master${MASTER?` (${MASTER.list.length} customers)`:''}${nc?` and ${nc} customer edit${nc>1?'s':''}`:''}, and the fixed routes</li></ul><div class="note info" style="margin-top:8px">Kept: the company folder link (📁 ${esc(FOLDER.name)}) and the users file (${esc(UCFG?UCFG.file:'')}). The customer master and fixed routes are read again from MASTER_DATA.</div>
+    <ul class="small" style="margin:6px 0 0 18px;line-height:1.7"><li>the plan: ${changeCount()} change${changeCount()!==1?'s':''}${nu?` and ${nu} loaded day${nu>1?'s':''}`:''}</li><li>the customer master${MASTER?` (${MASTER.list.length} customers)`:''}${nc?` and ${nc} customer edit${nc>1?'s':''}`:''}, and the fixed routes</li></ul><div class="note info" style="margin-top:8px">Kept: the company folder link (📁 ${esc(FOLDER.name)}) and the users file (${esc(UCFG?UCFG.file:'')}). The customer master and fixed routes are read again from MASTER_DATA.</div>
     <div class="muted small" style="margin-top:8px">Files in the shared folder are not touched. Save first if you want to keep this plan.</div></div>
-    <div class="mf"><button class="btn" data-act="close">Cancel</button>${S.log.length||nu?'<button class="btn" data-act="savefirst">Save the plan first</button>':''}<button class="btn warn" data-act="ok">Reset</button></div>`,
+    <div class="mf"><button class="btn" data-act="close">Cancel</button>${changeCount()||nu?'<button class="btn" data-act="savefirst">Save the plan first</button>':''}<button class="btn warn" data-act="ok">Reset</button></div>`,
   {onAct:a=>{ if(a==='savefirst'){ savePlanFile(false); return; } if(a==='ok') fullReset(); }});
 };
 // v0.10: full reset — browser storage, users file and folder links; the app reopens on the home page
@@ -1838,7 +1841,7 @@ const SECTIONS=[
   {id:'move', title:'Reallocated between bays', icon:'⇄', kpi:'drops reallocated', types:['move','allocate']},
   {id:'add', title:'Inserted orders', icon:'＋', kpi:'orders inserted', types:['add']},
   {id:'route', title:'New routes', icon:'🚚', kpi:'routes added', types:['route']},
-  {id:'load', title:'Files loaded', icon:'📥', kpi:'files loaded', types:['load']},
+  {id:'load', title:'Files loaded', icon:'📥', kpi:'files loaded', types:['load'], info:true},
   {id:'res', title:'Route details updated from RESOURCES', icon:'🔄', kpi:'route updates', types:['resupd']},
   {id:'dock', title:'Docket type changed', icon:'🧾', kpi:'docket changes', types:['dock']},
   {id:'cust', title:'Customer details changed', icon:'✎', kpi:'customer edits', types:['cust']},
@@ -1930,7 +1933,7 @@ const repTag = () => R.day?dayLabel(R.day).replace(/[^\w.\- ]/g,''):todayStr();
 function renderReport(){
   updateNav(); buildReportDaySel();
   const D=sectionData();
-  $('rKpis').innerHTML=SECTIONS.map(sec=>`<div class="kpi click ${R.only===sec.id?'on2':''}" data-kpi="${sec.id}" title="Show only “${esc(sec.title)}” — click again to show all"><b>${D[sec.id].total}</b><span>${sec.kpi}</span></div>`).join('')
+  $('rKpis').innerHTML=SECTIONS.filter(sec=>!sec.info).map(sec=>`<div class="kpi click ${R.only===sec.id?'on2':''}" data-kpi="${sec.id}" title="Show only “${esc(sec.title)}” — click again to show all"><b>${D[sec.id].total}</b><span>${sec.kpi}</span></div>`).join('')
     +`<div class="kpi"><b>${D._ordersAff}</b><span>orders affected</span></div>`;
   $('rSub').textContent='Planning changes vs. loaded files'+(R.day?' · '+dayLabel(R.day):'')+' · '+DATA.days.length+' day'+(DATA.days.length!==1?'s':'')+' loaded';
   const files=[...new Set(DATA.days.flatMap(d=>{const u=uploadOf(d.date); return u?u.files:[];}))];
@@ -1969,7 +1972,8 @@ function renderReport(){
     const d=D[sec.id]; if(!d.total) return;
     if(R.only && R.only!==sec.id) return;
     const col=R.col.has(sec.id), fv=R.f[sec.id]||'';
-    const cnt = d.rows.length===d.total ? `(${d.total})` : `(${d.rows.length} of ${d.total})`;
+    const cnt = sec.info ? `<span class="flag" style="background:#eef1f4;color:#4b5563" title="Information only — not counted as a planning change">${d.rows.length===d.total?d.total:d.rows.length+' of '+d.total} file${d.total!==1?'s':''} · info</span>`
+      : d.rows.length===d.total ? `(${d.total})` : `(${d.rows.length} of ${d.total})`;
     const extra = sec.id==='pend' ? `<button class="btn sm no-print" data-pa="bulk" ${R.sel.size?'':'disabled'}>Allocate selected${R.sel.size?' ('+R.sel.size+')':''}</button>` : '';
     let body;
     if(!d.rows.length) body='<div class="empty small">No rows match this filter.</div>';
@@ -2507,7 +2511,7 @@ function download(name, content, type){
   document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
 }
 function planSummary(st, ups){
-  const lg=(st&&st.log)||[]; const n=t=>lg.filter(e=>e.type===t).length;
+  const lg=((st&&st.log)||[]).filter(e=>e.type!=='load'); const n=t=>lg.filter(e=>e.type===t).length;
   return {days:(ups||[]).map(u=>u.label||dayLbl(u.date)), changes:lg.filter(e=>e.type!=='cust'&&e.type!=='route').length, cust:n('cust'), routes:n('route'), total:lg.length};
 }
 function summaryHtml(sm){
