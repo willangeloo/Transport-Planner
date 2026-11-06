@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.10.2). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.10.3). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
@@ -28,7 +28,9 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 
 1. **Link the company folder.** This is needed once per laptop. Click **📁 Choose folder…** and pick the shared `Route_planning` folder.
 2. **Users file.** The app reads `users.json` from `MASTER_DATA`. If there are several, choose one.
-3. **Who is planning?** Click your name. On a laptop that's already registered, **only its owner** is shown.
+3. **Who is planning?** Click your name. Everyone in the company is listed, but on a laptop that's already registered **only its owner can be chosen**; the other names are greyed out.
+   - **🔄 Reload users file** reads `users.json` again from `MASTER_DATA`, e.g. after a Master changed it.
+   - **Change users file…** picks another users file in `MASTER_DATA`.
 4. **Checks, in order:**
    1. **Computer:** each laptop belongs to one person, and staff can't use another person's laptop.
       - **First time:** the laptop is registered to you when you continue.
@@ -219,13 +221,12 @@ The **Change report** tab lists every change, with the order numbers staff need 
   - **Snapshot (.html):** a view-only copy anyone can open with a double-click.
 - The line under the app name shows the file you're working on. Click it to see the history (each file remembers the one it was based on).
 
-**↺ Reset** (Master and Manager) resets the **whole application** on this computer. It clears:
+**↺ Reset** (Master and Manager) clears the **planner** on this laptop:
 - the plan and loaded days;
-- the customer master and fixed routes;
 - customer edits;
-- the users file and shared-folder links.
+- the customer master and fixed routes, which are read again from `MASTER_DATA` as soon as you continue.
 
-The app then reopens on the locked start window (link the folder, then choose your name). The laptop stays registered to its owner. Files in the shared folder aren't touched, so save first if you want to keep the plan.
+The company folder link and the users file are **kept**, and the laptop stays registered to its owner. The app goes straight back to **Who is planning?**. Files in the shared folder aren't touched, so save first if you want to keep the plan.
 
 ## 14. Customize (Master only)
 
@@ -242,7 +243,7 @@ The **Customize** tab is only visible to Master users. Changes are saved with th
 |---|:-:|:-:|:-:|:-:|
 | View plans, maps and report; print and export | ✅ | ✅ | ✅ | ✅ |
 | Load days, move, defer, split, insert, routes, days, customers, dockets, save | ✅ | ✅ | ✅ | — |
-| Undo, remove days or fixed routes, full reset | ✅ | ✅ | — | — |
+| Undo, remove days or fixed routes, reset | ✅ | ✅ | — | — |
 | Manage users (roles) | ✅ | ✅ Users and Viewers only; can't add users | — | — |
 | Set the folder path of… | anyone | themselves, Users and Viewers | themselves | themselves |
 | Unregister someone's laptop | anyone else | Users and Viewers | — | — |

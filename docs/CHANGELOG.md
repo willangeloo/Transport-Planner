@@ -4,6 +4,13 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.10.3 — 2026-11-06
+
+### Edits
+- **Reset keeps the users.** It clears the plan, days, customer edits, customer master and fixed routes (the last two are read again from `MASTER_DATA`). The company folder link, the users file and the laptop's registration are kept, and the app goes straight back to **Who is planning?**.
+- **Who is planning?** lists every user again. On a registered laptop only the owner can be chosen, and the others are greyed out.
+- **Who is planning?** has **🔄 Reload users file** (read `users.json` again from `MASTER_DATA`) and **Change users file…**.
+
 ## v0.10.2 — 2026-11-06
 
 ### Bug fixes

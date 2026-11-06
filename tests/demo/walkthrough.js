@@ -212,7 +212,8 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
     await A.pg.waitForFunction(()=>!document.body.classList.contains('gated')); const reg=JSON.parse(await A.pg.evaluate(()=>window.__TREE.MASTER_DATA['users.json'].text));
     ok(!!reg.users.find(u=>u.name==='Alex').device,"Alex's laptop registered in users.json");
     await A.pg.click('#userBtn'); await A.pg.click('#modal [data-act=switch]'); const only=await txt(A.pg);
-    ok(only.includes('registered to Alex') && !(await A.pg.isVisible('[data-act="u:Sam"]')),"on Alex's laptop only Alex can be chosen"); await shot2(A.pg,'laptop-registered');
+    ok(only.includes('registered to Alex') && only.includes('Sam') && await A.pg.isDisabled('#modal button:has-text("Sam")') && !(await A.pg.isDisabled('[data-act="u:Alex"]')),"on Alex's laptop everyone is listed, but only Alex can be chosen"); await shot2(A.pg,'laptop-registered');
+    await A.pg.click('#modal [data-act=ureload]'); await A.pg.waitForTimeout(300); ok((await txt(A.pg)).includes('Users file reloaded'),'“Reload users file” reads it again from MASTER_DATA');
     tree.MASTER_DATA['users.json']={text:JSON.stringify(reg),mod:Date.now()};
     const B=await laptop(tree);   // another person's laptop
     await B.pg.click('[data-act="u:Alex"]'); await B.pg.waitForSelector('#modal [data-act=back]'); await B.pg.waitForTimeout(300); const other=await txt(B.pg);
@@ -220,14 +221,16 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
     await B.pg.click('#modal [data-act=back]'); await B.pg.click('[data-act="u:Sam"]'); await B.pg.waitForSelector('#modal [data-act=go]'); ok((await txt(B.pg)).includes('will be registered to Sam'),'the other laptop can be registered to its own owner (Sam)');
     await A.cx.close(); await B.cx.close(); }
 
-  // 16. FULL RESET (Master) — everything cleared, back to the start window
+  // 16. RESET (Master) — everything cleared, back to the start window
   await switchTo('Alex');
-  await p.click('#resetBtn'); await p.waitForSelector('#modal [data-act=ok]'); ok((await modalText()).includes('users file'),'reset window lists plan, customer master, fixed routes and users file');
+  await p.click('#resetBtn'); await p.waitForSelector('#modal [data-act=ok]'); ok(/Kept:.*users file/.test(await modalText()),'reset window: the plan is cleared, the folder link and users file are kept');
   await Promise.all([p.waitForEvent('load'), p.click('#modal [data-act=ok]')]);
-  await p.waitForSelector('#modal [data-act=link]',{state:'visible'});
-  // the app writes a fresh, empty plan as it starts again; nothing else may be left
-  const left=await p.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !(k.endsWith('.state') && JSON.parse(localStorage.getItem(k)).log.length===0)));
-  ok(left.length===0 && (await p.textContent('#cBay')).includes('All bays (0)'),'after reset: nothing kept, start window open'+(left.length?' — left: '+left.join(','):''));
+  // the mock folder can't be remembered across a reload in this test set-up, so link it again; in Chrome the link is kept
+  if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]');
+  await p.waitForSelector('#modal [data-act="u:Alex"]',{state:'visible'});
+  // the app writes a fresh, empty plan as it starts again; only the users file choice may be left
+  const left=await p.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !/usersConfig|usersFile/.test(k) && !(k.endsWith('.state') && JSON.parse(localStorage.getItem(k)).log.length===0)));
+  ok(left.length===0 && (await p.textContent('#cBay')).includes('All bays (0)') && await p.evaluate(()=>!!localStorage.getItem('routePlannerBeta.usersConfig')),'after reset: plan cleared, users file kept, “Who is planning?” open'+(left.length?' — left: '+left.join(','):''));
   ok(errs.length===0,'no page errors'+(errs.length?': '+errs.join(' | '):''));
 
   const out=path.join(DEMO,'PLANS','week_46'); fs.rmSync(path.join(DEMO,'PLANS'),{recursive:true,force:true}); fs.mkdirSync(out,{recursive:true});

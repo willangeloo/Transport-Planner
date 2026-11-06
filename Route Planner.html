@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.10.2</title>
+<title>Route Planner BETA v0.10.3</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -283,7 +283,7 @@ th.sortable:hover{text-decoration:underline}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.2</span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.3</span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
@@ -399,7 +399,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.10.2';
+const APP_VERSION='0.10.3';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1378,17 +1378,19 @@ $('resetBtn').onclick=()=>{
   if(EMB){ openModal(`<div class="mh"><h2>Go back to the original snapshot?</h2></div><div class="mb">Any changes you made while viewing this snapshot are discarded and the plan goes back to how ${esc(EMB.savedBy||'the planner')} saved it on ${esc(fmtTime(EMB.savedAt))}.</div><div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="ok">Restore snapshot</button></div>`,
     {onAct:a=>{ if(a!=='ok') return; [KEY,UPKEY,PREFKEY].forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} }); location.reload(); }}); return; }
   const nu=UPLOADS.length, nc=Object.keys(S.cust).length;
-  openModal(`<div class="mh"><h2>Reset the whole application?</h2></div><div class="mb"><div class="note warn">Everything this app keeps on this computer is cleared and it starts again from the home page:</div>
-    <ul class="small" style="margin:6px 0 0 18px;line-height:1.7"><li>the plan: ${S.log.length} change${S.log.length!==1?'s':''}${nu?` and ${nu} loaded day${nu>1?'s':''}`:''}</li><li>the customer master${MASTER?` (${MASTER.list.length} customers)`:''}${nc?` and ${nc} customer edit${nc>1?'s':''}`:''}, and the fixed routes</li><li>the users file${UCFG?` (${UCFG.users.length} users)`:''} and the shared-folder links</li></ul>
+  openModal(`<div class="mh"><h2>Reset the planner?</h2></div><div class="mb"><div class="note warn">The planner is cleared and you go back to <b>Who is planning?</b>:</div>
+    <ul class="small" style="margin:6px 0 0 18px;line-height:1.7"><li>the plan: ${S.log.length} change${S.log.length!==1?'s':''}${nu?` and ${nu} loaded day${nu>1?'s':''}`:''}</li><li>the customer master${MASTER?` (${MASTER.list.length} customers)`:''}${nc?` and ${nc} customer edit${nc>1?'s':''}`:''}, and the fixed routes</li></ul><div class="note info" style="margin-top:8px">Kept: the company folder link (📁 ${esc(FOLDER.name)}) and the users file (${esc(UCFG?UCFG.file:'')}). The customer master and fixed routes are read again from MASTER_DATA.</div>
     <div class="muted small" style="margin-top:8px">Files in the shared folder are not touched. Save first if you want to keep this plan.</div></div>
-    <div class="mf"><button class="btn" data-act="close">Cancel</button>${S.log.length||nu?'<button class="btn" data-act="savefirst">Save the plan first</button>':''}<button class="btn warn" data-act="ok">Reset everything</button></div>`,
+    <div class="mf"><button class="btn" data-act="close">Cancel</button>${S.log.length||nu?'<button class="btn" data-act="savefirst">Save the plan first</button>':''}<button class="btn warn" data-act="ok">Reset</button></div>`,
   {onAct:a=>{ if(a==='savefirst'){ savePlanFile(false); return; } if(a==='ok') fullReset(); }});
 };
 // v0.10: full reset — browser storage, users file and folder links; the app reopens on the home page
+// v0.10.3: reset clears the planner (plan, days, customer master, fixed routes, customer edits) but keeps the company
+// folder link, the users file and this computer's registration; the app reopens on "Who is planning?"
 async function fullReset(){
-  try{ Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta')).forEach(k=>localStorage.removeItem(k)); }catch(e){}
-  try{ ['rp.user','rp.auth','rp.msg'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Application reset — link the folder and choose your user to start again'); }catch(e){}
-  try{ const db=await idb.open(); await new Promise(res=>{ const t=db.transaction('kv','readwrite'); t.objectStore('kv').clear(); t.oncomplete=res; t.onerror=res; t.onabort=res; }); db.close(); }catch(e){}
+  const keep=[UCFGKEY, UFILEKEY];
+  try{ Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !keep.includes(k)).forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ['rp.user','rp.auth','rp.msg'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Planner reset — choose your user'); }catch(e){}
   location.reload();
 }
 
@@ -2233,12 +2235,12 @@ async function readUsersFile(f, msg){
 function gatePicker(msg){
   setGate(true); FOLDER.user=''; try{ sessionStorage.removeItem('rp.user'); sessionStorage.removeItem('rp.auth'); }catch(e){} renderUserBtn();
   const own=ownerOfThisComputer();
-  const byRole=['MASTER','MANAGER','USER','VIEWER'].map(r=>({r, us:UCFG.users.filter(u=>u.role===r && (!own || u===own))})).filter(x=>x.us.length);
+  const byRole=['MASTER','MANAGER','USER','VIEWER'].map(r=>({r, us:UCFG.users.filter(u=>u.role===r)})).filter(x=>x.us.length);
   gateModal(`<div class="mh"><h2>${UCFG.company?esc(UCFG.company)+' · ':''}Who is planning?</h2><div class="muted small">📁 ${esc(FOLDER.name)} › MASTER_DATA › ${esc(UCFG.file)}</div></div>
-   <div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}${own?`<div class="note info">💻 This computer is registered to <b>${esc(own.name)}</b>. Staff can't use another person's computer.</div>`:''}
-    ${byRole.map(g=>`<div><label>${ROLE_TXT[g.r]}</label><div class="chips" style="gap:8px">${g.us.map(u=>`<button class="chip" data-act="u:${esc(u.name)}" style="padding:8px 14px;font-size:13px">👤 ${esc(u.name)}</button>`).join('')}</div></div>`).join('')}</div>
-   <div class="mf"><button class="btn" data-act="relink" style="margin-right:auto">📁 Change folder…</button><button class="btn" data-act="ufile">Other users file…</button></div>`,
-   {onAct:a=>{ if(a.startsWith('u:')) return validateUser(a.slice(2)); if(a==='relink') return linkRoot(); if(a==='ufile') return gateUsersFile('',true); }});
+   <div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}${own?`<div class="note info">💻 This computer is registered to <b>${esc(own.name)}</b>, so only ${esc(own.name)} can be chosen here — staff can't use another person's computer. A Master can unregister it in <b>Manage users</b>.</div>`:''}
+    ${byRole.map(g=>`<div><label>${ROLE_TXT[g.r]}</label><div class="chips" style="gap:8px">${g.us.map(u=>{ const off=!!own && u!==own; return `<button class="chip" ${off?`disabled title="This computer is registered to ${esc(own.name)}"`:`data-act="u:${esc(u.name)}"`} style="padding:8px 14px;font-size:13px;${off?'opacity:.45;cursor:not-allowed':''}">👤 ${esc(u.name)}${u===own?' <span class="rolechip">this computer</span>':''}</button>`; }).join('')}</div></div>`).join('')}</div>
+   <div class="mf"><button class="btn" data-act="relink" style="margin-right:auto">📁 Change folder…</button><button class="btn" data-act="ureload" title="Read users.json again from MASTER_DATA">🔄 Reload users file</button><button class="btn" data-act="ufile">Change users file…</button></div>`,
+   {onAct:a=>{ if(a.startsWith('u:')) return validateUser(a.slice(2)); if(a==='relink') return linkRoot(); if(a==='ufile') return gateUsersFile('',true); if(a==='ureload') return gateUsersFile('Users file reloaded from MASTER_DATA.'); }});
   $('modal').classList.add('wide');
 }
 // ---- 4. check the user's folder: OK → continue; failed → fix it (the tool stays locked)

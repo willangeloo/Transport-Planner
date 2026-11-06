@@ -71,7 +71,7 @@ Only from **inside the planner**, after passing the checks on your own laptop:
 
 Changes are written straight into `MASTER_DATA/users.json`, so everyone gets them the next time they open the app.
 
-**↺ Reset** (Master or Manager) clears everything the app keeps on that computer, including the folder link, but the laptop stays registered to its owner. The app goes back to the start window.
+**↺ Reset** (Master or Manager) clears the planner but keeps the folder link, the users file and the laptop's registration. The app goes back to **Who is planning?**. To read an updated users file, use **🔄 Reload users file** on that window.
 
 ## Important
 
