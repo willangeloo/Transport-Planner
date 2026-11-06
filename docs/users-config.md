@@ -45,6 +45,8 @@ Opening the app **without a user** while a users file is loaded gives view-only 
 3. Click **⤓ Export users file…** and replace `MASTER_DATA/users.json` with the exported file, so everyone gets the same list.
 4. On other computers: home page → **Load another users file…**.
 
+**↺ Reset** (Master or Manager) also removes the users file from that computer, along with everything else. The app goes back to the home page to load it again.
+
 ## Folder paths
 
 The linked folder is the **root** of the shared planning folder (`…\Route_planning`), not a week folder. The app finds `MASTER_DATA`, `REPORTS\week_XX` and `PLANS\week_XX` itself.

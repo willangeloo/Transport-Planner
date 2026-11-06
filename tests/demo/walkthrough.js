@@ -162,11 +162,20 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('#userBtn'); await p.click('#modal [data-act=users]'); await pickUser('Sam'); await closeModal();
   await p.click('#userBtn'); await p.click('#modal [data-act=admin]'); await p.waitForSelector('[data-ua="role:0"]');
   ok(await p.isDisabled('[data-ua="role:0"]') && !(await p.isVisible('#modal [data-act=add]')),'Manager: cannot change Master users or add users'); await shot('manage-users'); await closeModal();
+  // write the saved plans back into the demo folder (collected before the full reset below)
+  const plans=await p.evaluate(()=>window.__TREE.PLANS.week_46);
+
+  // 14. FULL RESET (Master) — everything cleared, back to the home page
+  await p.click('#userBtn'); await p.click('#modal [data-act=users]'); await pickUser('Alex'); await closeModal();
+  await p.click('#resetBtn'); await p.waitForSelector('#modal [data-act=ok]'); ok((await modalText()).includes('users file'),'reset window lists plan, customer master, fixed routes and users file');
+  await Promise.all([p.waitForEvent('load'), p.click('#modal [data-act=ok]')]);
+  await p.waitForSelector('[data-act=cfgload]',{state:'visible'});
+  // the app writes a fresh, empty plan as it starts again; nothing else may be left
+  const left=await p.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !(k.endsWith('.state') && JSON.parse(localStorage.getItem(k)).log.length===0)));
+  ok(left.length===0 && (await modalText()).includes('No users file loaded') && (await p.textContent('#cBay')).includes('All bays (0)'),'after reset: no users file, no customers, home page open'+(left.length?' — left: '+left.join(','):''));
   ok(errs.length===0,'no page errors'+(errs.length?': '+errs.join(' | '):''));
 
-  // write the saved plans back into the demo folder
   const out=path.join(DEMO,'PLANS','week_46'); fs.rmSync(path.join(DEMO,'PLANS'),{recursive:true,force:true}); fs.mkdirSync(out,{recursive:true});
-  const plans=await p.evaluate(()=>window.__TREE.PLANS.week_46);
   for(const [f,node] of Object.entries(plans)) fs.writeFileSync(path.join(out,f),node.text);
   console.log(`${fails?fails+' FAILED':'All passed'} · ${Object.keys(plans).length} files written to PLANS/week_46`);
   await b.close();

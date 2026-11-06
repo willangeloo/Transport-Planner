@@ -284,7 +284,7 @@ th.sortable:hover{text-decoration:underline}
   <button class="hbtn" id="shareBtn" title="Save as, snapshots and sharing options">⤓ <span>Save as / share</span></button>
   <button class="hbtn" id="openBtn" title="Open a plan file (.json) or snapshot (.html) saved by someone">⤒ <span>Open plan</span></button>
   <input type="file" id="planFile" accept=".json,.html,.htm" hidden>
-  <button class="hbtn" id="resetBtn" title="Clear all changes, uploaded days and customer edits">↺ <span>Reset</span></button>
+  <button class="hbtn" id="resetBtn" title="Reset the whole application: plan, customer master, fixed routes, users file and folder links">↺ <span>Reset</span></button>
 </header>
 <main>
   <!-- CUSTOMERS -->
@@ -1364,10 +1364,19 @@ $('resetBtn').onclick=()=>{
   if(EMB){ openModal(`<div class="mh"><h2>Go back to the original snapshot?</h2></div><div class="mb">Any changes you made while viewing this snapshot are discarded and the plan goes back to how ${esc(EMB.savedBy||'the planner')} saved it on ${esc(fmtTime(EMB.savedAt))}.</div><div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="ok">Restore snapshot</button></div>`,
     {onAct:a=>{ if(a!=='ok') return; [KEY,UPKEY,PREFKEY].forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} }); location.reload(); }}); return; }
   const nu=UPLOADS.length, nc=Object.keys(S.cust).length;
-  openModal(`<div class="mh"><h2>Reset the planner?</h2></div><div class="mb">This clears all ${S.log.length} change${S.log.length!==1?'s':''}${nc?`, ${nc} customer edit${nc>1?'s':''}`:''}${nu?` and removes ${nu} uploaded day${nu>1?'s':''}`:''}, leaving an empty planner. Save / share first if you want to keep a copy.</div><div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="ok">Reset</button></div>`,
-  {onAct:a=>{ if(a!=='ok') return; const ids=Object.keys(S.cust); S=freshState(); S.fixed=load(FIXKEY,null); ids.forEach(applyCust); UPLOADS=[]; saveUploads(); PREFS.hideSample=false; PREFS.lineage=null; savePrefs(); renderLineage();
-    indexDays(); normalizeState(); P.day=null; buildDaySel(); P.sel.clear(); save(); closeModal(); if(pInit) renderPlan(); afterCustChange(); renderReport(); toast('Planner reset'); }});
+  openModal(`<div class="mh"><h2>Reset the whole application?</h2></div><div class="mb"><div class="note warn">Everything this app keeps on this computer is cleared and it starts again from the home page:</div>
+    <ul class="small" style="margin:6px 0 0 18px;line-height:1.7"><li>the plan: ${S.log.length} change${S.log.length!==1?'s':''}${nu?` and ${nu} loaded day${nu>1?'s':''}`:''}</li><li>the customer master${MASTER?` (${MASTER.list.length} customers)`:''}${nc?` and ${nc} customer edit${nc>1?'s':''}`:''}, and the fixed routes</li><li>the users file${UCFG?` (${UCFG.users.length} users)`:''} and the shared-folder links</li></ul>
+    <div class="muted small" style="margin-top:8px">Files in the shared folder are not touched. Save first if you want to keep this plan.</div></div>
+    <div class="mf"><button class="btn" data-act="close">Cancel</button>${S.log.length||nu?'<button class="btn" data-act="savefirst">Save the plan first</button>':''}<button class="btn warn" data-act="ok">Reset everything</button></div>`,
+  {onAct:a=>{ if(a==='savefirst'){ savePlanFile(false); return; } if(a==='ok') fullReset(); }});
 };
+// v0.10: full reset — browser storage, users file and folder links; the app reopens on the home page
+async function fullReset(){
+  try{ Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta')).forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ['rp.user','rp.msg'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Application reset — load the users file to start again'); }catch(e){}
+  try{ const db=await idb.open(); await new Promise(res=>{ const t=db.transaction('kv','readwrite'); t.objectStore('kv').clear(); t.oncomplete=res; t.onerror=res; t.onabort=res; }); db.close(); }catch(e){}
+  location.reload();
+}
 
 // ================= UPLOAD (per day, date from the file) =================
 const DAY_PREFIX = {MON:0,TUE:1,WED:2,THU:3,FRI:4,SAT:5,SUN:6};

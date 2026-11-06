@@ -26,6 +26,7 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 - **Customer master** is also read automatically from `MASTER_DATA` when the folder is linked.
 - **Header:** shows only the current file name. Click it for the full history.
 - **Header buttons:** compact (icons only) on narrower screens.
+- **Reset is a full reset of the application.** It clears the plan and days, the customer master and fixed routes, customer edits, the users file and the folder links. The app then reopens on the home page to load the users file again.
 
 ## v0.9.2 — 2026-11-05
 

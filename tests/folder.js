@@ -42,10 +42,11 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   const link=async()=>{ try{ await p.waitForSelector('[data-act="u:Tester"], #newUser, #modal [data-act=link]',{state:'visible',timeout:5000}); }catch(e){}
     if(await p.isVisible('#newUser') && !(await p.isVisible('[data-act="u:Tester"]'))){ await p.fill('#newUser','Tester'); await p.click('[data-act=adduser]'); }
     if(await p.isVisible('[data-act="u:Tester"]')) await p.click('[data-act="u:Tester"]');
-    for(let i=0;i<2;i++){ await p.waitForSelector('#modal [data-act=link]',{state:'visible'}).catch(()=>{});
-      if(!(await p.isVisible('#modal [data-act=link]'))) break;
-      await Promise.all([p.waitForEvent('load',{timeout:5000}).catch(()=>null), p.click('#modal [data-act=link]')]); await p.waitForTimeout(300);
-      if(await p.evaluate(()=>document.getElementById('userBtn').textContent.includes('Planning app'))) break; }
+    const linked=()=>p.evaluate(()=>{ const b=document.getElementById('userBtn'); return !!b && b.textContent.includes('Planning app'); }).catch(()=>false);
+    for(let i=0;i<20 && !(await linked());i++){
+      if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=link]').catch(()=>{})]);
+      else if(await p.isVisible('[data-act="u:Tester"]').catch(()=>false)) await p.click('[data-act="u:Tester"]').catch(()=>{});
+      await p.waitForTimeout(400); }
     await p.waitForFunction(()=>document.getElementById('userBtn').textContent.includes('Planning app')); };
   await p.goto('file://'+APP); await link();
   ok(true,'user linked the shared folder');

@@ -179,6 +179,14 @@ The **Change report** tab lists every change, with the order numbers staff need 
   - **Snapshot (.html):** a view-only copy anyone can open with a double-click.
 - The line under the app name shows the file you're working on. Click it to see the history (each file remembers the one it was based on).
 
+**↺ Reset** (Master and Manager) resets the **whole application** on this computer. It clears:
+- the plan and loaded days;
+- the customer master and fixed routes;
+- customer edits;
+- the users file and shared-folder links.
+
+The app then reopens on the home page, ready to load the users file again. Files in the shared folder aren't touched, so save first if you want to keep the plan.
+
 ## 14. Customize (Master only)
 
 The **Customize** tab is only visible to Master users. Changes are saved with the plan.
@@ -194,7 +202,7 @@ The **Customize** tab is only visible to Master users. Changes are saved with th
 |---|:-:|:-:|:-:|:-:|
 | View plans, maps and report; print and export | ✅ | ✅ | ✅ | ✅ |
 | Load days, move, defer, split, insert, routes, days, customers, dockets, save | ✅ | ✅ | ✅ | — |
-| Undo, remove days or fixed routes, reset | ✅ | ✅ | — | — |
+| Undo, remove days or fixed routes, full reset | ✅ | ✅ | — | — |
 | Manage users (roles and folders) | ✅ | ✅ except Master users; can't add users | — | — |
 | Add or remove users | ✅ | — | — | — |
 | Customize tab | ✅ | — | — | — |
