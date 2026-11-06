@@ -147,6 +147,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   // sort by customer (click the heading)
   await p.click('[data-sec=move] th[data-sort="move:1"]'); const names=await p.$$eval('[data-sec=move] tbody tr td:nth-child(2) b',x=>x.map(e=>e.textContent));
   ok(names.join('|')===[...names].sort((a,b)=>a.localeCompare(b,'en',{sensitivity:'base'})).join('|'),'clicking a heading sorts the section A→Z');
+  ok(await p.$$eval('#rBody table:not([data-tbl=pend]) tbody tr',rs=>rs.length>0 && rs.every(r=>/👤 Alex/.test(r.textContent))),'every change in the report shows who made it (👤 Alex) in the Logged column');
   await shot('report-after');
   const [dl]=await Promise.all([p.waitForEvent('download'), p.click('#xlsBtn')]); ok(/Route changes .*\.xlsx$/.test(dl.suggestedFilename()),'full report exported to Excel: '+dl.suggestedFilename());
 
@@ -163,7 +164,12 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   let saved=await p.evaluate(()=>Object.keys((window.__TREE.PLANS||{}).week_46||{}));
   ok(saved.some(f=>/^v\d+\.\d+\.\d+_.*_Alex\.json$/.test(f)),'Save wrote the plan into PLANS/week_46: '+saved.join(', '));
   ok(/Saved: "v\d+\.\d+\.\d+_/.test(await p.textContent('#lineage')) && !(await p.textContent('#lineage')).includes('Previous'),'header shows only the current file');
-  await at('2026-11-06T16:07:00'); await p.click('#shareBtn'); await p.click('[data-act=snap]'); await p.waitForTimeout(500); await closeModal();
+  await at('2026-11-06T16:07:00'); await p.click('#shareBtn');
+  ok(!(await p.isVisible('#shName')) && (await modalText()).includes('👤 Alex'),'Save as / share: “saved by” is the user who is in, not editable');
+  await p.click('[data-act=snap]'); await p.waitForTimeout(500); await closeModal();
+  // Save as: only the folder is chosen (here the company folder itself); the name stays version_date_time_user
+  await p.click('#shareBtn'); await p.click('[data-act=jsonas]'); await p.waitForTimeout(500); await closeModal();
+  ok(await p.evaluate(()=>Object.keys(window.__TREE).some(f=>/^v\d+\.\d+\.\d+_2026-11-06_16\.07_Alex\.json$/.test(f))),'Save as: the file name stays version_date_time_user (only the folder is chosen)');
   for(const [dk,t] of [['D2026-11-10','2026-11-09T15:40:00'],['D2026-11-11','2026-11-10T15:35:00'],['D2026-11-12','2026-11-11T15:50:00'],['D2026-11-13','2026-11-12T15:45:00']]){
     await p.selectOption('#pDay',dk); await p.click('#expAll');
     const rs=await p.$$eval('.route:not(.deferred)',x=>x.map(r=>({id:r.dataset.r,n:r.querySelectorAll('.drop:not(.dh)').length}))); const src=rs.find(r=>r.n>=2);

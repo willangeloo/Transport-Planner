@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.10.4). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.10.5). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
@@ -206,6 +206,7 @@ The **Change report** tab lists every change, with the order numbers staff need 
 - **Boxes at the top** show only that section (click again to show everything).
 - **Search** looks across everything, including driver, helper and truck. **Filter this section** works within one section.
 - **Click a column heading** to sort that section (click again to reverse).
+- **Logged** shows when and **who** made each change (👤 user tag); the Excel export has a **By** column.
 - **Undo** removes a change. If something happened to those orders later, undo that first.
 - **⤓ Export** on a section, or the export button at the top for everything, creates an Excel file. **Print** prints the report with a signature line.
 
@@ -217,7 +218,7 @@ The **Change report** tab lists every change, with the order numbers staff need 
 
 - **💾 Save** (top right) saves the plan file straight into `PLANS/week_XX`, using the week of the day you're planning. The name is `version_date_time_user`, e.g. `v0.10.0_2026-11-06_16.05_Alex.json`.
 - **⤓ Save as / share** gives two options:
-  - **Plan file (.json):** for planners who'll keep working on it. **Save** or **Save as…** to choose another place.
+  - **Plan file (.json):** for planners who'll keep working on it. **Save**, or **Save as…** to choose another **folder**. The file name is always `version_date_time_user` and can't be changed, and "saved by" is the user who is in.
   - **Snapshot (.html):** a view-only copy anyone can open with a double-click.
 - The line under the app name shows the file you're working on. Click it to see the history (each file remembers the one it was based on).
 

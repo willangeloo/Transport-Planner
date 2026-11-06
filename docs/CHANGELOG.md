@@ -4,6 +4,16 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.10.5 — 2026-11-06
+
+### Features
+- **Who made each change.** Every change in the change report records the user who made it. The **Logged** column of every section shows the time plus a 👤 user tag, in the same style as the Check Sheet tag. The Excel export has a **By** column.
+
+### Edits
+- **Fixed plan and snapshot names.** They're always `version_date_time_user`.
+  - **Save as** asks only for the **folder**, so the name can't be changed.
+  - **"Saved by"** is the user who is in, shown read-only in Save as / share.
+
 ## v0.10.4 — 2026-11-06
 
 ### Edits
