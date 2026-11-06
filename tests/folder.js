@@ -38,11 +38,18 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     window.addEventListener('beforeunload',()=>sessionStorage.setItem('__tree',JSON.stringify(window.__TREE))); }, JSON.stringify(TREE));
   await c.addInitScript(MOCK);
   const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message));
-  const link=async()=>{ try{ await p.waitForSelector('[data-act="u:Willian"], [data-act=link]',{state:'visible',timeout:5000}); }catch(e){}
-    if(await p.isVisible('[data-act="u:Willian"]')) await p.click('[data-act="u:Willian"]');
-    await p.waitForSelector('[data-act=link]',{state:'visible'}); await p.click('[data-act=link]'); await p.waitForFunction(()=>document.getElementById('userBtn').textContent.includes('Planning app')); };
+  // open mode (no users file): add a local name, pick it, link the folder; the first link reads MASTER_DATA and reloads the page
+  const link=async()=>{ try{ await p.waitForSelector('[data-act="u:Tester"], #newUser, #modal [data-act=link]',{state:'visible',timeout:5000}); }catch(e){}
+    if(await p.isVisible('#newUser') && !(await p.isVisible('[data-act="u:Tester"]'))){ await p.fill('#newUser','Tester'); await p.click('[data-act=adduser]'); }
+    if(await p.isVisible('[data-act="u:Tester"]')) await p.click('[data-act="u:Tester"]');
+    for(let i=0;i<2;i++){ await p.waitForSelector('#modal [data-act=link]',{state:'visible'}).catch(()=>{});
+      if(!(await p.isVisible('#modal [data-act=link]'))) break;
+      await Promise.all([p.waitForEvent('load',{timeout:5000}).catch(()=>null), p.click('#modal [data-act=link]')]); await p.waitForTimeout(300);
+      if(await p.evaluate(()=>document.getElementById('userBtn').textContent.includes('Planning app'))) break; }
+    await p.waitForFunction(()=>document.getElementById('userBtn').textContent.includes('Planning app')); };
   await p.goto('file://'+APP); await link();
   ok(true,'user linked the shared folder');
+  ok((await p.textContent('#cBay')).includes('All bays (2)'),'customer master read from MASTER_DATA as soon as the folder is linked');
   await p.evaluate(()=>document.getElementById('uploadBtn').click()); await p.waitForSelector('input[name=fb]');
   let m=await p.textContent('#modal');
   ok(/Week 45[\s\S]*Week 44/.test(m),'week chips, newest week first');
@@ -67,7 +74,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   await p.selectOption('#pDay',{label:/Tue 03\.11/}).catch(()=>{});
   await p.click('#shareBtn'); await p.click('[data-act=json]'); await p.waitForTimeout(800);
   const saved=await p.evaluate(()=>Object.keys(window.__TREE.PLANS.Week_45));
-  const mine=saved.find(n=>/^v0\.9\.2_\d{4}-\d{2}-\d{2}_\d{2}\.\d{2}_Willian\.json$/.test(n));
+  const mine=saved.find(n=>/^v\d+\.\d+\.\d+_\d{4}-\d{2}-\d{2}_\d{2}\.\d{2}_Tester\.json$/.test(n));
   ok(!!mine,'plan saved into the existing PLANS/Week_45 as version_date_time_user: '+mine);
   ok(!(await p.evaluate(()=>'PLANS ' in window.__TREE || 'week_45' in window.__TREE.PLANS)),'no duplicate folder created (matched Week_45 without case)');
   await p.click('#modal [data-act=close]').catch(()=>{});

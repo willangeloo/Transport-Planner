@@ -6,29 +6,41 @@
 - see drops on a map by bay;
 - move, defer, insert or split orders, add routes, and edit or add customers;
 - produce a change report used to update other systems;
-- share plans as `.json` files or view-only `.html` snapshots.
+- share plans as `.json` files or view-only `.html` snapshots;
+- tag every order's docket (Pink & White / Offloading);
+- give each person a role (Master, Manager, User, Viewer) from a users file.
 
 Open `Route Planner.html` in Chrome or Edge.
 
+| Read this | For |
+|---|---|
+| [docs/user-guide.md](docs/user-guide.md) | How to do each task, with screenshots |
+| [demo/README.md](demo/README.md) | The demo week: made-up data to try or present the app |
+| [docs/users-config.md](docs/users-config.md) | The users file (`users.json`) and roles |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | What changed in each version |
+| [docs/backend-blueprint.md](docs/backend-blueprint.md) | How to build the production version with a backend |
+
 ## No data in this repository
 
-This repository is public, so no customer or operational data is committed. The app reads everything at runtime from files the planner chooses:
+This repository is public, so no customer, staff or operational data is committed, and no names are built into the app. The app reads everything at runtime from files the planner chooses. The only spreadsheets in the repository are the invented [demo week](demo/README.md).
 
 | File | How it gets into the app |
 |---|---|
-| `MASTER_DEL_DETAILS.xlsx` (customer master) | **Load day** → drop the file once. It is kept in the browser and copied into saved plans / snapshots. |
+| `users.json` (people and roles) | Home page → **Load users file…** once per computer. See [users-config.md](docs/users-config.md) |
+| `MASTER_DEL_DETAILS.xlsx` (customer master) | Read from `MASTER_DATA` when the shared folder is linked (or **Load day** → drop the file). It's kept in the browser and copied into saved plans and snapshots |
+| `FIXED_ROUTES_DIPSDATA.xls` | Same as the customer master |
 | Planning + RESOURCES (`DIPS_Plan_<wd>.xlsx`, `RES_<wd>.xlsx`) | **Load day** |
-| `FIXED_ROUTES_DIPSDATA.xls` | **Load day** |
 
 ## Shared folder
 
-Each user links the shared **Planning app** folder once (👤 button). After that, the app reads its subfolders:
+Each user links the shared **Route_planning** folder once (👤 button). After that, the app reads its subfolders:
 
 - **Load day** lists the files by section (DIPS Plan, Resources, Products, Uplifts, POD, Customer master, Fixed routes), with one chip per `week_XX` folder. It opens on the week with the newest files.
 - **Dates:** a report named only with its weekday (`RES_Tue.xlsx`) gets its date from the week folder plus the weekday. For example, `REPORTS/week_45/RES_Tue.xlsx` is Tue 03.11. Planning files still take the date from the *Date Promised Shipment* column.
 - **Old names:** `Tue - 03.11.xlsx`, `Tue - 03.11 RESOURCES.xlsx` and `… - PRODUCTS.xlsx` are recognised too, and folder names are matched without case (`REPORT` / `REPORTS`, `Week_45` / `week_45`).
 - **Skipped:** `_ARCHIVE`, `_RESTORED` and `PROMPTS` are ignored. Products, Uplifts and POD are listed but can't be imported yet.
-- **Save / share** saves into `PLANS/week_XX` (the ISO week of the day being planned) as `v<version>_<date>_<time>_<user>.json` / `.html`, for example `v0.9.2_2026-11-05_15.58_Willian.json`.
+- **MASTER_DATA:** the customer master and fixed routes are read automatically, and read again only when those files change.
+- **💾 Save** saves into `PLANS/week_XX` (the ISO week of the day being planned) as `v<version>_<date>_<time>_<user>.json`, for example `v0.10.0_2026-11-06_16.05_Alex.json`. **Save as / share** lets you choose the place, or make a snapshot.
 - **Open plan** lists `PLANS/week_XX` the same way.
 
 ## Folder layout
@@ -38,8 +50,10 @@ The repo mirrors the shared "Planning app" folder. Data folders exist only on yo
 | Path | In git | Contents |
 |---|---|---|
 | `Route Planner.html` | yes | The app (current version) |
-| `tests/` | yes | Browser tests with fake data |
-| `MASTER_DATA/` | no | Customer master, fixed routes, manifest |
+| `docs/` | yes | User guide, changelog, users file, backend blueprint |
+| `demo/` | yes | The demo week (made-up data, safe to share) |
+| `tests/` | yes | Browser tests and the demo generator |
+| `MASTER_DATA/` | no | Customer master, fixed routes, manifest, `users.json` |
 | `REPORTS/week_XX/` | no | Daily reports |
 | `PLANS/week_XX/` | no | Saved plans and snapshots |
 | `PROMPTS/` | no | Requirement notes |

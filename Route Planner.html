@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.9.2</title>
+<title>Route Planner BETA v0.10.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -179,6 +179,27 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .flag.ad{background:#e7f5ec;color:var(--ok)}
 .flag.sp{background:#f1e8fb;color:#6b21a8}
 .flag.dup{background:var(--danger-soft);color:var(--danger)}
+.hbtn{white-space:nowrap}
+header{gap:14px}
+@media (max-width:1500px){ header .hbtn:not(#userBtn) span{display:none} header .hbtn{padding:6px 9px} }
+@media (max-width:1180px){ #userBtn .rolechip{display:none} }
+.cugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.curow{display:flex!important;align-items:center;gap:8px;margin:0!important;font-weight:500!important}
+.curow input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--line);border-radius:6px;background:none}
+#tab-custom{overflow:auto;display:none}
+#tab-custom.on{display:block}
+.rolechip{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;background:#e6f0ef;color:#0f766e;margin-left:4px}
+body[data-role=VIEWER] .acts [data-act=move],body[data-role=VIEWER] .acts [data-act=defer],body[data-role=VIEWER] .acts [data-act=split],body[data-role=VIEWER] .acts [data-act=merge],
+body[data-role=VIEWER] #insBtn,body[data-role=VIEWER] #newRouteBtn,body[data-role=VIEWER] #newDayBtn,body[data-role=VIEWER] #newCustBtn,body[data-role=VIEWER] #uploadBtn,
+body[data-role=VIEWER] #selMove,body[data-role=VIEWER] #selDefer,body[data-role=VIEWER] #saveBtn,body[data-role=VIEWER] #shareBtn,body[data-role=VIEWER] #dkTool,body[data-role=VIEWER] [data-pa],
+body[data-role=VIEWER] [data-undo],body[data-role=USER] [data-undo],body[data-role=VIEWER] #resetBtn,body[data-role=USER] #resetBtn,body[data-role=VIEWER] [data-act^="rm"],body[data-role=USER] [data-act^="rm"]{display:none!important}
+body[data-role=VIEWER] .dk-click{pointer-events:none;border:0}
+.flag.dk-pw{background:#fde2ee;color:#be185d}
+.flag.dk-off{background:#eef1f4;color:#4b5563}
+.flag.dk-click{cursor:pointer;border:1px dashed currentColor}
+.dkpick .chip.on{outline:2px solid var(--accent,#0f766e)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{text-decoration:underline}
 .cal{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
 .cal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-weight:600}
 .cal-h button{border:1px solid var(--line);background:#fff;border-radius:6px;width:28px;height:26px;cursor:pointer}
@@ -250,15 +271,17 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.9.2</span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.0</span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
     <button data-tab="report">Change report <span class="n" id="navCount">0</span></button>
+    <button data-tab="custom" id="navCustom" hidden>Customize</button>
   </nav>
   <div class="spacer"></div>
   <button class="hbtn" id="userBtn" title="User and shared folder">👤</button>
-  <button class="hbtn" id="shareBtn" title="Save this plan to a file so others can open it">⤓ <span>Save / share</span></button>
+  <button class="hbtn" id="saveBtn" title="Save the plan file (.json) — into PLANS/week_XX when the shared folder is linked">💾 <span>Save</span></button>
+  <button class="hbtn" id="shareBtn" title="Save as, snapshots and sharing options">⤓ <span>Save as / share</span></button>
   <button class="hbtn" id="openBtn" title="Open a plan file (.json) or snapshot (.html) saved by someone">⤒ <span>Open plan</span></button>
   <input type="file" id="planFile" accept=".json,.html,.htm" hidden>
   <button class="hbtn" id="resetBtn" title="Clear all changes, uploaded days and customer edits">↺ <span>Reset</span></button>
@@ -346,10 +369,12 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
         <div class="no-print" style="width:250px"><input type="search" id="rSearch" placeholder="Search order, customer, bay, driver, truck…"></div><div class="no-print" style="width:170px"><select id="rDay"></select></div><button class="btn no-print" id="xlsBtn">⤓ Export Excel</button><button class="btn pri no-print" id="printBtn">Print / Save as PDF</button>
       </div>
       <div class="kpis" id="rKpis"></div>
+      <div class="card no-print" id="dkTool" style="padding:10px 14px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>🧾 Docket type</b><span class="muted small">Find any order and change its docket (planning-file orders are Offloading). In the tables below, click an order's tag to change it.</span><span class="spacer"></span><input type="search" id="dkFind" placeholder="Order number…" style="width:170px"><button class="btn sm" id="dkGo">Change…</button></div>
       <div id="rBody"></div>
       <div class="print-only small" style="margin-top:24px">Planner: ______________________ &nbsp;&nbsp;&nbsp; Checked by: ______________________ &nbsp;&nbsp;&nbsp; Date: ____________</div>
     </div>
   </section>
+  <section class="tab" id="tab-custom"></section>
 </main>
 
 <div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
@@ -363,7 +388,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.9.2';
+const APP_VERSION='0.10.0';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -390,9 +415,10 @@ const KEY='routePlannerBeta.v082.state'+NS, UPKEY='routePlannerBeta.v082.days'+N
 function load(k,def){ try{ const r=localStorage.getItem(k); if(r){ const p=JSON.parse(r); if(p!=null) return p; } }catch(e){} return def; }
 function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
 function clone0(o){ return o==null?o:JSON.parse(JSON.stringify(o)); }
-const freshState = () => ({cur:{}, log:[], seq:1, grp:{}, added:[], cust:{}, routes:[], days:[], fixed:null});
+const freshState = () => ({cur:{}, log:[], seq:1, grp:{}, added:[], cust:{}, routes:[], days:[], fixed:null, dock:{}, look:{colors:{}, names:{}}});
 let S = Object.assign(freshState(), load(KEY, EMB?clone0(EMB.state):{}));
-['cur','grp','cust'].forEach(k=>{ if(!S[k]||typeof S[k]!=='object'||Array.isArray(S[k])) S[k]={}; });
+['cur','grp','cust','dock'].forEach(k=>{ if(!S[k]||typeof S[k]!=='object'||Array.isArray(S[k])) S[k]={}; });
+if(!S.look||typeof S.look!=='object') S.look={}; if(!S.look.colors) S.look.colors={}; if(!S.look.names) S.look.names={};
 if(!Array.isArray(S.log)) S.log=[]; if(!Array.isArray(S.added)) S.added=[]; if(!Array.isArray(S.routes)) S.routes=[]; if(!Array.isArray(S.days)) S.days=[];
 function save(){ store(KEY,S); }
 let UPLOADS = load(UPKEY, EMB?clone0(EMB.uploads):[]); if(!Array.isArray(UPLOADS)) UPLOADS=[];   // one entry per uploaded day
@@ -408,6 +434,9 @@ let MASTER = load(CUSTKEY, EMB&&EMB.customers?clone0(EMB.customers):null);
 if(!MASTER || !Array.isArray(MASTER.list)) MASTER=null;
 DATA.customers = MASTER ? clone(MASTER.list) : [];
 const BASECUST = {}; DATA.customers.forEach(c=>BASECUST[c.id]=clone(c));
+// v0.10: fixed routes are reference data too — kept in this browser, not reloaded every day
+const FIXKEY='routePlannerBeta.v082.fixed'+NS;
+if(!S.fixed){ const fx=load(FIXKEY,null); if(fx && Array.isArray(fx.bays)) S.fixed=fx; }
 const custMap = {}; DATA.customers.forEach(c=>custMap[c.id]=c);
 const CUST_DEFAULT = {name:'',pc:'',addr:'',lat:null,lng:null,bay:'',days:[],tw:''};
 function applyCust(id){
@@ -421,7 +450,7 @@ Object.keys(S.cust).forEach(applyCust);
 function bayBase(b){ const m=String(b).match(/^(BAY \d+)[AB]$/); return m?m[1]:b; }
 const masterBays = [...new Set(Object.values(BASECUST).map(c=>c.bay))].sort();
 const bayColor = {}; [...new Set(masterBays.map(bayBase))].forEach((b,i)=>{ masterBays.filter(x=>bayBase(x)===b).forEach(x=>bayColor[x]=PALETTE[i%PALETTE.length]); });
-const colorOfBay = b => bayColor[b] || bayColor[bayBase(b)] || '#888';
+const colorOfBay = b => (S.look&&S.look.colors[bayBase(b)]) || bayColor[b] || bayColor[bayBase(b)] || bayColor[masterBays.find(x=>bayBase(x)===bayBase(b))] || '#888';
 
 // ---------- days & orders ----------
 const BUILTIN_DAYS = DATA.days.slice();
@@ -461,9 +490,9 @@ function indexDays(){
     // one colour per bay number: BAY 05A and BAY 05B share a colour
     const bases=[...new Set(d.loads.map(l=>bayBase(l.bay)))].sort();
     const ci={}; bases.forEach((b,i)=>ci[b]=PALETTE[i%PALETTE.length]);
-    d.loads.forEach(l=>routeColor[d.key+'|'+l.id]=ci[bayBase(l.bay)]);
+    d.loads.forEach(l=>routeColor[d.key+'|'+l.id]=S.look.colors[bayBase(l.bay)]||ci[bayBase(l.bay)]);
   });
-  S.added.forEach(a=>{ if(dayMap[a.day]) ORD[a.uid]={uid:a.uid,o:a.o,s:a.s,n:a.n,a:a.a||'',w:a.w||0,r:'',day0:a.day,load0:fixLoad(a.day,a.load)||a.load,added:true}; });
+  S.added.forEach(a=>{ if(dayMap[a.day]) ORD[a.uid]={uid:a.uid,o:a.o,s:a.s,n:a.n,a:a.a||'',w:a.w||0,r:'',day0:a.day,load0:fixLoad(a.day,a.load)||a.load,added:true,dk:a.dk||'OFF'}; });
 }
 // fixed routes (FIXED_ROUTES_DIPSDATA): bays that run on each weekday
 function fixedBaysFor(dow){ return S.fixed&&S.fixed.bays ? S.fixed.bays.filter(b=>b.days.includes(dow)).map(b=>b.bay) : []; }
@@ -491,6 +520,7 @@ function normalizeState(){
     setCur(u,{day, load:ld});
   });
   Object.keys(S.grp).forEach(u=>{ if(!ORD[u]) delete S.grp[u]; });
+  Object.keys(S.dock).forEach(u=>{ if(!ORD[u]) delete S.dock[u]; });
   S.log = S.log.filter(e=>!e.uids || e.uids.every(u=>ORD[u]));
   S.log.forEach(e=>{
     if(e.toDay) e.toDay=fixDay(e.toDay);
@@ -507,6 +537,7 @@ function loadInfo(dayKey, lid){
 }
 function routeName(dayKey,lid){
   if(!lid) return 'Unassigned';
+  const nm=S.look&&S.look.names[dayKey+'|'+lid]; if(nm) return nm;
   const l=loadMap[dayKey+'|'+lid]; const d=dayMap[dayKey]; if(!l||!d) return 'Load '+lid;
   const dup = d.loads.filter(x=>x.bay===l.bay).length>1;
   return dup ? `${l.bay} · ${l.id}` : l.bay;
@@ -539,6 +570,33 @@ function dayView(dayKey){
   return {routes, drops};
 }
 
+// ---------- customization (v0.10, MASTER only): bay colours and route names for one day ----------
+// the colour a bay really shows: the planner's choice, else the master-file colour, else the colour it has on the loaded days
+function bayShown(b){ const c=colorOfBay(b); if(c!=='#888') return c; for(const d of DATA.days) for(const l of d.loads) if(bayBase(l.bay)===b && routeColor[d.key+'|'+l.id]) return routeColor[d.key+'|'+l.id]; return '#888888'; }
+function allBays(){ return [...new Set(masterBays.concat(DATA.days.flatMap(d=>d.loads.map(l=>l.bay))).filter(Boolean).map(bayBase))].sort(); }
+function renderCustom(){
+  const el=$('tab-custom');
+  if(!can('custom')){ el.innerHTML='<div class="rep"><div class="card"><div class="empty">Only <b>Master</b> users can use Customize.</div></div></div>'; return; }
+  const dk=CU.day&&dayMap[CU.day]?CU.day:(P.day&&dayMap[P.day]?P.day:(DATA.days[0]&&DATA.days[0].key)); CU.day=dk;
+  const bays=allBays();
+  const routes=dk?dayMap[dk].loads.slice().sort((a,b)=>a.bay.localeCompare(b.bay)||String(a.id).localeCompare(String(b.id))):[];
+  el.innerHTML=`<div class="rep"><div class="rep-head"><div><div class="muted small">Master users only · saved with the plan</div><h1>Customize</h1></div></div>
+   <div class="card" style="margin-bottom:14px"><h2 style="margin:0 0 6px">🎨 Bay colours</h2><div class="muted small" style="margin-bottom:10px">Used on both maps and on the route list. BAY 05A and BAY 05B share the colour of BAY 05.</div>
+    <div class="cugrid">${bays.map(b=>`<label class="curow"><input type="color" data-cucol="${esc(b)}" value="${bayShown(b)}"><span>${esc(b)}</span>${S.look.colors[b]?`<button class="btn sm" data-cureset="${esc(b)}">Default</button>`:''}</label>`).join('')||'<div class="muted">Load the customer master or a day first.</div>'}</div></div>
+   <div class="card"><h2 style="margin:0 0 6px">🏷 Route names for one day</h2><div class="muted small" style="margin-bottom:10px">Shown instead of the bay name on that day only (plan, map and new entries in the change report).</div>
+    ${dk?`<div style="width:220px;margin-bottom:10px"><select id="cuDay">${DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)}</option>`).join('')}</select></div>
+    <table><thead><tr><th>Bay</th><th>Loading no.</th><th>Driver</th><th>Name on this day</th></tr></thead><tbody>${routes.map(l=>`<tr><td><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${routeColor[dk+'|'+l.id]||'#888'}"></span> ${esc(l.bay)}</td><td class="ords">${esc(loadTxt(l.id))}</td><td>${esc(l.driver||'—')}</td><td><input type="text" data-cuname="${esc(l.id)}" value="${esc(S.look.names[dk+'|'+l.id]||'')}" placeholder="${esc(l.bay)}"></td></tr>`).join('')}</tbody></table>`:'<div class="muted">Load a planning day first.</div>'}</div></div>`;
+}
+const CU={day:null};
+$('tab-custom').addEventListener('change',e=>{
+  if(!guard('custom','customize')) return;
+  const c=e.target.closest('[data-cucol]'); if(c){ S.look.colors[c.dataset.cucol]=c.value; lookChanged(); return; }
+  const n=e.target.closest('[data-cuname]'); if(n){ const k=CU.day+'|'+n.dataset.cuname, v=n.value.trim(); if(v) S.look.names[k]=v; else delete S.look.names[k]; lookChanged(); return; }
+  if(e.target.id==='cuDay'){ CU.day=e.target.value; renderCustom(); }
+});
+$('tab-custom').addEventListener('click',e=>{ const r=e.target.closest('[data-cureset]'); if(!r||!guard('custom','customize')) return; delete S.look.colors[r.dataset.cureset]; lookChanged(); });
+function lookChanged(){ save(); indexDays(); if(pInit) renderPlan(); if(cInit) renderCustomers(false); renderCustom(); toast('Customization saved with the plan'); }
+
 // ---------- tabs ----------
 let curTab='customers';
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
@@ -549,6 +607,7 @@ function showTab(t){
   if(t==='customers'){ initCMap(); if(cMap) setTimeout(()=>cMap.invalidateSize(),0); }
   if(t==='plan'){ initPMap(); if(pMap) setTimeout(()=>{pMap.invalidateSize(); if(!pFitted){fitRoutes(); pFitted=true;}},0); }
   if(t==='report') renderReport();
+  if(t==='custom') renderCustom();
 }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2800); }
 
@@ -728,7 +787,7 @@ function dropFlags(d){
   const c=custMap[d.ship];
   return (d.moved?'<span class="flag mv">moved</span>':'')+(d.deferredIn?'<span class="flag df">deferred in</span>':'')+(d.added?'<span class="flag ad">inserted</span>':'')
     +(d.grp?'<span class="flag sp">split</span>':'')+(d.dup?'<span class="flag dup" title="This order number is also in the planning file for this day">also in file</span>':'')
-    +(!c||c.lat==null?'<span class="flag nl">no location</span>':'');
+    +(!c||c.lat==null?'<span class="flag nl">no location</span>':'')+dockSummary(d.uids);
 }
 function routeMatch(r,q){ const l=r.load; return !!(q && l && [l.bay,l.id,l.driver,l.helper,l.truck].some(x=>x&&String(x).toLowerCase().includes(q))); }
 function dropMatch(d,q){
@@ -899,6 +958,7 @@ function bayImpactHtml(dayKey, lid, keysOrGroups, tot, n){
 }
 
 function openMove(keys){
+  if(!guard('edit','move drops')) return;
   keys=keys.filter(k=>view.drops[k]); if(!keys.length) return;
   const srcs=new Set(keys.map(k=>view.drops[k].load||''));
   const tot=keys.reduce((s,k)=>s+view.drops[k].kg,0);
@@ -947,6 +1007,7 @@ function mountCalendar(el, o){
 function nextWorkday(date){ let d=addDays(date,1); while(dateDow(d)>4) d=addDays(d,1); return d; }
 
 function openDefer(keys){
+  if(!guard('edit','defer drops')) return;
   keys=keys.filter(k=>view.drops[k]); if(!keys.length) return;
   const tot=keys.reduce((s,k)=>s+view.drops[k].kg,0);
   const min=dayMap[P.day].date;
@@ -978,6 +1039,38 @@ function openDefer(keys){
   };
   mountCalendar($('dCal'),{min, value:st.date, usual, onPick:d=>{st.date=d; upd();}});
   upd();
+}
+
+// ---------- docket type (v0.10): every order is printed on a Pink & White or an Offloading docket ----------
+// Orders from the planning file are Offloading; inserted orders choose one; it can be changed in the change report.
+const DOCK={PW:'Pink & White', OFF:'Offloading'};
+const dockBase = u => (ORD[u]&&ORD[u].dk)||'OFF';
+const dockOf = u => S.dock[u] || dockBase(u);
+function dockBadge(u, click){ const d=dockOf(u); return `<span class="flag dk-${d.toLowerCase()} ${click?'dk-click':''}" ${click?`data-dk="${esc(u)}" title="Click to change the docket type"`:''}>${d==='PW'?'P&amp;W':'Offload'}</span>`; }
+function dockSummary(uids){ const n={PW:0,OFF:0}; uids.forEach(u=>n[dockOf(u)]++); return n.PW&&n.OFF ? `<span class="flag dk-pw">P&amp;W ×${n.PW}</span><span class="flag dk-off">Offload ×${n.OFF}</span>` : n.PW ? '<span class="flag dk-pw">P&amp;W</span>' : '<span class="flag dk-off">Offload</span>'; }
+function dockChooser(id, label){ return `<div><label>${label} *</label><div class="chips dkpick" id="${id}"><button type="button" class="chip" data-dkv="PW">🩷 Pink &amp; White</button><button type="button" class="chip" data-dkv="OFF">📄 Offloading docket</button></div></div>`; }
+function wireDock(id, onPick){ const el=$(id); el.addEventListener('click',e=>{ const b=e.target.closest('[data-dkv]'); if(!b) return; el.dataset.v=b.dataset.dkv; el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===b)); onPick&&onPick(); }); }
+// set the docket of some orders and log it (one entry per customer line)
+function setDock(uids, val, reason, note){
+  const ch=uids.filter(u=>ORD[u] && dockOf(u)!==val); if(!ch.length) return 0;
+  const ts=new Date().toISOString(); const by={};
+  ch.forEach(u=>{ const o=ORD[u], c=curOf(u); const k=c.day+'|'+o.s; (by[k]=by[k]||{day:c.day, ship:o.s, name:o.n, uids:[]}).uids.push(u); });
+  Object.values(by).forEach(g=>{ const prevDock={}, nextDock={}; g.uids.forEach(u=>{ prevDock[u]=S.dock[u]||null; });
+    g.uids.forEach(u=>{ if(val===dockBase(u)) delete S.dock[u]; else S.dock[u]=val; nextDock[u]=S.dock[u]||null; });
+    S.log.push({id:S.seq++, ts, type:'dock', day:g.day, ship:g.ship, name:g.name, uids:g.uids, orders:g.uids.map(u=>ORD[u].o), kg:g.uids.reduce((s,u)=>s+ORD[u].w,0),
+      from:{dk:dockOf(g.uids[0])===val?(prevDock[g.uids[0]]||dockBase(g.uids[0])):'' }, to:{dk:val}, reason:reason||'Docket type changed', note:note||'', prevDock, nextDock}); });
+  save(); return ch.length;
+}
+function openDockEdit(uids){
+  if(!guard('edit','change docket types')) return;
+  uids=uids.filter(u=>ORD[u]); if(!uids.length) return;
+  const o=ORD[uids[0]];
+  openModal(`<div class="mh"><h2>Docket type</h2><div class="muted small">${esc(o.n)} · ${esc(o.s)} · order${uids.length>1?'s':''} ${uids.map(u=>esc(ORD[u].o)).join(', ')}</div></div>
+   <div class="mb"><div class="note info">Now: ${dockSummary(uids)}</div>${dockChooser('dkNew','New docket type')}<div><label>Note (optional)</label><input type="text" id="dkNote" placeholder="e.g. customer asked for P&W"></div></div>
+   <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok" id="dkOk" disabled>Change</button></div>`,
+   {onAct:a=>{ if(a!=='ok'||$('dkOk').disabled) return; const v=$('dkNew').dataset.v; const n=setDock(uids,v,'Docket type changed',$('dkNote').value.trim()); closeModal();
+     if(pInit) renderPlan(); if(curTab==='report') renderReport(); updateNav(); toast(n?`${n} order${n>1?'s':''} now ${DOCK[v]}`:'No change — already '+DOCK[v]); }});
+  wireDock('dkNew',()=>{ $('dkOk').disabled=false; });
 }
 
 // ---------- apply changes ----------
@@ -1014,19 +1107,26 @@ function applyDefer(keys,date,toLoad,reason,note){
 
 // ---------- split / merge ----------
 function openSplit(k){
+  if(!guard('edit','split orders')) return;
   const d=view.drops[k]; if(!d||d.uids.length<2) return;
   openModal(`<div class="mh"><h2>Split ${esc(d.name)}</h2><div class="muted small">${esc(d.ship)} · ${esc(routeName(d.day,d.load))} · ${d.uids.length} orders</div></div>
    <div class="mb"><div class="note info">Tick the orders that should go on a <b>separate line</b>. Each line can then be moved or deferred on its own, as if it were a different customer.</div>
     <div class="mlist olist" style="max-height:220px">${d.uids.map(u=>`<label><input type="checkbox" value="${esc(u)}"><span class="ords" style="flex:1">${esc(ORD[u].o)}</span><b>${kg(ORD[u].w)} kg</b></label>`).join('')}</div>
-    <div id="spHint" class="muted small"></div></div>
+    <div id="spHint" class="muted small"></div>
+    <div class="grid2">${dockChooser('spDkNew','Docket — new line')}${dockChooser('spDkOld','Docket — remaining line')}</div></div>
    <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok" id="spOk" disabled>Split</button></div>`,
-   {onAct:a=>{ if(a!=='ok') return; const picked=[...$('modal').querySelectorAll('.olist input:checked')].map(i=>i.value); if(!picked.length||picked.length===d.uids.length) return;
-      const tag='s'+(S.seq++); picked.forEach(u=>S.grp[u]=tag); save(); closeModal(); P.sel.clear(); renderPlan(); toast(`${picked.length} order${picked.length>1?'s':''} split onto a separate line`); }});
+   {onAct:a=>{ if(a!=='ok'||$('spOk').disabled) return; const picked=[...$('modal').querySelectorAll('.olist input:checked')].map(i=>i.value); if(!picked.length||picked.length===d.uids.length) return;
+      const rest=d.uids.filter(u=>!picked.includes(u)); const dn=$('spDkNew').dataset.v, dr=$('spDkOld').dataset.v; if(!dn||!dr) return;
+      const tag='s'+(S.seq++); picked.forEach(u=>S.grp[u]=tag); setDock(picked,dn,'Split — docket for the new line'); setDock(rest,dr,'Split — docket for the remaining line');
+      save(); closeModal(); P.sel.clear(); renderPlan(); updateNav(); toast(`${picked.length} order${picked.length>1?'s':''} split onto a separate line · ${DOCK[dn]} / ${DOCK[dr]}`); }});
+  const spChk=()=>{ const n=$('modal').querySelectorAll('.olist input:checked').length; $('spOk').disabled=!n||n===d.uids.length||!$('spDkNew').dataset.v||!$('spDkOld').dataset.v; };
+  wireDock('spDkNew',spChk); wireDock('spDkOld',spChk);
   $('modal').addEventListener('change',function h(){ if(!$('spOk')){ $('modal').removeEventListener('change',h); return; }
-    const n=$('modal').querySelectorAll('.olist input:checked').length; $('spOk').disabled=!n||n===d.uids.length;
+    const n=$('modal').querySelectorAll('.olist input:checked').length; $('spOk').disabled=!n||n===d.uids.length||!$('spDkNew').dataset.v||!$('spDkOld').dataset.v;
     $('spHint').textContent = n===d.uids.length ? 'Leave at least one order on the original line.' : n ? `New line: ${n} order${n>1?'s':''} · remaining: ${d.uids.length-n}` : ''; });
 }
 function mergeDrop(k){
+  if(!guard('edit','merge lines')) return;
   const d=view.drops[k]; if(!d||!d.grp) return;
   d.uids.forEach(u=>delete S.grp[u]); save(); P.sel.clear(); renderPlan();
   toast('Orders merged back onto one line'+(view.drops[(d.load||'')+'|'+d.ship+'|']?'':' (no other line on this bay — it stays on its own)'));
@@ -1038,6 +1138,7 @@ function buildCustList(){
   dl.innerHTML=DATA.customers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}${c.bay?' · '+esc(c.bay):''}</option>`).join('');
 }
 function openInsert(){
+  if(!guard('edit','insert orders')) return;
   if(!dayMap[P.day]) return toast('Load a planning day first');
   buildCustList();
   openModal(`<div class="mh"><h2>Insert order</h2><div class="muted small">${esc(dayLabel(P.day))} · fields marked * are required</div></div>
@@ -1049,6 +1150,7 @@ function openInsert(){
     <div class="grid2"><div><label>Customer name</label><input type="text" id="iName" placeholder="from master file"></div><div><label>Weight (kg)</label><input type="text" id="iW" inputmode="decimal" placeholder="0"></div></div>
     <div><label>Address</label><input type="text" id="iAddr" placeholder="from master file"></div>
     <div><label>Note</label><input type="text" id="iNote" placeholder="e.g. late order from sales"></div>
+    ${dockChooser('iDock','Docket')}
     <div id="iErr"></div></div>
    <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok" id="iOk" disabled>Insert order</button></div>`,
    {onAct:a=>{ if(a==='ok' && !$('iOk').disabled) applyInsert(); }});
@@ -1062,8 +1164,9 @@ function openInsert(){
       if(here.length) errs.push(`<div class="note warn">Order ${esc(o)} is already planned on this day (${esc(routeName(P.day,curOf(here[0].uid).load))}).</div>`);
       else if(same.length) errs.push(`<div class="note warn">Order ${esc(o)} already exists on ${esc(dayLabel(curOf(same[0].uid).day))}. Check it isn't a duplicate.</div>`); }
     $('iErr').innerHTML=errs.join('');
-    $('iOk').disabled = !o || !s || !b || errs.some(e=>e.includes('already planned on this day'));
+    $('iOk').disabled = !o || !s || !b || !$('iDock').dataset.v || errs.some(e=>e.includes('already planned on this day'));
   };
+  wireDock('iDock',chk);
   $('iShip').addEventListener('input',()=>{ chk(); const c=custMap[$('iShip').value.trim()];
     if(c && !$('iBay').value){ const r=view.routes.find(r=>!r.deferred && r.load.bay===c.bay); if(r){ $('iBay').value=r.id; chk(); } } });
   ['iOrd','iBay'].forEach(id=>$(id).addEventListener('input',chk)); $('iBay').addEventListener('change',chk);
@@ -1074,15 +1177,17 @@ function applyInsert(){
   const w=Number(String($('iW').value).replace(',','.'))||0;
   const name=$('iName').value.trim()||(c&&c.name)||s, addr=$('iAddr').value.trim()||'', note=$('iNote').value.trim();
   const ts=new Date().toISOString(), uid='A'+(S.seq++);
-  const a={uid,o,s,n:name,a:addr,w:Math.round(w*100)/100,note,day:P.day,load:lid,ts};
-  S.added.push(a); ORD[uid]={uid,o,s,n:name,a:addr,w:a.w,r:'',day0:P.day,load0:lid,added:true};
+  const dk=$('iDock').dataset.v||'OFF';
+  const a={uid,o,s,n:name,a:addr,w:Math.round(w*100)/100,note,day:P.day,load:lid,ts,dk};
+  S.added.push(a); ORD[uid]={uid,o,s,n:name,a:addr,w:a.w,r:'',day0:P.day,load0:lid,added:true,dk};
   const ti=loadInfo(P.day,lid);
-  S.log.push({id:S.seq++, ts, type:'add', day:P.day, ship:s, name, uids:[uid], orders:[o], kg:a.w, to:{bay:routeName(P.day,lid), load:ti.id, driver:ti.driver}, reason:'Order inserted', note, prev:{}, next:snapshot([uid])});
-  save(); closeModal(); P.open.add(lid); renderPlan(); toast(`Order ${o} inserted on ${routeName(P.day,lid)}`);
+  S.log.push({id:S.seq++, ts, type:'add', day:P.day, ship:s, name, uids:[uid], orders:[o], kg:a.w, dk, to:{bay:routeName(P.day,lid), load:ti.id, driver:ti.driver}, reason:'Order inserted', note, prev:{}, next:snapshot([uid])});
+  save(); closeModal(); P.open.add(lid); renderPlan(); toast(`Order ${o} inserted on ${routeName(P.day,lid)} · ${DOCK[dk]} docket`);
 }
 
 // ---------- new day (fixed bays, no files yet) ----------
 function openNewDay(){
+  if(!guard('edit','create days')) return;
   const st={date:nextWorkday(todayStr())};
   openModal(`<div class="mh"><h2>New planning day</h2><div class="muted small">Creates a day without planning files, using the fixed routes for that weekday. Load its planning / RESOURCES files later and they fill in the same day.</div></div>
    <div class="mb"><div class="cal" id="ndCal"></div><div id="ndInfo"></div></div>
@@ -1100,6 +1205,7 @@ $('newDayBtn').onclick=()=>openNewDay();
 
 // ---------- new route ----------
 function openNewRoute(){
+  if(!guard('edit','create routes')) return;
   if(!dayMap[P.day]) return toast('Load a planning day first');
   const d=dayMap[P.day];
   const bays=[...new Set(masterBays.concat(d.loads.map(l=>l.bay)).filter(Boolean))].sort();
@@ -1139,6 +1245,7 @@ function applyNewRoute(){
 let eMap=null;
 const fmtLoc = (lat,lng) => lat==null ? '—' : `${(+lat).toFixed(5)}, ${(+lng).toFixed(5)}`;
 function openCustEdit(id){
+  if(!guard('edit','edit customers')) return;
   const isNew = id==null; if(isNew) id='';
   const exists=!!custMap[id];
   const anyOrd=Object.values(ORD).find(o=>o.s===id);
@@ -1235,14 +1342,17 @@ function afterCustChange(){ buildBaySel(); if(cInit) renderCustomers(false); if(
 function canUndo(e){
   if(e.type==='resupd') return false;
   if(e.type==='cust') return JSON.stringify(S.cust[e.ship]||null)===JSON.stringify(e.nextOv||null);
+  if(e.type==='dock') return e.uids.every(u=>ORD[u] && (S.dock[u]||null)===(e.nextDock[u]||null));
   if(e.type==='route'){ const k=dayKeyForDate(e.date); return !k || !Object.values(ORD).some(o=>{ const c=curOf(o.uid); return c.day===k && c.load===e.load; }); }
   return e.uids.every(u=>{ if(!ORD[u]) return false; const c=curOf(u), n=e.next[u]; return n && c.day===n.day && (c.load||null)===(n.load||null); });
 }
 function undo(id){
+  if(!guard('del','undo (remove) changes')) return;
   const e=S.log.find(x=>x.id===id); if(!e||!canUndo(e)) return;
   if(e.type==='cust'){ if(e.prevOv) S.cust[e.ship]=clone(e.prevOv); else delete S.cust[e.ship]; applyCust(e.ship); }
   else if(e.type==='route'){ S.routes=S.routes.filter(r=>!(r.date===e.date && r.id===e.load)); S.log=S.log.filter(x=>x.id!==id); save(); afterDataChange(); renderReport(); toast('New route removed'); return; }
-  else if(e.type==='add'){ e.uids.forEach(u=>{ delete ORD[u]; delete S.cur[u]; delete S.grp[u]; }); S.added=S.added.filter(a=>!e.uids.includes(a.uid)); }
+  else if(e.type==='dock'){ e.uids.forEach(u=>{ if(e.prevDock[u]) S.dock[u]=e.prevDock[u]; else delete S.dock[u]; }); }
+  else if(e.type==='add'){ e.uids.forEach(u=>{ delete ORD[u]; delete S.cur[u]; delete S.grp[u]; delete S.dock[u]; }); S.added=S.added.filter(a=>!e.uids.includes(a.uid)); }
   else e.uids.forEach(u=>setCur(u,e.prev[u]));
   S.log=S.log.filter(x=>x.id!==id); save();
   if(e.type==='cust') afterCustChange(); else { if(pInit) renderPlan(); }
@@ -1250,11 +1360,12 @@ function undo(id){
 }
 function updateNav(){ $('navCount').textContent=S.log.length; }
 $('resetBtn').onclick=()=>{
+  if(!EMB && !guard('del','reset the planner')) return;
   if(EMB){ openModal(`<div class="mh"><h2>Go back to the original snapshot?</h2></div><div class="mb">Any changes you made while viewing this snapshot are discarded and the plan goes back to how ${esc(EMB.savedBy||'the planner')} saved it on ${esc(fmtTime(EMB.savedAt))}.</div><div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="ok">Restore snapshot</button></div>`,
     {onAct:a=>{ if(a!=='ok') return; [KEY,UPKEY,PREFKEY].forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} }); location.reload(); }}); return; }
   const nu=UPLOADS.length, nc=Object.keys(S.cust).length;
   openModal(`<div class="mh"><h2>Reset the planner?</h2></div><div class="mb">This clears all ${S.log.length} change${S.log.length!==1?'s':''}${nc?`, ${nc} customer edit${nc>1?'s':''}`:''}${nu?` and removes ${nu} uploaded day${nu>1?'s':''}`:''}, leaving an empty planner. Save / share first if you want to keep a copy.</div><div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="ok">Reset</button></div>`,
-  {onAct:a=>{ if(a!=='ok') return; const ids=Object.keys(S.cust); S=freshState(); ids.forEach(applyCust); UPLOADS=[]; saveUploads(); PREFS.hideSample=false; PREFS.lineage=null; savePrefs(); renderLineage();
+  {onAct:a=>{ if(a!=='ok') return; const ids=Object.keys(S.cust); S=freshState(); S.fixed=load(FIXKEY,null); ids.forEach(applyCust); UPLOADS=[]; saveUploads(); PREFS.hideSample=false; PREFS.lineage=null; savePrefs(); renderLineage();
     indexDays(); normalizeState(); P.day=null; buildDaySel(); P.sel.clear(); save(); closeModal(); if(pInit) renderPlan(); afterCustChange(); renderReport(); toast('Planner reset'); }});
 };
 
@@ -1502,7 +1613,7 @@ function originChanges(dayKey){
 function clearChanges(ch){ ch.uids.forEach(u=>{ delete S.cur[u]; delete S.grp[u]; }); const ids=new Set(ch.logs.map(e=>e.id)); S.log=S.log.filter(e=>!ids.has(e.id)); }
 
 const UP={files:[], parsed:null, busy:false, err:''};
-$('uploadBtn').onclick=()=>{ if(FOLDER.status==='ok') return openFolderBrowser('data'); UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); };
+$('uploadBtn').onclick=()=>{ if(!guard('edit','load days')) return; if(FOLDER.status==='ok') return openFolderBrowser('data'); UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); };
 function renderUpload(){
   const noLib = typeof XLSX==='undefined';
   let body = noLib ? `<div class="note warn">The Excel reader needs an internet connection to load. Connect and reopen the file to use uploads.</div>` :
@@ -1578,6 +1689,7 @@ async function takeFiles(files){
 }
 function uploadAct(a){
   if(a==='sample'){ PREFS.hideSample=!PREFS.hideSample; savePrefs(); afterDataChange(); renderUpload(); toast(PREFS.hideSample?'Sample weeks hidden':'Sample weeks shown'); return; }
+  if((a.startsWith('rm:')||a==='rmfixed') && !guard('del','remove days or fixed routes')) return;
   if(a.startsWith('rm:')){
     const date=a.slice(3); const k=dayKeyForDate(date);
     if(k){ clearChanges(originChanges(k)); const rmA=S.added.filter(x=>x.day===k).map(x=>x.uid); S.added=S.added.filter(x=>x.day!==k); S.log=S.log.filter(e=>!(e.uids&&e.uids.some(u=>rmA.includes(u)))); }
@@ -1585,13 +1697,13 @@ function uploadAct(a){
     S.days=S.days.filter(x=>x!==date);
     UPLOADS=UPLOADS.filter(u=>u.date!==date); saveUploads(); afterDataChange(); toast(`${dayLbl(date)} removed`); renderUpload(); return;
   }
-  if(a==='rmfixed'){ S.fixed=null; afterDataChange(); renderUpload(); toast('Fixed routes removed'); return; }
+  if(a==='rmfixed'){ S.fixed=null; try{ localStorage.removeItem(FIXKEY); }catch(e){} afterDataChange(); renderUpload(); toast('Fixed routes removed'); return; }
   if(a==='fbrowse'){ openFolderBrowser('data'); return; }
   if(a!=='add' || !UP.parsed) return;
   const p=UP.parsed, at=new Date().toISOString();
   if(!p.days.length && !(p.resDays&&p.resDays.length) && !p.fixed && !p.cust) return;
   if(p.cust && !store(CUSTKEY,{file:p.cust.file, at, list:p.cust.list})){ toast('Browser storage is full — could not keep the customer master'); return; }
-  if(p.fixed){ S.fixed=Object.assign({at},p.fixed); }
+  if(p.fixed){ S.fixed=Object.assign({at},p.fixed); store(FIXKEY,S.fixed); }
   p.days.forEach(d=>{ const ex=dayKeyForDate(d.date); if(ex) clearChanges(originChanges(ex));
     const old=uploadOf(d.date);
     if(old && !d.res){ // planning without RESOURCES: keep the route details already known for that day
@@ -1642,10 +1754,11 @@ const SECTIONS=[
   {id:'add', title:'Inserted orders', icon:'＋', kpi:'orders inserted', types:['add']},
   {id:'route', title:'New routes', icon:'🚚', kpi:'routes added', types:['route']},
   {id:'res', title:'Route details updated from RESOURCES', icon:'🔄', kpi:'route updates', types:['resupd']},
+  {id:'dock', title:'Docket type changed', icon:'🧾', kpi:'docket changes', types:['dock']},
   {id:'cust', title:'Customer details changed', icon:'✎', kpi:'customer edits', types:['cust']},
   {id:'pend', title:'Deferred — not on a bay yet', icon:'ℹ', kpi:'awaiting a bay'}
 ];
-const TYPE_LBL={defer:'Deferred',move:'Reallocated',allocate:'Allocated (deferred)',add:'Inserted order',cust:'Customer edit',route:'New route',resupd:'Route details (RESOURCES)'};
+const TYPE_LBL={dock:'Docket type',defer:'Deferred',move:'Reallocated',allocate:'Allocated (deferred)',add:'Inserted order',cust:'Customer edit',route:'New route',resupd:'Route details (RESOURCES)'};
 function logDays(e){ return [e.day, e.toDay].filter(Boolean); }
 function buildReportDaySel(){
   const ks=[...new Set(S.log.filter(e=>e.type!=='cust').flatMap(logDays))].sort((a,b)=>(dateOfKey(a)||'').localeCompare(dateOfKey(b)||''));
@@ -1661,10 +1774,36 @@ function logText(e){
     const l=x.load&&loadMap[dk+'|'+x.load]; if(l) parts.push(l.driver,l.helper,l.truck,l.bay); });
   (e.changes||[]).forEach(c=>parts.push(c.f,c.from,c.to));
   parts.push(dayLabel(e.day)); if(e.toDay) parts.push(dayLabel(e.toDay));
+  if(e.type==='defer' && CH.fin.has(e.id)) parts.push(finTxt(e));
   return parts.filter(x=>x!=null&&x!=='').join(' ').toLowerCase();
 }
 function pendText(p){ const c=custMap[p.ship]; return [p.name,p.ship,p.orders.join(' '),p.from,dayLabel(p.day),c&&c.bay].join(' ').toLowerCase(); }
-function reportLogs(){ return S.log.filter(e=>!R.day || e.type==='cust' || logDays(e).includes(R.day)); }
+// v0.10: a deferral that is later allocated, rescheduled or moved again stays ONE line in "Deferred orders",
+// showing where the orders ended up. Those follow-up entries are folded into it (not listed as reallocations).
+let CH={absorbed:new Set(), byOwner:{}, fin:new Map()};
+function deferChains(){
+  const owner={}, lastU={}, absorbed=new Set(), byOwner={};
+  S.log.slice().sort((a,b)=>a.id-b.id).forEach(e=>{
+    if(!e.uids || !e.uids.length || !['defer','allocate','move'].includes(e.type)) return;
+    const o=owner[e.uids[0]];
+    const follow = o!=null && e.uids.every(u=>owner[u]===o) && (e.type!=='defer' || (e.from && e.from.bay==='Unassigned'));
+    if(follow){ absorbed.add(e.id); (byOwner[o]=byOwner[o]||[]).push(e); e.uids.forEach(u=>lastU[u]=e); return; }
+    if(e.type==='defer') e.uids.forEach(u=>{ owner[u]=e.id; delete lastU[u]; });
+    else e.uids.forEach(u=>{ delete owner[u]; delete lastU[u]; });   // moved on its own day: no longer part of a deferral
+  });
+  const fin=new Map();
+  S.log.forEach(e=>{ if(e.type!=='defer' || absorbed.has(e.id)) return;
+    const st={}; e.uids.forEach(u=>{ const src=(lastU[u] && byOwner[e.id] && byOwner[e.id].includes(lastU[u])) ? lastU[u] : e; const n=src.next&&src.next[u]; if(n) st[(n.day||'')+'|'+(n.load||'')]={day:n.day, load:n.load}; });
+    fin.set(e.id, Object.values(st)); });
+  CH={absorbed, byOwner, fin};
+  return CH;
+}
+const finOf = e => CH.fin.get(e.id) || [{day:e.toDay, load:e.to&&e.to.load}];
+function finTxt(e){ return finOf(e).map(f=>{ const d=dayLabel(f.day); return f.load ? `${d} · ${routeName(f.day,f.load)} · ${loadTxt(f.load)}` : `${d} · no bay yet`; }).join(' | '); }
+function reportLogs(){
+  deferChains();
+  return S.log.filter(e=>!CH.absorbed.has(e.id) && (!R.day || e.type==='cust' || logDays(e).includes(R.day) || (e.type==='defer' && finOf(e).some(f=>f.day===R.day))));
+}
 function sectionData(){
   const L_=reportLogs().filter(e=>!R.q || logText(e).includes(R.q));
   const sortByDay=(a,b)=>(dateOfKey(a.day)||'').localeCompare(dateOfKey(b.day)||'')||a.id-b.id;
@@ -1687,8 +1826,10 @@ function exportRow(e){
     'To':e.type==='route'?[e.bay,'Load '+e.load,e.driver+' + '+e.helper,e.truck,e.pallets!=null&&e.pallets+' pallets',e.km!=null&&e.km+' km',e.area].filter(Boolean).join(' · ')
       :e.type==='resupd'?(e.created?`Day created from RESOURCES (${e.bay})`:[e.bay,loadTxt(e.load)].concat(e.added?['new route']:e.changes.map(c=>`${c.f}: ${c.from} → ${c.to}`)).join(' · '))
       :e.type==='cust'?e.changes.map(c=>`${c.f}: ${e.created?'':c.from+' → '}${c.to}`).join(' | ')
-      :e.type==='defer'?dayLabel(e.toDay)+(e.to?' · '+e.to.bay+' · '+loadTxt(e.to.load):'')
+      :e.type==='defer'?finTxt(e)
+      :e.type==='dock'?DOCK[e.to.dk]||''
       :(e.to?[e.to.bay,loadTxt(e.to.load),e.to.driver].filter(Boolean).join(' · '):''),
+    'Docket':e.type==='dock'?(DOCK[e.to.dk]||'')+(e.from&&e.from.dk?' (was '+DOCK[e.from.dk]+')':''):(e.uids?[...new Set(e.uids.filter(u=>ORD[u]).map(u=>DOCK[dockOf(u)]))].join(' / '):''),
     'Reason':e.reason||'', 'Note':e.note||(e.file?'From '+e.file:''), 'Logged':fmtTime(e.ts)};
 }
 function pendExportRow(p){ const c=custMap[p.ship]; return {'Due on':dayLabel(p.day),'Ship To':p.ship,'Customer':p.name,'Orders':p.orders.join(', '),'Kg':Math.round(p.kg*100)/100,'Deferred from':p.from,'Usual days':daysTxt(c&&c.days)}; }
@@ -1709,23 +1850,29 @@ function renderReport(){
   $('printMeta').textContent='Generated '+new Date().toLocaleString('en-IE')+(R.day?' · Day: '+dayLabel(R.day):'')+(R.q?' · Search: '+R.q:'')+' · Source files: '+files.concat(MASTER?[MASTER.file]:[]).join(', ');
   const anyAtAll=S.log.length||pendingGroups().length;
   if(!anyAtAll){ $('rBody').innerHTML=`<div class="card"><div class="empty">No changes yet.<br>Go to <b>Plan the day</b> to move, defer, split or insert orders, or edit a customer from the <b>Customers</b> map — every change is logged here with the order numbers staff need to update in other systems.</div></div>`; return; }
-  const undoBtn=e=>`<button class="btn sm no-print" data-undo="${e.id}" ${canUndo(e)?'':'disabled title="Later changes affect this — undo those first"'}>Undo</button>`;
+  const undoBtn=(e,lbl)=>`<button class="btn sm no-print" data-undo="${e.id}" ${canUndo(e)?'':'disabled title="Later changes affect this — undo those first"'}>${lbl||'Undo'}</button>`;
+  const dayTd=k=>`<td data-s="${esc(dateOfKey(k)||'')}">${esc(dayLabel(k))}</td>`, kgTd=w=>`<td data-s="${w||0}">${kg(w)}</td>`, tsTd=e=>`<td class="muted" data-s="${esc(e.ts)}">${fmtTime(e.ts)}</td>`;
   const cust=e=>`<td><b>${esc(e.name)}</b><div class="muted">${esc(e.ship)}</div></td>`;
   const why=e=>`<td>${esc(e.reason||'')}${e.note?`<div class="muted">${esc(e.note)}</div>`:''}</td>`;
-  const ords=e=>`<td class="ords">${e.orders.map(esc).join('<br>')}</td>`;
+  const ords=e=>`<td class="ords">${e.orders.map((o,i)=>esc(o)+(e.uids&&e.uids[i]&&ORD[e.uids[i]]?' '+dockBadge(e.uids[i],true):'')).join('<br>')}</td>`;
   const TBL={
     defer:{head:['Planned day','Customer','Orders','Kg','Removed from','Rescheduled to','Reason','Logged',''],
-      row:e=>`<tr><td>${esc(dayLabel(e.day))}</td>${cust(e)}${ords(e)}<td>${kg(e.kg)}</td><td>${esc(e.from.bay)}<div class="muted">${e.from.load?esc(loadTxt(e.from.load)):''} ${esc(e.from.driver)}</div></td><td><b>${esc(dayLabel(e.toDay))}</b><div class="muted">${e.to?esc(e.to.bay)+' · '+esc(loadTxt(e.to.load)):'no bay yet'}</div></td>${why(e)}<td class="muted">${fmtTime(e.ts)}</td><td>${undoBtn(e)}</td></tr>`},
+      row:e=>{ const ups=CH.byOwner[e.id]||[], lastUp=ups[ups.length-1];
+        const to=finOf(e).map(f=>`<b>${esc(dayLabel(f.day))}</b><div class="muted">${f.load?esc(routeName(f.day,f.load))+' · '+esc(loadTxt(f.load)):'no bay yet'}</div>`).join('');
+        const upd=lastUp?`<div class="muted small">updated ${esc(fmtTime(lastUp.ts))} · ${esc(lastUp.type==='defer'?'rescheduled':lastUp.type==='move'?'moved':'allocated')}${lastUp.reason?' · '+esc(lastUp.reason):''}</div>`:'';
+        return `<tr>${dayTd(e.day)}${cust(e)}${ords(e)}${kgTd(e.kg)}<td>${esc(e.from.bay)}<div class="muted">${e.from.load?esc(loadTxt(e.from.load)):''} ${esc(e.from.driver)}</div></td><td data-s="${esc(dateOfKey(finOf(e)[0].day)||'')}">${to}${upd}</td>${why(e)}${tsTd(e)}<td>${lastUp?undoBtn(lastUp,'Undo update'):undoBtn(e)}</td></tr>`; }},
     move:{head:['Day','Customer','Orders','Kg','From','To','Reason','Logged',''],
-      row:e=>`<tr><td>${esc(dayLabel(e.day))}</td>${cust(e)}${ords(e)}<td>${kg(e.kg)}</td><td>${esc(e.from.bay)}<div class="muted">${e.type==='allocate'?'deferred from '+esc(e.from.origin||''):esc(loadTxt(e.from.load))+' · '+esc(e.from.driver)}</div></td><td><b>${esc(e.to.bay)}</b><div class="muted">${esc(loadTxt(e.to.load))} · ${esc(e.to.driver)}</div></td>${why(e)}<td class="muted">${fmtTime(e.ts)}</td><td>${undoBtn(e)}</td></tr>`},
+      row:e=>`<tr>${dayTd(e.day)}${cust(e)}${ords(e)}${kgTd(e.kg)}<td>${esc(e.from.bay)}<div class="muted">${e.type==='allocate'?'deferred from '+esc(e.from.origin||''):esc(loadTxt(e.from.load))+' · '+esc(e.from.driver)}</div></td><td><b>${esc(e.to.bay)}</b><div class="muted">${esc(loadTxt(e.to.load))} · ${esc(e.to.driver)}</div></td>${why(e)}${tsTd(e)}<td>${undoBtn(e)}</td></tr>`},
     add:{head:['Day','Customer','Order','Kg','Inserted on','Note','Logged',''],
-      row:e=>`<tr><td>${esc(dayLabel(e.day))}</td>${cust(e)}${ords(e)}<td>${kg(e.kg)}</td><td><b>${esc(e.to.bay)}</b><div class="muted">${esc(loadTxt(e.to.load))} · ${esc(e.to.driver)}</div></td><td>${esc(e.note||'—')}</td><td class="muted">${fmtTime(e.ts)}</td><td>${undoBtn(e)}</td></tr>`},
+      row:e=>`<tr>${dayTd(e.day)}${cust(e)}${ords(e)}${kgTd(e.kg)}<td><b>${esc(e.to.bay)}</b><div class="muted">${esc(loadTxt(e.to.load))} · ${esc(e.to.driver)}</div></td><td>${esc(e.note||'—')}</td>${tsTd(e)}<td>${undoBtn(e)}</td></tr>`},
     route:{head:['Day','Bay','Loading no.','Driver','Helper','Truck','Other details','Note','Logged',''],
-      row:e=>`<tr><td>${esc(dayLabel(e.day))}</td><td><b>${esc(e.bay)}</b></td><td class="ords">${esc(e.load)}</td><td>${esc(e.driver)}</td><td>${esc(e.helper)}</td><td>${esc(e.truck)}</td><td>${[e.pallets!=null&&e.pallets+' pallets',e.km!=null&&e.km+' km',e.area].filter(Boolean).map(esc).join('<br>')||'—'}</td><td>${esc(e.note||'—')}</td><td class="muted">${fmtTime(e.ts)}</td><td>${undoBtn(e)}</td></tr>`},
+      row:e=>`<tr>${dayTd(e.day)}<td><b>${esc(e.bay)}</b></td><td class="ords">${esc(e.load)}</td><td>${esc(e.driver)}</td><td>${esc(e.helper)}</td><td>${esc(e.truck)}</td><td>${[e.pallets!=null&&e.pallets+' pallets',e.km!=null&&e.km+' km',e.area].filter(Boolean).map(esc).join('<br>')||'—'}</td><td>${esc(e.note||'—')}</td>${tsTd(e)}<td>${undoBtn(e)}</td></tr>`},
     res:{head:['Day','Bay','Loading no.','What changed','File','Logged'],
-      row:e=>`<tr><td>${esc(dayLabel(e.day))}</td><td><b>${esc(e.bay)}</b></td><td class="ords">${esc(e.load||'')}</td><td class="chg">${e.created?'<b>Day created from RESOURCES</b> (no orders yet)':e.added?'<b>New route</b>':e.changes.map(c=>`<div><b>${esc(c.f)}:</b> <s>${esc(c.from)}</s> → ${esc(c.to)}</div>`).join('')}</td><td class="muted">${esc(e.file||'')}</td><td class="muted">${fmtTime(e.ts)}</td></tr>`},
+      row:e=>`<tr>${dayTd(e.day)}<td><b>${esc(e.bay)}</b></td><td class="ords">${esc(e.load||'')}</td><td class="chg">${e.created?'<b>Day created from RESOURCES</b> (no orders yet)':e.added?'<b>New route</b>':e.changes.map(c=>`<div><b>${esc(c.f)}:</b> <s>${esc(c.from)}</s> → ${esc(c.to)}</div>`).join('')}</td><td class="muted">${esc(e.file||'')}</td>${tsTd(e)}</tr>`},
+    dock:{head:['Day','Customer','Orders','Kg','Docket now','Reason','Logged',''],
+      row:e=>`<tr>${dayTd(e.day)}${cust(e)}${ords(e)}${kgTd(e.kg)}<td><b>${esc(DOCK[e.to.dk]||e.to.dk)}</b>${e.from&&e.from.dk?`<div class="muted">was ${esc(DOCK[e.from.dk]||e.from.dk)}</div>`:''}</td>${why(e)}${tsTd(e)}<td>${undoBtn(e)}</td></tr>`},
     cust:{head:['Customer','Changes','Note','Logged',''],
-      row:e=>`<tr>${cust(e)}<td class="chg">${e.created?'<b>New customer added</b><br>':''}${e.changes.map(c=>`<div><b>${esc(c.f)}:</b> ${e.created?'':`<s>${esc(c.from)}</s> → `}${esc(c.to)}</div>`).join('')}</td><td>${esc(e.note||'—')}</td><td class="muted">${fmtTime(e.ts)}</td><td>${undoBtn(e)}</td></tr>`}
+      row:e=>`<tr>${cust(e)}<td class="chg">${e.created?'<b>New customer added</b><br>':''}${e.changes.map(c=>`<div><b>${esc(c.f)}:</b> ${e.created?'':`<s>${esc(c.from)}</s> → `}${esc(c.to)}</div>`).join('')}</td><td>${esc(e.note||'—')}</td>${tsTd(e)}<td>${undoBtn(e)}</td></tr>`}
   };
   R.sel=new Set([...R.sel].filter(k=>D.pend.rows.some(p=>p.key===k)));
   let html='';
@@ -1737,15 +1884,26 @@ function renderReport(){
     const extra = sec.id==='pend' ? `<button class="btn sm no-print" data-pa="bulk" ${R.sel.size?'':'disabled'}>Allocate selected${R.sel.size?' ('+R.sel.size+')':''}</button>` : '';
     let body;
     if(!d.rows.length) body='<div class="empty small">No rows match this filter.</div>';
-    else if(sec.id==='pend') body=`<table><thead><tr><th class="no-print" style="width:28px"><input type="checkbox" data-pa="all" ${R.sel.size&&R.sel.size===d.rows.length?'checked':''}></th><th>Due on</th><th>Customer</th><th>Orders</th><th>Kg</th><th>Deferred from</th><th>Usual days</th><th class="no-print"></th></tr></thead><tbody>${d.rows.map(p=>{const c=custMap[p.ship];
+    else if(sec.id==='pend') body=`<table data-tbl="pend"><thead><tr><th class="no-print" style="width:28px"><input type="checkbox" data-pa="all" ${R.sel.size&&R.sel.size===d.rows.length?'checked':''}></th>${['Due on','Customer','Orders','Kg','Deferred from','Usual days'].map((h,i)=>`<th class="sortable" data-sort="pend:${i+1}">${h}${sortMark('pend',i+1)}</th>`).join('')}<th class="no-print"></th></tr></thead><tbody>${d.rows.map(p=>{const c=custMap[p.ship];
       return `<tr><td class="no-print"><input type="checkbox" data-pa="tick" data-k="${esc(p.key)}" ${R.sel.has(p.key)?'checked':''}></td><td><b>${esc(dayLabel(p.day))}</b></td><td><b>${esc(p.name)}</b><div class="muted">${esc(p.ship)}${c&&c.bay?' · '+esc(c.bay):''}</div></td><td class="ords">${p.orders.map(esc).join('<br>')}</td><td>${kg(p.kg)}</td><td>${esc(p.from)}</td><td>${daysTxt(c&&c.days)}</td><td class="no-print"><button class="btn sm" data-pa="one" data-k="${esc(p.key)}">Allocate…</button></td></tr>`;}).join('')}</tbody></table>`;
-    else body=`<table><thead><tr>${TBL[sec.id].head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${d.rows.map(TBL[sec.id].row).join('')}</tbody></table>`;
+    else body=`<table data-tbl="${sec.id}"><thead><tr>${TBL[sec.id].head.map((h,i)=>h?`<th class="sortable" data-sort="${sec.id}:${i}">${h}${sortMark(sec.id,i)}</th>`:'<th></th>').join('')}</tr></thead><tbody>${d.rows.map(TBL[sec.id].row).join('')}</tbody></table>`;
     html+=`<div class="card rsec ${col?'collapsed':''}" data-sec="${sec.id}"><h2 data-tog="${sec.id}"><span class="chev2">▾</span>${sec.icon} ${sec.title} <span class="muted" style="font-weight:400">${cnt}</span><span class="spacer"></span>
       <input type="search" class="secf no-print" data-secf="${sec.id}" placeholder="Filter this section…" value="${esc(fv)}">${extra}<button class="btn sm no-print" data-secx="${sec.id}" title="Export only this section to Excel">⤓ Export</button></h2><div class="secbody">${body}</div></div>`;
   });
   const filt=[R.only?`showing only <b>${esc(SECTIONS.find(x=>x.id===R.only).title)}</b>`:'', R.q?`search “<b>${esc(R.q)}</b>”`:''].filter(Boolean);
   $('rBody').innerHTML=(filt.length?`<div class="note info no-print" style="margin-bottom:12px">Filtered: ${filt.join(' · ')} — <a href="#" data-clear="1">show everything</a></div>`:'')
     +(html||'<div class="card"><div class="empty small">No changes match this selection.</div></div>');
+  applySorts();
+}
+// sort a section's rows by the clicked column (text A→Z, numbers and dates in order)
+R.sort={};
+const sortMark=(id,i)=>{ const o=R.sort[id]; return o&&o.col===i?(o.dir>0?' ▲':' ▼'):''; };
+function applySorts(){
+  Object.entries(R.sort).forEach(([id,o])=>{ const t=$('rBody').querySelector(`table[data-tbl="${id}"]`); if(!t) return;
+    const tb=t.tBodies[0]; const key=tr=>{ const td=tr.cells[o.col]; return td?(td.dataset.s!=null?td.dataset.s:td.textContent.trim()):''; };
+    const rows=[...tb.rows].sort((a,b)=>{ const x=key(a), y=key(b); const nx=Number(x), ny=Number(y);
+      const c=(x!==''&&y!==''&&isFinite(nx)&&isFinite(ny)) ? nx-ny : x.localeCompare(y,'en',{numeric:true,sensitivity:'base'}); return c*o.dir; });
+    rows.forEach(r=>tb.appendChild(r)); });
 }
 $('rKpis').addEventListener('click',e=>{ const k=e.target.closest('[data-kpi]'); if(!k) return; R.only = R.only===k.dataset.kpi ? '' : k.dataset.kpi; if(R.only) R.col.delete(R.only); renderReport(); });
 $('rBody').addEventListener('input',e=>{
@@ -1756,10 +1914,13 @@ $('rBody').addEventListener('input',e=>{
 $('rBody').addEventListener('click',e=>{
   if(e.target.closest('[data-clear]')){ e.preventDefault(); R.only=''; R.q=''; $('rSearch').value=''; R.f={}; renderReport(); return; }
   const b=e.target.closest('[data-undo]'); if(b) return undo(+b.dataset.undo);
+  const dkb=e.target.closest('[data-dk]'); if(dkb){ const u=dkb.dataset.dk; const o=ORD[u]; if(!o) return; const c=curOf(u); const same=Object.values(ORD).filter(x=>x.s===o.s && curOf(x.uid).day===c.day && (S.grp[x.uid]||'')===(S.grp[u]||'')).map(x=>x.uid); return openDockEdit(e.shiftKey?same:[u]); }
   const x=e.target.closest('[data-secx]');
   if(x){ const id=x.dataset.secx, sec=SECTIONS.find(s=>s.id===id), rows=sectionData()[id].rows;
     writeXlsx(id==='pend'?rows.map(pendExportRow):rows.slice().sort((a,b)=>a.id-b.id).map(exportRow), `${sec.title} ${repTag()}.xlsx`, id==='pend'?[12,10,30,22,8,14,14]:[14,12,10,30,22,8,34,40,26,26,12]); return; }
   if(e.target.closest('.secf')) return;
+  const so=e.target.closest('[data-sort]');
+  if(so){ const [id,i]=so.dataset.sort.split(':'); const col=+i; const o=R.sort[id]; R.sort[id] = o&&o.col===col ? {col, dir:-o.dir} : {col, dir:1}; renderReport(); return; }
   const tg=e.target.closest('[data-tog]');
   if(tg && !e.target.closest('button') && !e.target.closest('input')){ const id=tg.dataset.tog; R.col.has(id)?R.col.delete(id):R.col.add(id); PREFS.repCollapsed=[...R.col]; savePrefs(); tg.parentElement.classList.toggle('collapsed'); return; }
   const a=e.target.closest('[data-pa]'); if(!a) return;
@@ -1785,6 +1946,7 @@ function pendingGroups(){
   return Object.values(g).sort((a,b)=>dayDate(a.day).localeCompare(dayDate(b.day))||a.name.localeCompare(b.name));
 }
 function openAllocate(keys){
+  if(!guard('edit','allocate orders')) return;
   const groups=pendingGroups().filter(p=>keys.includes(p.key)); if(!groups.length) return;
   const tot=groups.reduce((s,p)=>s+p.kg,0);
   const minDate=groups.flatMap(p=>[...p.day0s]).map(dayDate).sort().pop();
@@ -1842,13 +2004,74 @@ function applyAllocate(groups,toDay,toLoad,reason,note){
   toast(`${groups.length} drop${groups.length>1?'s':''} ${toLoad?'allocated to '+routeName(toDay,toLoad)+' on '+dayLabel(toDay):'rescheduled to '+dayLabel(toDay)}`);
 }
 $('printBtn').onclick=()=>{ renderReport(); window.print(); };
+function dkLookup(){ const q=$('dkFind').value.trim(); if(!q) return; const hits=Object.values(ORD).filter(o=>String(o.o)===q);
+  if(!hits.length) return toast(`Order ${q} is not in the loaded days`); openDockEdit(hits.map(o=>o.uid)); }
+$('dkGo').onclick=dkLookup; $('dkFind').addEventListener('keydown',e=>{ if(e.key==='Enter') dkLookup(); });
 
 // ================= USERS & SHARED FOLDER (v0.9.0) =================
-// Predefined users. Each person links the shared SharePoint folder (synced on their computer) once;
-// the link is remembered per user on that computer. Edit this list to add people.
-const USERS = ['Willian'];
-const USERKEY='routePlannerBeta.users';
-function allUsers(){ const extra=load(USERKEY,[]); return [...new Set(USERS.concat(Array.isArray(extra)?extra:[]))]; }
+// v0.10: users come from the company's users file (users.json), loaded on the home page and kept in this browser.
+// No names are built into the app. Without a users file the app runs in open mode (full access, local names).
+// Roles are guardrails for the prototype, not security: see docs/backend-blueprint.md.
+const USERKEY='routePlannerBeta.users', UCFGKEY='routePlannerBeta.usersConfig';
+const ROLES={MASTER:{edit:1,del:1,users:1,custom:1}, MANAGER:{edit:1,del:1,users:1}, USER:{edit:1}, VIEWER:{}};
+const ROLE_TXT={MASTER:'Master',MANAGER:'Manager',USER:'User',VIEWER:'Viewer'};
+let UCFG=load(UCFGKEY,null); if(!UCFG||!Array.isArray(UCFG.users)) UCFG=null;
+function allUsers(){ if(UCFG) return UCFG.users.map(u=>u.name); const extra=load(USERKEY,[]); return [...new Set(Array.isArray(extra)?extra:[])]; }
+const cfgUser = n => UCFG && UCFG.users.find(u=>u.name===n);
+function role(){ if(EMB||!UCFG) return 'MASTER'; const u=cfgUser(FOLDER.user); return u?u.role:'VIEWER'; }
+const can = a => !!ROLES[role()][a];
+function guard(a, what){ if(can(a)) return true; toast(`${ROLE_TXT[role()]} access — you can't ${what}.`); return false; }
+function applyRole(){ document.body.dataset.role=role(); const nc=$('navCustom'); if(nc) nc.hidden=!can('custom'); if(curTab==='custom'&&!can('custom')) showTab('plan'); renderUserBtn(); if(pInit) renderPlan(); if(curTab==='report') renderReport(); }
+// users.json: {"company":"…","users":[{"name":"…","role":"MASTER|MANAGER|USER|VIEWER","path":"C:\\…\\Route_planning"}]}
+function checkUsersCfg(j){
+  if(!j || !Array.isArray(j.users) || !j.users.length) return 'The file has no "users" list.';
+  const seen=new Set();
+  for(const u of j.users){ if(!u||!String(u.name||'').trim()) return 'Every user needs a "name".'; const r=String(u.role||'').toUpperCase(); if(!ROLES[r]) return `“${u.name}” has an unknown role “${u.role}” (use MASTER, MANAGER, USER or VIEWER).`;
+    if(seen.has(u.name.trim().toLowerCase())) return `“${u.name}” is listed twice.`; seen.add(u.name.trim().toLowerCase()); }
+  if(!j.users.some(u=>String(u.role).toUpperCase()==='MASTER')) return 'At least one user must be MASTER.';
+  return null;
+}
+function setUsersCfg(j, file){
+  UCFG = j ? {company:String(j.company||'').trim(), file:file||j.file||'users.json', at:new Date().toISOString(),
+    users:j.users.map(u=>({name:String(u.name).trim(), role:String(u.role).toUpperCase(), path:String(u.path||'').trim()}))} : null;
+  if(UCFG) store(UCFGKEY,UCFG); else { try{ localStorage.removeItem(UCFGKEY); }catch(e){} }
+}
+function pickUsersFile(){
+  const i=document.createElement('input'); i.type='file'; i.accept='.json,application/json';
+  i.onchange=async()=>{ const f=i.files[0]; if(!f) return; let j=null; try{ j=JSON.parse(await f.text()); }catch(e){ return showUserPicker(`“${esc(f.name)}” is not a valid JSON file.`); }
+    const err=checkUsersCfg(j); if(err) return showUserPicker(`“${esc(f.name)}”: ${esc(err)}`);
+    setUsersCfg(j,f.name); FOLDER.user=''; try{ sessionStorage.removeItem('rp.user'); }catch(e){} applyRole(); showUserPicker(); toast(`Users file loaded — ${UCFG.users.length} users`); };
+  i.click();
+}
+async function exportUsersCfg(){
+  if(!UCFG) return; const j={company:UCFG.company, users:UCFG.users.map(u=>({name:u.name, role:u.role, path:u.path||''}))};
+  const r=await saveFile('users', ()=>JSON.stringify(j,null,2), 'application/json', '.json', 'Route Planner users file', true);
+  if(r) toast(r.picked?`Users file saved “${r.name}.json” — put it in MASTER_DATA`:`“${r.name}.json” saved to Downloads — move it to MASTER_DATA`);
+}
+// Master / Manager: edit the users list (Managers can't add users or change Master users)
+function openUsersAdmin(){
+  if(!UCFG) return toast('Load a users file first');
+  if(!guard('users','manage users')) return;
+  const me=role(), master=me==='MASTER'; const draft=clone(UCFG.users);
+  const draw=()=>{ const rows=draft.map((u,i)=>{ const lock=!master && u.role==='MASTER';
+      const opts=Object.keys(ROLES).filter(r=>master||r!=='MASTER'||u.role==='MASTER').map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_TXT[r]}</option>`).join('');
+      return `<tr><td>${master?`<input type="text" data-ua="name:${i}" value="${esc(u.name)}">`:`<b>${esc(u.name)}</b>`}</td><td><select data-ua="role:${i}" ${lock?'disabled':''}>${opts}</select></td><td><input type="text" data-ua="path:${i}" value="${esc(u.path||'')}" placeholder="C:\\Users\\…\\Route_planning" ${lock?'disabled':''}></td><td>${master?`<button class="btn sm" data-act="rm:${i}">Remove</button>`:''}</td></tr>`; }).join('');
+    openModal(`<div class="mh"><h2>Users${UCFG.company?' · '+esc(UCFG.company):''}</h2><div class="muted small">${master?'Master: add, edit and remove users.':'Manager: change roles and folders (not Master users; no new users).'} Saved in this browser — export the file so everyone gets the same list.</div></div>
+     <div class="mb"><table><thead><tr><th>Name</th><th>Role</th><th>Shared folder on their computer</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      ${master?'<div class="row"><button class="btn sm" data-act="add">+ Add user</button></div>':''}<div id="uaErr"></div></div>
+     <div class="mf"><button class="btn" data-act="export" style="margin-right:auto">⤓ Export users file…</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="save">Save</button></div>`,
+     {onAct:a=>{
+       if(a==='add'){ draft.push({name:'',role:'USER',path:''}); return draw(); }
+       if(a.startsWith('rm:')){ draft.splice(+a.slice(3),1); return draw(); }
+       if(a==='export'){ exportUsersCfg(); return; }
+       if(a==='save'){ const j={company:UCFG.company, users:draft.filter(u=>u.name.trim())}; const err=checkUsersCfg(j); if(err){ $('uaErr').innerHTML=`<div class="note warn">${esc(err)}</div>`; return; }
+         setUsersCfg(j,UCFG.file); closeModal(); applyRole(); toast('Users saved — export the users file to share it'); }
+     }});
+    $('modal').classList.add('wide');
+    $('modal').querySelectorAll('[data-ua]').forEach(x=>x.addEventListener('input',()=>{ const [f,i]=x.dataset.ua.split(':'); draft[+i][f]=x.value; }));
+  };
+  draw();
+}
 const FOLDER={user:'', handle:null, status:'none', name:''};   // status: ok | prompt | none | missing | unsupported | manual
 const fsSupported = () => typeof window.showDirectoryPicker==='function' && window.self===window.top && !!window.indexedDB;
 const idb={
@@ -1868,20 +2091,24 @@ async function folderCheck(h, ask){
 function renderUserBtn(){
   const b=$('userBtn'); if(!b) return;
   const st=FOLDER.status;
-  b.innerHTML = `👤 <span>${esc(FOLDER.user||'No user')}</span> · ${st==='ok'?'📁 <span>'+esc(FOLDER.name)+'</span>':'<span style="color:#fbbf24">⚠ manual</span>'}`;
+  b.innerHTML = `👤 <span>${esc(FOLDER.user||'No user')}</span>${UCFG?`<span class="rolechip">${ROLE_TXT[role()]}</span>`:''} · ${st==='ok'?'📁 <span>'+esc(FOLDER.name)+'</span>':'<span style="color:#fbbf24">⚠ manual</span>'}`;
   b.title = st==='ok' ? `Shared folder linked: ${FOLDER.name}. Click to change user or folder.` : 'No shared folder — import and saving are manual. Click to fix.';
 }
 function showUserPicker(msg){
   const us=allUsers();
-  openModal(`<div class="mh"><h2>Who is planning?</h2><div class="muted small">Pick your name. Each user has their own link to the shared SharePoint folder on this computer.</div></div>
+  const chips=us.map(u=>{ const c=cfgUser(u); return `<button class="chip ${u===FOLDER.user?'on':''}" data-act="u:${esc(u)}" style="padding:8px 14px;font-size:13px">👤 ${esc(u)}${c?`<span class="rolechip">${ROLE_TXT[c.role]}</span>`:''}</button>`; }).join('');
+  openModal(`<div class="mh"><h2>${UCFG&&UCFG.company?esc(UCFG.company)+' · ':''}Who is planning?</h2><div class="muted small">${UCFG?`Users from <b>${esc(UCFG.file)}</b> (loaded ${esc(fmtTime(UCFG.at))}). Pick your name — each user links the shared folder once on this computer.`:'Load your company\'s users file to pick your name and role.'}</div></div>
    <div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}
-    <div class="chips" style="gap:8px">${us.map(u=>`<button class="chip ${u===FOLDER.user?'on':''}" data-act="u:${esc(u)}" style="padding:8px 14px;font-size:13px">👤 ${esc(u)}</button>`).join('')}</div>
-    <div class="row"><input type="text" id="newUser" placeholder="Add a user (name)"><button class="btn" data-act="adduser">Add</button></div></div>
-   <div class="mf"><button class="btn" data-act="manual">Continue without a user (manual)</button></div>`,
+    ${UCFG?`<div class="chips" style="gap:8px">${chips}</div>`:`<div class="note info">📄 <b>No users file loaded.</b> Load <i>users.json</i> (usually in <b>MASTER_DATA</b>) to get names and roles. Until then the planner runs in <b>open mode</b>: everyone can do everything.</div>
+      ${us.length?`<div class="chips" style="gap:8px">${chips}</div>`:''}<div class="row"><input type="text" id="newUser" placeholder="Or add a local name (open mode)"><button class="btn" data-act="adduser">Add</button></div>`}
+    <div class="row" style="gap:8px"><button class="btn ${UCFG?'':'pri'}" data-act="cfgload">📄 ${UCFG?'Load another users file…':'Load users file…'}</button>${UCFG?'<button class="btn" data-act="cfgrm">Remove users file</button>':''}</div></div>
+   <div class="mf"><button class="btn" data-act="manual">Continue without a user${UCFG?' (view only)':' (manual)'}</button></div>`,
    {onAct:a=>{
      if(a.startsWith('u:')) return selectUser(a.slice(2));
+     if(a==='cfgload') return pickUsersFile();
+     if(a==='cfgrm'){ setUsersCfg(null); FOLDER.user=''; applyRole(); showUserPicker(); toast('Users file removed — open mode'); return; }
      if(a==='adduser'){ const n=$('newUser').value.trim(); if(!n) return; const ex=load(USERKEY,[]); store(USERKEY,[...new Set((Array.isArray(ex)?ex:[]).concat([n]))]); showUserPicker(); return; }
-     if(a==='manual'){ FOLDER.user=''; FOLDER.status='manual'; FOLDER.handle=null; renderUserBtn(); closeModal(); }
+     if(a==='manual'){ FOLDER.user=''; FOLDER.status='manual'; FOLDER.handle=null; try{ sessionStorage.removeItem('rp.user'); }catch(e){} applyRole(); closeModal(); }
    }});
 }
 function manualAlert(title, text){
@@ -1893,23 +2120,24 @@ function manualAlert(title, text){
 async function selectUser(name){
   FOLDER.user=name; FOLDER.handle=null; FOLDER.name='';
   try{ sessionStorage.setItem('rp.user',name); }catch(e){}
+  applyRole();
   if(!PREFS.name){ PREFS.name=name; } PREFS.name=name; savePrefs();
   if(!fsSupported()){ FOLDER.status='unsupported'; renderUserBtn(); manualAlert('Shared folder not available','This browser can\'t open folders from a web page (use <b>Chrome</b> or <b>Edge</b>, opening this file from your computer).'); return; }
   let h=null; try{ h=await idb.get('folder:'+name); }catch(e){ h=null; }
   if(!h){ FOLDER.status='none'; renderUserBtn();
     openModal(`<div class="mh"><h2>Link the shared folder for ${esc(name)}</h2></div><div class="mb"><div class="note info">Choose the shared SharePoint planning folder as it appears on this computer (e.g. the synced <b>Planning app</b> folder). You only do this once per computer.</div>
-      <div class="muted small">After that, Load day and Open plan list the files in that folder for you, and plans are saved straight into it.</div></div>
+      <div class="muted small">After that, Load day and Open plan list the files in that folder for you, and plans are saved straight into it.</div>${cfgUser(name)&&cfgUser(name).path?`<div class="note info">Your folder (from the users file):<br><code style="word-break:break-all">${esc(cfgUser(name).path)}</code></div>`:''}</div>
       <div class="mf"><button class="btn" data-act="close">Continue manually</button><button class="btn pri" data-act="link">Choose folder…</button></div>`,{onAct:a=>{ if(a==='link') linkFolder(); }});
     return; }
   FOLDER.handle=h; FOLDER.name=h.name;
   const st=await folderCheck(h,false);
-  if(st==='ok'){ FOLDER.status='ok'; renderUserBtn(); closeModal(); toast(`${name} · shared folder “${h.name}” connected`); return; }
+  if(st==='ok'){ FOLDER.status='ok'; renderUserBtn(); closeModal(); toast(`${name} · shared folder “${h.name}” connected`); autoRef(); return; }
   if(st==='prompt'){ FOLDER.status='prompt'; renderUserBtn();
     openModal(`<div class="mh"><h2>Allow access to “${esc(h.name)}”</h2></div><div class="mb"><div class="note info">The browser needs your OK to read and save files in the shared folder for <b>${esc(name)}</b>.</div></div>
       <div class="mf"><button class="btn" data-act="users" style="margin-right:auto">Not ${esc(name)}?</button><button class="btn" data-act="close">Continue manually</button><button class="btn pri" data-act="allow">Allow access</button></div>`,
       {onAct:async a=>{ if(a==='users') return showUserPicker(); if(a!=='allow') return;
         const r=await folderCheck(h,true);
-        if(r==='ok'){ FOLDER.status='ok'; renderUserBtn(); closeModal(); toast(`Shared folder “${h.name}” connected`); }
+        if(r==='ok'){ FOLDER.status='ok'; renderUserBtn(); closeModal(); toast(`Shared folder “${h.name}” connected`); autoRef(); }
         else { FOLDER.status='missing'; renderUserBtn(); manualAlert('Shared folder not available',`Access to “${esc(h.name)}” wasn't allowed or the folder isn't on this computer.`); } }});
     return; }
   FOLDER.status='missing'; renderUserBtn();
@@ -1920,16 +2148,40 @@ async function linkFolder(){
     const h=await window.showDirectoryPicker({id:'routeplanner', mode:'readwrite'});
     if(FOLDER.user){ try{ await idb.set('folder:'+FOLDER.user,h); }catch(e){} }
     FOLDER.handle=h; FOLDER.name=h.name; FOLDER.status='ok'; renderUserBtn(); closeModal();
-    toast(`Shared folder “${h.name}” linked${FOLDER.user?' for '+FOLDER.user:''}`);
+    const want=cfgUser(FOLDER.user)&&cfgUser(FOLDER.user).path; const leaf=want?want.split(/[\/]/).filter(Boolean).pop():'';
+    toast(leaf && leaf.toLowerCase()!==h.name.toLowerCase() ? `Linked “${h.name}”, but the users file expects “${leaf}” — check it's the right folder` : `Shared folder “${h.name}” linked${FOLDER.user?' for '+FOLDER.user:''}`);
+    autoRef();
   }catch(e){ if(!(e&&e.name==='AbortError')) toast('Could not link the folder: '+(e&&e.message||e)); }
 }
 $('userBtn').onclick=()=>{
   const st=FOLDER.status;
   openModal(`<div class="mh"><h2>User & shared folder</h2></div><div class="mb">
-    <div class="note ${st==='ok'?'info':'warn'}">👤 <b>${esc(FOLDER.user||'No user selected')}</b><br>${st==='ok'?`📁 Shared folder: <b>${esc(FOLDER.name)}</b> — files are listed and saved there automatically.`:'No shared folder connected — import and saving are manual.'}</div></div>
-    <div class="mf"><button class="btn" data-act="users" style="margin-right:auto">Switch user</button>${fsSupported()&&FOLDER.user?`<button class="btn" data-act="link">${FOLDER.handle?'Change folder…':'Link folder…'}</button>`:''}${st==='prompt'||st==='missing'?'<button class="btn" data-act="retry">Reconnect</button>':''}${st==='ok'?'<button class="btn pri" data-act="browse">Open shared folder</button>':'<button class="btn" data-act="close">Close</button>'}</div>`,
-    {onAct:a=>{ if(a==='users') showUserPicker(); if(a==='link') linkFolder(); if(a==='retry') selectUser(FOLDER.user); if(a==='browse') openFolderBrowser('data'); }});
+    <div class="note ${st==='ok'?'info':'warn'}">👤 <b>${esc(FOLDER.user||'No user selected')}</b> · ${UCFG?`role <b>${ROLE_TXT[role()]}</b>`:'open mode (no users file)'}<br>${st==='ok'?`📁 Shared folder: <b>${esc(FOLDER.name)}</b> — files are listed and saved there automatically.`:'No shared folder connected — import and saving are manual.'}</div></div>
+    <div class="mf"><button class="btn" data-act="users" style="margin-right:auto">Switch user</button>${UCFG&&can('users')?'<button class="btn" data-act="admin">Manage users…</button>':''}${fsSupported()&&FOLDER.user?`<button class="btn" data-act="link">${FOLDER.handle?'Change folder…':'Link folder…'}</button>`:''}${st==='prompt'||st==='missing'?'<button class="btn" data-act="retry">Reconnect</button>':''}${st==='ok'?'<button class="btn pri" data-act="browse">Open shared folder</button>':'<button class="btn" data-act="close">Close</button>'}</div>`,
+    {onAct:a=>{ if(a==='users') showUserPicker(); if(a==='admin') openUsersAdmin(); if(a==='link') linkFolder(); if(a==='retry') selectUser(FOLDER.user); if(a==='browse') openFolderBrowser('data'); }});
 };
+// v0.10: the customer master and fixed routes are read from MASTER_DATA automatically when the folder
+// connects, and again only when the file there changes (it is not something to load every day).
+async function autoRef(){
+  if(EMB || typeof XLSX==='undefined' || FOLDER.status!=='ok' || !FOLDER.handle) return;
+  try{
+    let md=null; for await (const [n,h] of FOLDER.handle.entries()) if(h.kind==='directory' && n.toLowerCase()==='master_data'){ md=h; break; }
+    if(!md) return;
+    const msgs=[]; let reload=false;
+    for await (const [n,h] of md.entries()){
+      if(h.kind!=='file') continue; const k=fileKind(n); if(k!=='cust' && k!=='fixed') continue;
+      const f=await h.getFile(); const at=new Date().toISOString();
+      if(k==='fixed'){ if(S.fixed && S.fixed.file===n && S.fixed.mod===f.lastModified) continue;
+        const fx=parseFixed({name:n, wb:await readWorkbook(f)}); if(!fx) continue;
+        S.fixed=Object.assign({at, mod:f.lastModified},fx); store(FIXKEY,S.fixed); afterDataChange(); msgs.push(`fixed routes (${fx.bays.length} bays)`); }
+      if(k==='cust'){ if(MASTER && MASTER.file===n && MASTER.mod===f.lastModified) continue;
+        const cu=parseCust({name:n, wb:await readWorkbook(f)}); if(!cu) continue;
+        if(store(CUSTKEY,{file:n, at, mod:f.lastModified, list:cu.list})){ reload=true; msgs.push(`customer master (${cu.list.length} customers)`); } }
+    }
+    if(reload){ try{ sessionStorage.setItem('rp.msg','Loaded from MASTER_DATA: '+msgs.join(' · ')); }catch(e){} location.reload(); return; }
+    if(msgs.length) toast('Loaded from MASTER_DATA: '+msgs.join(' · '));
+  }catch(e){ console.warn('MASTER_DATA not read:', e); }
+}
 // ---- folder browser (a window inside the app listing the files in the shared folder)
 // File types by name. Follows File_Arch: MASTER_DATA/, REPORTS/week_XX/<REPORT>_<wd>.xlsx, PLANS/week_XX/.
 // The older names ("Tue - 03.11.xlsx", "Tue - 03.11 RESOURCES.xlsx", "… - PRODUCTS.xlsx") are recognised too.
@@ -2038,6 +2290,7 @@ async function startUser(){
   if(EMB) return;   // snapshots are read-only copies — no user needed
   let u=null; try{ u=sessionStorage.getItem('rp.user'); }catch(e){}
   if(u && allUsers().includes(u)) return selectUser(u);
+  applyRole();
   showUserPicker();
 }
 
@@ -2064,7 +2317,7 @@ function setLineage(label, current, history){ PREFS.lineage={label, current, his
 function renderLineage(){
   const L=lineage(), el=$('lineage'); if(!el) return;
   if(!L.current){ el.textContent='Working file: not saved yet'; el.title='Use Save / share to save this plan to a file'; return; }
-  el.textContent=`${L.label||'File'}: "${L.current}"`+(L.history[0]?` - Previous: "${L.history[0]}"`:'');
+  el.textContent=`${L.label||'File'}: "${L.current}"`;
   el.title='Click to see the full file history';
 }
 function showLineage(){
@@ -2081,7 +2334,7 @@ function planObject(fileName){
     savedAt:new Date().toISOString(), savedBy:PREFS.name||'', day:P.day&&dayMap[P.day]?dayMap[P.day].label:'',
     state:clone0(S), uploads:clone0(UPLOADS), prefs:{hideSample:!!PREFS.hideSample}, customers:MASTER?clone0(MASTER):null};
 }
-// File_Arch: version_date_time_user, e.g. v0.9.2_2026-11-05_15.58_Willian
+// File_Arch: version_date_time_user, e.g. v0.10.0_2026-11-06_16.05_Alex
 function defaultFileName(){
   const d=new Date(); const user=(FOLDER.user||PREFS.name||'').replace(/[^\w.-]+/g,'-').replace(/^-+|-+$/g,'');
   return safeName(`v${APP_VERSION}_${ymd(d.getFullYear(),d.getMonth()+1,d.getDate())}_${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}${user?'_'+user:''}`);
@@ -2089,8 +2342,8 @@ function defaultFileName(){
 const canPickSave = () => typeof window.showSaveFilePicker==='function' && window.self===window.top;
 // Opens the "Save as" window (Chrome / Edge). If the browser can't, it downloads with the same name.
 // build(name) returns the file content, so the chosen name can be written into the file itself.
-async function saveFile(suggested, build, mime, ext, desc){
-  if(FOLDER.status==='ok' && FOLDER.handle){
+async function saveFile(suggested, build, mime, ext, desc, saveAs){
+  if(!saveAs && FOLDER.status==='ok' && FOLDER.handle){
     try{ if(await folderCheck(FOLDER.handle,true)==='ok'){
       const {dir, path}=await planDir();
       // work out the final name first so it can be written into the file
@@ -2111,38 +2364,41 @@ async function saveFile(suggested, build, mime, ext, desc){
   }
   download(suggested+ext, build(suggested), mime); return {name:suggested, picked:false};
 }
-async function savePlanFile(){
+async function savePlanFile(saveAs){
+  if(!guard('edit','save plans')) return;
   const prev=lineage(); let plan=null;
-  const r=await saveFile(defaultFileName(), name=>JSON.stringify(plan=planObject(name)), 'application/json', '.json', 'Route Planner plan');
+  const r=await saveFile(defaultFileName(), name=>JSON.stringify(plan=planObject(name)), 'application/json', '.json', 'Route Planner plan', saveAs);
   if(!r){ toast('Save cancelled'); return; }
   setLineage('Saved', r.name, plan.history);
   toast(r.folder ? `Saved to 📁 ${r.path}: “${r.name}.json”` : r.picked ? `Saved “${r.name}.json”` : `“${r.name}.json” saved to your Downloads folder — move it to the SharePoint folder`);
 }
-async function saveSnapshot(){
+async function saveSnapshot(saveAs){
+  if(!guard('edit','save snapshots')) return;
   let plan=null;
   const r=await saveFile(defaultFileName(), name=>{
     plan=planObject(name);
     const json=JSON.stringify(plan).replace(/</g,'\\u003c');
     let html=PRISTINE.replace(/<body([^>]*)>/i, m=>`${m}\n<script id="embeddedPlan" type="application/json">${json}<\/script>`);
     return html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(name+' (snapshot)')}</title>`);
-  }, 'text/html', '.html', 'Route Planner snapshot');
+  }, 'text/html', '.html', 'Route Planner snapshot', saveAs);
   if(!r){ toast('Save cancelled'); return; }
   toast(r.folder ? `Snapshot saved to 📁 ${r.path}: “${r.name}.html”` : r.picked ? `Snapshot saved “${r.name}.html”` : `“${r.name}.html” saved to your Downloads folder — move it to the SharePoint folder`);
 }
+$('saveBtn').onclick=()=>savePlanFile(false);
 $('shareBtn').onclick=()=>{
   const sm=planSummary(S,UPLOADS);
   openModal(`<div class="mh"><h2>Save / share this plan</h2><div class="muted small">Your work is only stored in this browser. Save it to a file in the SharePoint folder so others can open it.</div></div>
    <div class="mb">
-    <div><label>Your name (shown to whoever opens it)</label><input type="text" id="shName" value="${esc(PREFS.name||'')}" placeholder="e.g. Willian"></div>
+    <div><label>Your name (shown to whoever opens it)</label><input type="text" id="shName" value="${esc(PREFS.name||'')}" placeholder="e.g. Alex"></div>
     <div><label>What's included</label>${summaryHtml(sm)}</div>
     <div class="muted small">File name: <b>${esc(defaultFileName())}</b>${lineage().current?` · based on <b>${esc(lineage().current)}</b>`:''}</div>
     <div class="grid2">
-      <div class="card2"><b>📄 Plan file (.json)</b><div class="muted small">For planners who will <b>keep working</b> on it. They open the Route Planner and click <b>Open plan</b>.</div><button class="btn pri" data-act="json">Save plan file…</button></div>
-      <div class="card2"><b>📸 Snapshot (.html)</b><div class="muted small">For anyone who just needs to <b>view or print</b> it. They open the file directly — no import needed.</div><button class="btn" data-act="snap">Save snapshot…</button></div>
+      <div class="card2"><b>📄 Plan file (.json)</b><div class="muted small">For planners who will <b>keep working</b> on it. They open the Route Planner and click <b>Open plan</b>.</div><div class="row" style="gap:6px"><button class="btn pri" data-act="json">💾 Save</button><button class="btn" data-act="jsonas">Save as…</button></div></div>
+      <div class="card2"><b>📸 Snapshot (.html)</b><div class="muted small">For anyone who just needs to <b>view or print</b> it. They open the file directly — no import needed.</div><div class="row" style="gap:6px"><button class="btn" data-act="snap">💾 Save</button><button class="btn" data-act="snapas">Save as…</button></div></div>
     </div>
-    <div class="note info">${FOLDER.status==='ok'?`Files are saved into <b>📁 ${esc(FOLDER.name)} › PLANS › week_XX</b> (the week of the day you are planning).`:canPickSave()?'A <b>Save as</b> window opens so you can choose the shared SharePoint folder (or your synced OneDrive / SharePoint folder).':'This browser can\'t show a Save as window here, so the file goes to your <b>Downloads</b> folder — move it to the SharePoint folder. (Open this file in Chrome or Edge from your computer to choose the folder directly, or turn on “Ask where to save each file” in the browser\'s download settings.)'} Agree who owns each day's plan — files don't merge if two people edit at the same time.</div></div>
+    <div class="note info">${FOLDER.status==='ok'?`<b>Save</b> puts the file in <b>📁 ${esc(FOLDER.name)} › PLANS › week_XX</b> (the week of the day you are planning). <b>Save as</b> lets you choose the place.`:canPickSave()?'A <b>Save as</b> window opens so you can choose the shared SharePoint folder (or your synced OneDrive / SharePoint folder).':'This browser can\'t show a Save as window here, so the file goes to your <b>Downloads</b> folder — move it to the SharePoint folder. (Open this file in Chrome or Edge from your computer to choose the folder directly, or turn on “Ask where to save each file” in the browser\'s download settings.)'} Agree who owns each day's plan — files don't merge if two people edit at the same time.</div></div>
    <div class="mf"><button class="btn" data-act="close">Close</button></div>`,
-   {onAct:a=>{ PREFS.name=$('shName').value.trim(); savePrefs(); if(a==='json') savePlanFile(); if(a==='snap') saveSnapshot(); }});
+   {onAct:a=>{ PREFS.name=$('shName').value.trim(); savePrefs(); if(a==='json'||a==='jsonas') savePlanFile(a==='jsonas'); if(a==='snap'||a==='snapas') saveSnapshot(a==='snapas'); }});
   $('modal').classList.add('wide');
 };
 function openPlanPicker(err){
@@ -2177,6 +2433,8 @@ async function handlePlanFile(f){
      if(a==='savefirst'){ savePlanFile(); return; }
      if(a!=='ok') return;
      const lin={label:'Uploaded', current:stripExt(f.name), history:(plan.history||[]).filter(Boolean).slice(0,30)};
+     const pf=plan.state&&plan.state.fixed, lf=load(FIXKEY,null);
+     if(pf && Array.isArray(pf.bays) && (!lf || String(pf.at||'')>String(lf.at||''))) store(FIXKEY,pf);
      if(plan.customers && Array.isArray(plan.customers.list) && (!MASTER || String(plan.customers.at||'')>String(MASTER.at||''))) store(CUSTKEY,plan.customers);
      const ok = store(KEY,Object.assign(freshState(),plan.state)) && store(UPKEY,plan.uploads||[]) && store(PREFKEY,Object.assign({},PREFS,{hideSample:!!(plan.prefs&&plan.prefs.hideSample), lineage:lin}));
      if(!ok){ toast('Browser storage is full — could not open the plan'); return; }
