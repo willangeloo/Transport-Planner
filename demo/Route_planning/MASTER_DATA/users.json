@@ -1,0 +1,31 @@
+{
+  "company": "Demo Transport Ltd",
+  "shareComputers": true,
+  "users": [
+    {
+      "name": "Alex",
+      "role": "MASTER",
+      "path": "C:\\Users\\alex\\OneDrive - Demo Transport\\Transport\\Route_planning"
+    },
+    {
+      "name": "Sam",
+      "role": "MANAGER",
+      "path": "C:\\Users\\sam\\OneDrive - Demo Transport\\Transport\\Route_planning"
+    },
+    {
+      "name": "Jordan",
+      "role": "USER",
+      "path": ""
+    },
+    {
+      "name": "Casey",
+      "role": "USER",
+      "path": "C:\\Users\\casey\\OneDrive - Demo Transport\\Transport\\Route_planning"
+    },
+    {
+      "name": "Warehouse",
+      "role": "VIEWER",
+      "path": "C:\\Users\\warehouse\\OneDrive - Demo Transport\\Transport\\Route_planning"
+    }
+  ]
+}

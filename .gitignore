@@ -32,6 +32,8 @@ CLAUDE.local.md
 *.xls
 *.xlsm
 *.csv
+# …except the demo week, which is invented data made to be shared
+!/demo/**/*.xlsx
 
 # OS / editor / tooling
 .DS_Store
