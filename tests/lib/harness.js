@@ -28,7 +28,7 @@ async function demoContext(browser, demoDir, opts){
 // goes through the start window as `name` (links the folder when asked; the app may reload once)
 async function enter(p, name){
   const done=()=>p.evaluate(n=>{ const b=document.getElementById('userBtn'); return !!b && b.textContent.includes(n) && !document.body.classList.contains('gated'); },name).catch(()=>false);
-  const settled=async()=>{ if(!(await done())) return false; if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) return false; await p.waitForTimeout(1200); return await done(); };
+  const settled=async()=>{ if(!(await done())) return false; if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) return false; await p.waitForTimeout(1200); if(await p.waitForSelector('#modal [data-act=dgo]',{timeout:5000}).then(()=>true).catch(()=>false)) return false; return await done(); };
   for(let i=0;i<40 && !(await settled());i++){
     if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) await p.click('#modal [data-act=dgo]').catch(()=>{});   // master data & reports window
     else if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=link]').catch(()=>{})]);
