@@ -4,6 +4,15 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.0 — 2026-11-09
+
+### Features
+- **Company name.** Taken from `users.json` (`company`), or from the users file's name when it has none (`users_Acme.json` → Acme). It's shown top left next to the version, as a heading on the start windows and in the user menu. A Master can change it in **Manage users**; it's saved into `users.json`.
+- **Master data & reports window.** After choosing a user it always opens, split in two: the customer master and fixed routes (`MASTER_DATA`) on the left, the newest week's DIPS Plan and RES reports on the right. Each file shows whether the version loaded in the planner matches the one in the folder (**✓ loaded**, **⚠ the folder has a different version**, **not loaded**), the same rule as the reports. **Load master data** loads what is new or changed. It can be reopened from 👤 → **Master data & reports…**.
+
+### Edits
+- **Demo rebuilt** and its screenshots regenerated for the new windows; the walkthrough covers the company name, the data window (including a master data file changed in the folder) and the company edit.
+
 ## v0.10.5 — 2026-11-06
 
 ### Features

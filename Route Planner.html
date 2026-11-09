@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.10.5</title>
+<title>Route Planner BETA v0.11.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,6 +25,12 @@ nav button.on{color:#fff;border-bottom-color:#2dd4bf}
 nav button .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:99px;background:#2dd4bf;color:#12212e;font-size:11px;font-weight:700}
 .spacer{flex:1}
 .brandwrap{display:flex;flex-direction:column;justify-content:center;min-width:0;max-width:40vw}
+.brand .co{font-weight:600;font-size:14px;color:#e8eff5;padding-left:12px;margin-left:2px;border-left:1px solid #4a6275;max-width:28vw;overflow:hidden;text-overflow:ellipsis}
+.modal .mh .coh{font-size:22px;font-weight:700;letter-spacing:.01em;line-height:1.2;margin-bottom:2px}
+.dwgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.dwgrid .fbrow .fn{white-space:normal;overflow:visible;line-height:1.7}
+.dwgrid .fbrow .fn .flag{display:inline-block}
+@media(max-width:760px){.dwgrid{grid-template-columns:1fr}.brand .co{display:none}}
 .lineage{font-size:11px;color:#9fb3c3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;margin-top:2px}
 .lineage:hover{color:#fff}
 .hbtn{background:#1f3344;border:1px solid #2c4659;color:#dbe5ee;border-radius:6px;padding:6px 10px;cursor:pointer}
@@ -284,7 +290,7 @@ th.sortable:hover{text-decoration:underline}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.5</span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.0</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
@@ -400,7 +406,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.10.5';
+const APP_VERSION='0.11.0';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1055,7 +1061,7 @@ function openDefer(keys){
   upd();
 }
 
-// v0.10.5: every change in the log records the user who made it
+// v0.11.0: every change in the log records the user who made it
 function logPush(...es){ es.forEach(e=>{ if(!e.by) e.by=(typeof FOLDER!=='undefined'&&FOLDER.user)||''; S.log.push(e); }); return S.log.length; }
 // ---------- docket type (v0.10): every order is printed on a P&W (Pink & White) docket or a Check Sheet ----------
 // Orders from the planning file are Check Sheet; inserted orders choose one; it can be changed in the change report.
@@ -2121,6 +2127,10 @@ let UCFG=null;                 // read fresh from MASTER_DATA every time the app
 let GATE=!EMB;                 // true = locked (no user has passed the folder check yet)
 const FOLDER={user:'', handle:null, status:'none', name:''};
 const cfgUser = n => UCFG && UCFG.users.find(u=>u.name===n);
+// v0.11: the company name comes from users.json ("company"); if the file has none it is taken from the file's name (users_Acme.json → Acme)
+const companyFromFile = f => String(f||'').replace(/\.json$/i,'').replace(/^users?[\s_.-]*/i,'').replace(/[_]+/g,' ').trim();
+const companyName = () => UCFG ? (UCFG.company || companyFromFile(UCFG.file)) : '';
+function renderCompany(){ const el=$('coName'); if(!el) return; const c=EMB?'':companyName(); el.hidden=!c; el.textContent=c; el.title=c?'Company: '+c:''; }
 function role(){ if(EMB) return 'VIEWER'; if(GATE) return 'NONE'; const u=cfgUser(FOLDER.user); return u?u.role:'NONE'; }
 const can = a => !!ROLES[role()][a];
 function guard(a, what){ if(can(a)) return true; toast(role()==='NONE'?'Choose your user first.':(EMB?'Snapshots are view-only — ':`${ROLE_TXT[role()]} access — `)+`you can't ${what}.`); return false; }
@@ -2146,7 +2156,7 @@ function setUsersCfg(j, file){
   UCFG = {company:String(j.company||'').trim(), file, at:new Date().toISOString(),
     shareComputers:!!j.shareComputers,
     users:j.users.map(u=>({name:String(u.name).trim(), role:String(u.role).toUpperCase(), path:String(u.path||'').trim(), device:u.device&&u.device.id?{id:String(u.device.id), since:String(u.device.since||'')}:null}))};
-  store(UCFGKEY,UCFG); store(UFILEKEY,file);
+  store(UCFGKEY,UCFG); store(UFILEKEY,file); renderCompany();
 }
 const fsSupported = () => typeof window.showDirectoryPicker==='function' && window.self===window.top && !!window.indexedDB;
 const idb={
@@ -2166,10 +2176,10 @@ async function folderCheck(h, ask){
 async function subDirIf(dir, names){ const want=names.map(x=>x.toLowerCase()); for await (const [n,h] of dir.entries()) if(h.kind==='directory' && want.includes(n.toLowerCase())) return h; return null; }
 const leafOf = p => String(p||'').split(/[\\/]+/).filter(Boolean).pop()||'';
 function renderUserBtn(){
-  const b=$('userBtn'); if(!b) return;
+  renderCompany(); const b=$('userBtn'); if(!b) return;
   if(EMB){ b.innerHTML='📸 <span>Snapshot · view only</span>'; return; }
   b.innerHTML = FOLDER.user ? `👤 <span>${esc(FOLDER.user)}</span><span class="rolechip">${ROLE_TXT[role()]}</span> · 📁 <span>${esc(FOLDER.name)}</span>` : '👤 <span>No user</span>';
-  b.title = FOLDER.user ? `${FOLDER.user} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}”. Click for your folder, users or to switch user.` : 'Choose your user';
+  b.title = FOLDER.user ? `${companyName()?companyName()+' · ':''}${FOLDER.user} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}”. Click for your folder, users or to switch user.` : 'Choose your user';
 }
 
 // ---- this computer: a random id kept in this browser (IndexedDB, survives the app's Reset; not the browser's "clear data")
@@ -2243,7 +2253,7 @@ function gatePicker(msg){
   setGate(true); FOLDER.user=''; try{ sessionStorage.removeItem('rp.user'); sessionStorage.removeItem('rp.auth'); }catch(e){} renderUserBtn();
   const own=ownerOfThisComputer();
   const byRole=['MASTER','MANAGER','USER','VIEWER'].map(r=>({r, us:UCFG.users.filter(u=>u.role===r)})).filter(x=>x.us.length);
-  gateModal(`<div class="mh"><h2>${UCFG.company?esc(UCFG.company)+' · ':''}Who is planning?</h2><div class="muted small">📁 ${esc(FOLDER.name)} › MASTER_DATA › ${esc(UCFG.file)}</div></div>
+  gateModal(`<div class="mh">${companyName()?`<div class="coh">${esc(companyName())}</div>`:''}<h2>Who is planning?</h2><div class="muted small">📁 ${esc(FOLDER.name)} › MASTER_DATA › ${esc(UCFG.file)}</div></div>
    <div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}${own?`<div class="note info">💻 This computer is registered to <b>${esc(own.name)}</b>, so only ${esc(own.name)} can be chosen here — staff can't use another person's computer. A Master can unregister it in <b>Manage users</b>.</div>`:''}
     ${byRole.map(g=>`<div><label>${ROLE_TXT[g.r]}</label><div class="chips" style="gap:8px">${g.us.map(u=>{ const off=!!own && u!==own; return `<button class="chip" ${off?`disabled title="This computer is registered to ${esc(own.name)}"`:`data-act="u:${esc(u.name)}"`} style="padding:8px 14px;font-size:13px;${off?'opacity:.45;cursor:not-allowed':''}">👤 ${esc(u.name)}${u===own?' <span class="rolechip">this computer</span>':''}</button>`; }).join('')}</div></div>`).join('')}</div>
    <div class="mf"><button class="btn" data-act="relink" style="margin-right:auto">📁 Change folder…</button><button class="btn" data-act="ureload" title="Read users.json again from MASTER_DATA">🔄 Reload users file</button><button class="btn" data-act="ufile">Change users file…</button></div>`,
@@ -2274,10 +2284,10 @@ async function folderChecks(name){
 }
 async function validateUser(name, quiet){
   const checks=await folderChecks(name); const ok=checks.every(c=>c.ok);
-  if(ok && quiet){ return enterAs(name); }
+  if(ok && quiet){ return enterAs(name,true); }
 
   const fixes=[...new Set(checks.filter(c=>!c.ok).map(c=>c.fix))]; const noPath=fixes.includes('path')||fixes.includes('device'); const who=cfgUser(name).role==='MASTER'||cfgUser(name).role==='MANAGER'?'a Master':'a Master or Manager';
-  gateModal(`<div class="mh"><h2>${ok?'✅ Ready':'⛔ Check failed'} · ${esc(name)}</h2><div class="muted small">${ROLE_TXT[cfgUser(name).role]} · ${esc(UCFG.file)}</div></div>
+  gateModal(`<div class="mh">${companyName()?`<div class="coh">${esc(companyName())}</div>`:''}<h2>${ok?'✅ Ready':'⛔ Check failed'} · ${esc(name)}</h2><div class="muted small">${ROLE_TXT[cfgUser(name).role]} · ${esc(UCFG.file)}</div></div>
    <div class="mb"><ul class="checks">${checks.map(c=>`<li class="${c.ok?(c.warn?'warn':'ok'):'bad'}">${c.ok?(c.warn?'⚠':'✓'):'✗'} ${c.txt}</li>`).join('')}</ul>
     ${ok?'<div class="note info">Everything is in place. Continue to the planner.</div>':fixes.includes('device')?`<div class="note warn">The planner stays locked on this computer for ${esc(name)}.</div>`:noPath?`<div class="note warn">The planner stays locked: no folder is set for you. Ask ${who} to set your folder in <b>Manage users</b>, then try again.</div>`:`<div class="note warn">The planner stays locked until this check passes. <b>Continue</b> to choose the right folder, or go back.</div>`}</div>
    <div class="mf"><button class="btn" data-act="back" style="margin-right:auto">← Go back</button>${noPath?'':`<button class="btn pri" data-act="go">Continue${ok?'':' — choose the folder'}</button>`}</div>`,
@@ -2291,18 +2301,20 @@ async function relinkThenCheck(name){
   catch(e){ if(!(e&&e.name==='AbortError')) toast('Could not link the folder: '+(e&&e.message||e)); return validateUser(name); }
   validateUser(name);
 }
-async function enterAs(name){
+async function enterAs(name, quiet){
   const u=cfgUser(name); if(!u) return gatePicker();
   if(!UCFG.shareComputers){ const own=ownerOfThisComputer(); if((own&&own!==u) || (u.device&&u.device.id!==DEVICE)) return validateUser(name);
     if(!u.device){ u.device={id:DEVICE, since:new Date().toISOString()}; try{ await writeUsersFile(); }catch(e){ u.device=null; return gateUsersFile('Could not register this computer in the users file: '+esc(e&&e.message||e)); } } }
   try{ sessionStorage.setItem('rp.auth',name+'|'+DEVICE); }catch(e){}
   FOLDER.user=name; FOLDER.status='ok'; try{ sessionStorage.setItem('rp.user',name); }catch(e){}
-  PREFS.name=name; savePrefs(); GATE=false; closeModal(true); setGate(false); toast(`${name} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}” ready`); autoRef();
+  PREFS.name=name; savePrefs(); GATE=false; closeModal(true); setGate(false); toast(`${name} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}” ready`);
+  let again=false; try{ again=sessionStorage.getItem('rp.datawin')==='1'; sessionStorage.removeItem('rp.datawin'); }catch(e){}
+  autoRef(!quiet || again);   // v0.11: after choosing a user, the master data and reports window
 }
 // ---- folder paths (Master: anyone; Manager: themselves, Users and Viewers; others: themselves)
 async function writeUsersFile(){
   const md=await subDirIf(FOLDER.handle,['MASTER_DATA']); if(!md) throw new Error('MASTER_DATA not found');
-  const j=Object.assign({company:UCFG.company}, UCFG.shareComputers?{shareComputers:true}:{}, {users:UCFG.users.map(u=>Object.assign({name:u.name, role:u.role, path:u.path||''}, u.device?{device:u.device}:{}))});
+  const j=Object.assign({company:companyName()}, UCFG.shareComputers?{shareComputers:true}:{}, {users:UCFG.users.map(u=>Object.assign({name:u.name, role:u.role, path:u.path||''}, u.device?{device:u.device}:{}))});
   const fh=await md.getFileHandle(UCFG.file,{create:true}); const w=await fh.createWritable(); await w.write(new Blob([JSON.stringify(j,null,2)],{type:'application/json'})); await w.close();
   store(UCFGKEY,UCFG);
 }
@@ -2328,28 +2340,28 @@ function openPathEdit(target){
 // Master / Manager: the users list, saved straight into MASTER_DATA
 function openUsersAdmin(){
   if(!guard('users','manage users') || !sessionOk(FOLDER.user)) return;
-  const me=role(), master=me==='MASTER'; const draft=clone(UCFG.users);
+  const me=role(), master=me==='MASTER'; const draft=clone(UCFG.users); let draftCo=companyName();
   const draw=()=>{ const rows=draft.map((u,i)=>{ const lockRole=!master && (u.role==='MASTER'||u.role==='MANAGER'&&u.name!==FOLDER.user);
       const pathOk=master || u.name===FOLDER.user || RANK[u.role]<RANK.MANAGER;
       const opts=Object.keys(RANK).filter(r=>master||RANK[r]<RANK.MANAGER||r===u.role).map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_TXT[r]}</option>`).join('');
       const pcOk=u.name!==FOLDER.user && (master || RANK[u.role]<RANK.MANAGER);
       const pc=u.device?`<span class="flag ad" title="Registered ${esc(fmtTime(u.device.since))}">💻 registered${u.device.id===DEVICE?' (this one)':''}</span>`:'<span class="flag" style="background:#eef1f4;color:#4b5563">not yet</span>';
       return `<tr><td>${master?`<input type="text" data-ua="name:${i}" value="${esc(u.name)}">`:`<b>${esc(u.name)}</b>`}</td><td><select data-ua="role:${i}" ${lockRole?'disabled':''}>${opts}</select></td><td><input type="text" data-ua="path:${i}" value="${esc(u.path||'')}" placeholder="C:\\Users\\…\\Route_planning" ${pathOk?'':'disabled'}></td><td style="white-space:nowrap">${pc} ${pcOk&&u.device?`<button class="btn sm" data-act="pc:${i}" title="Lets ${esc(u.name)} register a new computer">Unregister</button>`:''}</td><td>${master&&u.name!==FOLDER.user?`<button class="btn sm" data-act="rm:${i}">Remove</button>`:''}</td></tr>`; }).join('');
-    openModal(`<div class="mh"><h2>Users${UCFG.company?' · '+esc(UCFG.company):''}</h2><div class="muted small">${master?'Master: add, edit and remove users, and set anyone\'s folder.':'Manager: roles and folders of Users and Viewers, and your own folder.'} Saved into MASTER_DATA › ${esc(UCFG.file)} for everyone.</div></div>
-     <div class="mb"><table><thead><tr><th>Name</th><th>Role</th><th>Route_planning folder on their computer</th><th>Computer</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    openModal(`<div class="mh"><h2>Users${companyName()?' · '+esc(companyName()):''}</h2><div class="muted small">${master?'Master: add, edit and remove users, and set anyone\'s folder.':'Manager: roles and folders of Users and Viewers, and your own folder.'} Saved into MASTER_DATA › ${esc(UCFG.file)} for everyone.</div></div>
+     <div class="mb">${master?`<div class="row" style="margin-bottom:8px"><label style="margin:0">Company name</label><input type="text" id="uaCo" value="${esc(draftCo)}" placeholder="Company name" style="flex:1"></div>`:''}<table><thead><tr><th>Name</th><th>Role</th><th>Route_planning folder on their computer</th><th>Computer</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       ${master?'<div class="row"><button class="btn sm" data-act="add">+ Add user</button></div>':''}<div id="uaErr"></div></div>
      <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="save">Save to MASTER_DATA</button></div>`,
      {onAct:async a=>{
        if(a==='add'){ draft.push({name:'',role:'USER',path:''}); return draw(); }
        if(a.startsWith('rm:')){ draft.splice(+a.slice(3),1); return draw(); }
        if(a.startsWith('pc:')){ draft[+a.slice(3)].device=null; return draw(); }
-       if(a==='save'){ const j={company:UCFG.company, shareComputers:UCFG.shareComputers, users:draft.filter(u=>u.name.trim())}; const err=checkUsersCfg(j); if(err){ $('uaErr').innerHTML=`<div class="note warn">${esc(err)}</div>`; return; }
+       if(a==='save'){ if(master&&$('uaCo')) draftCo=$('uaCo').value.trim(); const j={company:master?draftCo:companyName(), shareComputers:UCFG.shareComputers, users:draft.filter(u=>u.name.trim())}; const err=checkUsersCfg(j); if(err){ $('uaErr').innerHTML=`<div class="note warn">${esc(err)}</div>`; return; }
          if(!j.users.some(u=>u.name===FOLDER.user)){ $('uaErr').innerHTML='<div class="note warn">You can\'t remove yourself.</div>'; return; }
          // only what this role may change is taken from the draft
          const me0=cfgUser(FOLDER.user); const okTarget=u=>{ const o=UCFG.users.find(x=>x.name===u.name); return master || !o || RANK[o.role]<RANK.MANAGER || o.name===me0.name; };
          if(!master && draft.some((u,i)=>{ const o=UCFG.users[i]; return o && !okTarget(o) && (o.role!==u.role || o.path!==u.path || JSON.stringify(o.device)!==JSON.stringify(u.device)); })){ $('uaErr').innerHTML='<div class="note warn">You can only change Users and Viewers.</div>'; return; }
          const keep=UCFG.users; setUsersCfg(j,UCFG.file); try{ await writeUsersFile(); }catch(e){ UCFG.users=keep; $('uaErr').innerHTML=`<div class="note warn">Could not save: ${esc(e&&e.message||e)}</div>`; return; }
-         closeModal(); applyRole(); toast(`Users saved to MASTER_DATA › ${UCFG.file}`); }
+         closeModal(); applyRole(); renderCompany(); toast(`Users saved to MASTER_DATA › ${UCFG.file}`); }
      }});
     $('modal').classList.add('wide');
     $('modal').querySelectorAll('[data-ua]').forEach(x=>x.addEventListener('input',()=>{ const [f,i]=x.dataset.ua.split(':'); draft[+i][f]=x.value; }));
@@ -2360,15 +2372,16 @@ $('userBtn').onclick=()=>{
   if(EMB) return snapshotInfo();
   if(GATE) return gateHome();
   const u=cfgUser(FOLDER.user);
-  openModal(`<div class="mh"><h2>${esc(FOLDER.user)} · ${ROLE_TXT[role()]}</h2><div class="muted small">${UCFG.company?esc(UCFG.company)+' · ':''}${esc(UCFG.file)}</div></div><div class="mb">
+  openModal(`<div class="mh"><h2>${esc(FOLDER.user)} · ${ROLE_TXT[role()]}</h2><div class="muted small">${companyName()?esc(companyName())+' · ':''}${esc(UCFG.file)}</div></div><div class="mb">
     <div class="note info">📁 Company folder: <b>${esc(FOLDER.name)}</b><br>Your folder: <code>${esc(u.path||'—')}</code></div></div>
-    <div class="mf"><button class="btn" data-act="switch" style="margin-right:auto">Switch user</button><button class="btn" data-act="mypath">My folder…</button>${can('users')?'<button class="btn" data-act="admin">Manage users…</button>':''}<button class="btn pri" data-act="browse">Open shared folder</button></div>`,
-    {onAct:a=>{ if(a==='switch') return gatePicker(); if(a==='mypath') return openPathEdit(FOLDER.user); if(a==='admin') return openUsersAdmin(); if(a==='browse') return openFolderBrowser('data'); }});
+    <div class="mf"><button class="btn" data-act="switch" style="margin-right:auto">Switch user</button><button class="btn" data-act="mypath">My folder…</button><button class="btn" data-act="data">Master data &amp; reports…</button>${can('users')?'<button class="btn" data-act="admin">Manage users…</button>':''}<button class="btn pri" data-act="browse">Open shared folder</button></div>`,
+    {onAct:a=>{ if(a==='switch') return gatePicker(); if(a==='mypath') return openPathEdit(FOLDER.user); if(a==='data') return openDataWindow(); if(a==='admin') return openUsersAdmin(); if(a==='browse') return openFolderBrowser('data'); }});
 };
 function manualAlert(title, text){ openModal(`<div class="mh"><h2>⚠ ${title}</h2></div><div class="mb"><div class="note warn">${text}</div></div><div class="mf"><button class="btn pri" data-act="close">OK</button></div>`); }
 // v0.10: the customer master and fixed routes are read from MASTER_DATA automatically when the folder
 // connects, and again only when the file there changes (it is not something to load every day).
-async function autoRef(){
+async function autoRef(win){ const r=await autoRefCore(win); if(win && r!=='stop') openDataWindow(); }
+async function autoRefCore(win){
   if(EMB || typeof XLSX==='undefined' || FOLDER.status!=='ok' || !FOLDER.handle) return;
   try{
     const md=await subDirIf(FOLDER.handle,['MASTER_DATA']); if(!md) return;
@@ -2388,18 +2401,54 @@ async function autoRef(){
         const df=custDiff(MASTER.list,cu.list); if(!df.n){ MASTER=Object.assign(MASTER,{hash,mod:f.lastModified,path,file:n}); store(CUSTKEY,MASTER); continue; }
         ask.push({k, n, df, apply:()=>{ logLoad({kind:'master', day:'', files:[n], replaced:true, summary:df.txt}); save(); store(CUSTKEY,nu); return 'reload'; }, hash}); }
     }
-    if(reload){ try{ sessionStorage.setItem('rp.msg','Loaded from MASTER_DATA: '+msgs.join(' · ')); }catch(e){} location.reload(); return; }
+    if(reload){ try{ sessionStorage.setItem('rp.msg','Loaded from MASTER_DATA: '+msgs.join(' · ')); if(win) sessionStorage.setItem('rp.datawin','1'); }catch(e){} location.reload(); return 'stop'; }
     if(msgs.length) toast('Loaded from MASTER_DATA: '+msgs.join(' · '));
     if(ask.length){
       openModal(`<div class="mh"><h2>Updated in MASTER_DATA</h2><div class="muted small">These files were changed in the company folder after they were loaded</div></div>
        <div class="mb"><ul class="diffl">${ask.map(x=>`<li><b>${x.k==='cust'?'Customer master':'Fixed routes'}</b> — ${esc(x.n)}<br>${x.df.html}${x.k==='cust'?'<div class="muted small">Customer edits made in the planner are kept.</div>':''}</li>`).join('')}</ul></div>
        <div class="mf"><button class="btn" data-act="later" style="margin-right:auto">Not now</button><button class="btn pri" data-act="load">Load the new version${ask.length>1?'s':''}</button></div>`,
-       {onAct:a=>{ if(a==='later'){ ask.forEach(x=>{ try{ sessionStorage.setItem('rp.skip.'+x.k,x.hash); }catch(e){} }); closeModal(); return; }
+       {onAct:a=>{ if(a==='later'){ ask.forEach(x=>{ try{ sessionStorage.setItem('rp.skip.'+x.k,x.hash); }catch(e){} }); closeModal(); if(win) openDataWindow(); return; }
          if(a!=='load') return; let rl=false; ask.forEach(x=>{ if(x.apply()==='reload') rl=true; }); closeModal();
-         if(rl){ try{ sessionStorage.setItem('rp.msg','New customer master loaded from MASTER_DATA'); }catch(e){} location.reload(); } else toast('New fixed routes loaded from MASTER_DATA'); }});
+         if(rl){ try{ sessionStorage.setItem('rp.msg','New customer master loaded from MASTER_DATA'); if(win) sessionStorage.setItem('rp.datawin','1'); }catch(e){} location.reload(); } else { toast('New fixed routes loaded from MASTER_DATA'); if(win) openDataWindow(); } }});
       $('modal').classList.add('wide');
+      return 'stop';
     }
   }catch(e){ console.warn('MASTER_DATA not read:', e); }
+}
+// ---- v0.11: after choosing a user — master data (customer master, fixed routes) on one side, the week's reports on the other,
+// each tagged with the same rule: ✓ loaded = this exact file is in the planner · ⚠ changed = the folder has a different version · not loaded
+async function openDataWindow(){
+  if(EMB || GATE || FOLDER.status!=='ok' || !FOLDER.handle) return;
+  openModal(`<div class="mh">${companyName()?`<div class="coh">${esc(companyName())}</div>`:''}<h2>Master data &amp; reports</h2><div class="muted small">Reading the company folder…</div></div><div class="mb"></div>`);
+  $('modal').classList.add('wide');
+  let files=[]; try{ files=(await scanFolder(FOLDER.handle,'',0,[],'')).sort((a,b)=>b.mod-a.mod); }catch(e){ return manualAlert('Shared folder not available','Could not read the folder: '+esc(e&&e.message||e)); }
+  FB.files=files;
+  const fmtD=ms=>{ const d=new Date(ms); return d.toLocaleDateString('en-IE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}); };
+  const FLAG={loaded:'<span class="flag ad">✓ loaded — same as the folder</span>', changed:'<span class="flag dup">⚠ the folder has a different version</span>', new:'<span class="flag" style="background:#eef1f4;color:#4b5563">not loaded</span>'};
+  const row=f=>`<div class="fbrow" style="cursor:default"><span class="fn">${esc(f.name)} ${FLAG[fileStatus(f)]}</span><span class="muted small">${fmtD(f.mod)}</span></div>`;
+  // left: customer master and fixed routes
+  const MD=[['cust','👥 Customer master',MASTER?`${MASTER.list.length} customers`:'','MASTER_DEL_DETAILS'],['fixed','🗓 Fixed routes',S.fixed?`${S.fixed.bays.length} bays`:'','FIXED_ROUTES_DIPSDATA']];
+  let mdState=[];
+  const left=MD.map(([k,t,info,hint])=>{ const fs=files.filter(f=>f.kind===k); const st=fs.map(fileStatus); mdState=mdState.concat(st.length?st:['missing']);
+    return `<div><label>${t}</label><div class="mlist fblist" style="max-height:150px">${fs.length?fs.map(row).join(''):`<div class="muted small" style="padding:4px 8px">No ${hint} file in MASTER_DATA.</div>`}</div>${info?`<div class="muted small">In the planner: ${info}${(k==='cust'?MASTER:S.fixed)&&(k==='cust'?MASTER:S.fixed).at?' · loaded '+esc(fmtTime((k==='cust'?MASTER:S.fixed).at)):''}</div>`:'<div class="muted small">Nothing loaded in the planner yet.</div>'}</div>`; }).join('');
+  const mdOk = mdState.length && mdState.every(x=>x==='loaded'); const mdBad = mdState.some(x=>x==='changed'||x==='new');
+  const mdNote = mdOk ? '<div class="note info">✓ The master data in the planner is the version found in the folder.</div>'
+    : mdBad ? '<div class="note warn">⚠ The folder has master data that is not in the planner (or a different version). Click <b>Load master data</b>.</div>'
+    : '<div class="note warn">Master data files are missing in MASTER_DATA.</div>';
+  // right: the reports of the newest week
+  const weeks=fbWeeks(); const wk=weeks.length?weeks[0]:null; const rep=files.filter(f=>['planning','res'].includes(f.kind) && (wk?f.week===wk:true));
+  const rst=rep.map(fileStatus), nl=rst.filter(x=>x==='loaded').length, nc=rst.filter(x=>x==='changed').length, nn=rst.filter(x=>x==='new').length;
+  const others=files.filter(f=>['prod','upl','pod'].includes(f.kind) && (wk?f.week===wk:true)).length;
+  const right = rep.length ? `<div class="mlist fblist" style="max-height:290px">${rep.map(row).join('')}</div>
+      <div class="note ${nc?'warn':'info'}" style="margin-top:8px">${nl} of ${rep.length} loaded${nc?` · <b>${nc} changed in the folder</b>`:''}${nn?` · ${nn} not loaded`:''}</div>${others?`<div class="muted small">${others} more file${others>1?'s':''} (Products, Uplifts, POD) — not used yet.</div>`:''}`
+    : '<div class="muted small" style="padding:4px 8px">No DIPS Plan / RES reports found in REPORTS › week_XX.</div>';
+  openModal(`<div class="mh">${companyName()?`<div class="coh">${esc(companyName())}</div>`:''}<h2>Master data &amp; reports</h2><div class="muted small">📁 ${esc(FOLDER.name)} · compared with what is loaded in the planner</div></div>
+   <div class="mb"><div class="dwgrid"><div><h3 style="margin:0 0 8px;font-size:13px">Master data <span class="muted small">· MASTER_DATA</span></h3>${left}${mdNote}</div>
+     <div><h3 style="margin:0 0 8px;font-size:13px">Reports <span class="muted small">· ${wk?'REPORTS › week '+wk:'REPORTS'}</span></h3>${right}</div></div></div>
+   <div class="mf">${mdOk?'':'<button class="btn" data-act="dmaster" style="margin-right:auto">Load master data</button>'}${can('edit')?'<button class="btn" data-act="dreports">📁 Load reports…</button>':''}<button class="btn pri" data-act="dgo">Continue</button></div>`,
+   {onAct:a=>{ if(a==='dgo'||a==='close') return closeModal(); if(a==='dmaster'){ try{ sessionStorage.removeItem('rp.skip.cust'); sessionStorage.removeItem('rp.skip.fixed'); }catch(e){} closeModal(); return autoRef(true); }
+     if(a==='dreports') return openFolderBrowser('data'); }});
+  $('modal').classList.add('wide');
 }
 // ---- folder browser (a window inside the app listing the files in the shared folder)
 // v0.10.1: every file type has its own folder (File_Arch) and only files there are listed:
@@ -2565,7 +2614,7 @@ async function saveFile(suggested, build, mime, ext, desc, saveAs){
       return {name:used, picked:true, folder:true, path};
     } }catch(e){ toast('Could not save to the shared folder — choose where to save instead'); }
   }
-  // v0.10.5: Save as chooses only the folder; the file name stays version_date_time_user and can't be changed
+  // v0.11.0: Save as chooses only the folder; the file name stays version_date_time_user and can't be changed
   if(typeof window.showDirectoryPicker==='function' && window.self===window.top){
     let dir=null;
     try{ dir=await window.showDirectoryPicker({id:'routeplanner-saveas', mode:'readwrite'}); }
