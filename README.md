@@ -68,7 +68,7 @@ Branch names, the PR flow and versioning are described in [CONTRIBUTING.md](CONT
 
 ## Versions
 
-There is one file name. Each release is a git tag (`v0.9.1`, …), and older versions can be downloaded from the tags page. The version shown in the app header comes from `APP_VERSION` in the file.
+There is one file name, `Route Planner.html`. The current version is **v0.11.0** (BETA). What changed in each version is in [docs/CHANGELOG.md](docs/CHANGELOG.md). The version shown in the app header comes from `APP_VERSION` in the file. Releases are tagged on `main` after merging (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Customer master columns
 
