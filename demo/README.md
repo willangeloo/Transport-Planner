@@ -19,7 +19,7 @@ demo/Route_planning/
 1. Copy `demo/Route_planning` somewhere on your computer (or download the repository as a ZIP).
 2. Open `Route Planner.html` in **Chrome** or **Edge**.
 3. Start window: **Choose folder…** and pick your copy of `Route_planning`. The users file is read from `MASTER_DATA`.
-4. Pick **Alex**, then **Continue** on the folder check (✅ Ready). The customers and fixed routes load by themselves.
+4. Pick **Alex**, then **Continue** on the folder check (✅ Ready). The customers and fixed routes load by themselves, then the **Master data & reports** window shows each file as ✓ loaded / ⚠ changed / not loaded. Click **Continue**.
 5. Then either:
    - **Load day:** pick week 46 and the DIPS Plan + RES files, then follow the [user guide](../docs/user-guide.md); or
    - **Open plan:** open one of the plans in `PLANS/week_46` to see a week already planned, with moves, deferrals, a split, an inserted order, a new route, a new day, customer edits, docket changes and customization.
@@ -30,8 +30,8 @@ Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how role
 
 ## Presenting to the team (suggested order)
 
-1. Start window: it's locked, so link the folder, pick a name and pass the checks. Then try **Jordan**: the check fails because no folder is set. Only a Master or Manager can fix it, from inside the planner.
-2. **Customers** map (master and fixed routes loaded automatically).
+1. Start window: the company name is the heading and sits next to the version, top left. It's locked, so link the folder, pick a name and pass the checks. Then try **Jordan**: the check fails because no folder is set. Only a Master or Manager can fix it, from inside the planner.
+2. **Master data & reports** window, then the **Customers** map (master and fixed routes loaded automatically). Change a master file in the folder and reopen the window from 👤 to show the ⚠ tag.
 3. **Load day:** the whole week in one go.
 4. **Plan the day:**
    - move one drop, then a group (box-select on the map);

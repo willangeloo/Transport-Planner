@@ -23,7 +23,7 @@ Nobody can use the planner without choosing a name from this file and passing th
 
 | Field | Required | Meaning |
 |---|---|---|
-| `company` | no | Shown on the start window |
+| `company` | no | The company name: shown top left next to the version, on the start windows and in Manage users (a Master can change it there). If left out, it is taken from the file's name (`users_Acme.json` → Acme) |
 | `users[].name` | yes | Shown on the start window, in saved file names and in "saved by". Must be unique |
 | `users[].role` | yes | `MASTER`, `MANAGER`, `USER` or `VIEWER`. At least one user must be `MASTER` |
 | `users[].path` | for access | The `Route_planning` folder as it appears on that person's laptop. A user with no path can't get in until a Master or Manager sets it |
