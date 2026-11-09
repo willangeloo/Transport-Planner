@@ -10,7 +10,8 @@ npm test
 ```
 
 - `folder.js` builds a fake shared folder (`MASTER_DATA`, `REPORTS/week_XX`, `PLANS/week_XX`) with the File System Access API mocked, and checks listing, week dates, import, saving to `PLANS/week_XX` and opening from there.
+- `features.js` checks the **Resources** sheet (select, copy / paste blocks, rows and columns, export and upload, view-only) and **Check Sheet Print** (a fake check-sheet PDF made with `lib/checksheet.js`: reallocations, blank pages, UNASSIGNED, integrity checks, reprint).
 - `demo/make-demo.js` builds the demo week in `demo/Route_planning`; `demo/walkthrough.js` goes through the start window and uses **every feature** on it, then opens a snapshot on a fresh browser (it is also the acceptance test for a future backend). `npm run demo` regenerates the demo plans and the screenshots in `docs/img`.
-- The CDNs are replaced by the local `leaflet` / `xlsx` packages and map tiles are blocked, so it runs offline.
+- The CDNs are replaced by the local `leaflet` / `xlsx` / `pdfjs-dist` / `pdf-lib` packages and map tiles are blocked, so it runs offline.
 
 Never add real files here: `.xlsx` files are git-ignored everywhere except the invented demo week in `demo/`.

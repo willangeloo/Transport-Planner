@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.10.5</title>
+<title>Route Planner BETA v0.11.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -184,6 +184,7 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .hbtn{white-space:nowrap}
 header{gap:14px}
 @media (max-width:1500px){ header .hbtn:not(#userBtn) span{display:none} header .hbtn{padding:6px 9px} }
+@media (max-width:1500px){ nav button{padding:0 10px} }
 @media (max-width:1180px){ #userBtn .rolechip{display:none} }
 ul.checks{list-style:none;margin:0;padding:0;line-height:1.9}
 ul.checks li.ok{color:var(--ok)} ul.checks li.bad{color:var(--danger);font-weight:600} ul.checks li.warn{color:var(--warn)}
@@ -280,16 +281,196 @@ th.sortable:hover{text-decoration:underline}
   .brand{font-size:13px}
   .rep .kpis{grid-template-columns:repeat(2,1fr)}
 }
+/* v0.11.0 — surfaces used by the new tabs and the dark theme */
+:root{ --card:#fff; --soft:#fafbfc; --hover:#f3f5f7; --zebra:#f8fafc; --thbg:#fafbfc; --inputbg:#fff; --selbg:#dbeafe; --selbd:#2563eb; }
+/* resources */
+#tab-res,#tab-print{overflow:auto;display:none}
+#tab-res.on,#tab-print.on{display:block}
+.rs{max-width:none}
+.rs .rep-head select{width:100%}
+.rs-card{overflow:visible!important}
+.rs-tools{display:flex;gap:6px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.rs-sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+.rs-help{padding:8px 12px}
+.rs-wrap{overflow:auto;max-height:calc(100vh - 330px);min-height:180px;border-top:1px solid var(--line);outline:none}
+.rs-wrap:focus{box-shadow:inset 0 0 0 2px var(--accent-soft)}
+table.rs-grid{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%;font-size:12.5px;user-select:none}
+.rs-grid th{position:sticky;top:0;z-index:2;background:var(--thbg);color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.rs-grid th .rs-star{color:var(--warn);font-weight:700;cursor:help}
+.rs-grid th .rs-x{float:right;border:0;background:none;color:var(--muted);cursor:pointer;padding:0 2px;font-size:13px;line-height:1;visibility:hidden}
+.rs-grid th:hover .rs-x{visibility:visible}
+.rs-grid th .rs-x:hover{color:var(--danger)}
+.rs-grid th.rs-rn,.rs-grid th.rs-corner{position:sticky;left:0;z-index:1;text-align:right;color:var(--muted);font-weight:500;background:var(--thbg);text-transform:none}
+.rs-grid thead th.rs-corner{z-index:3}
+.rs-grid td{padding:0 8px;height:28px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--card);cursor:cell}
+.rs-grid td.n{text-align:right;font-variant-numeric:tabular-nums}
+.rs-grid td.ro{color:var(--muted);background:var(--soft)}
+.rs-grid td.bad{background:var(--danger-soft);color:var(--danger)}
+.rs-grid td.sel{background:var(--selbg)}
+.rs-grid td.cur{box-shadow:inset 0 0 0 2px var(--selbd)}
+.rs-grid td .rs-in{width:100%;height:26px;border:0;outline:0;padding:0;background:transparent;font:inherit;color:inherit}
+.rs-grid td.empty{text-align:center;color:var(--muted);height:60px;cursor:default}
+body[data-role=VIEWER] .no-viewer,body[data-role=NONE] .no-viewer{display:none!important}
+/* check sheet print */
+.jp{padding:20px 24px 40px}
+.jp-top{max-width:none}
+.jp-top select{width:100%}
+.jp-modes{display:flex;gap:4px;background:var(--accent-soft);padding:4px;border-radius:9px}
+.jp-modes button{border:0;background:none;padding:6px 14px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--accent)}
+.jp-modes button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.jp-layout{display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1050px){ .jp-layout{grid-template-columns:1fr} }
+.jp-setup,.jp-results{display:flex;flex-direction:column;gap:14px;min-width:0}
+.jp-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.jp-card h2{font-size:14px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.jp-cardhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.jp-cardhead h2{margin:0}
+.jp-step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px}
+.jp-hint{color:var(--muted);font-size:12px;margin:0}
+.jp-empty{color:var(--muted);margin:6px 0}
+.jp-big{width:100%;padding:11px;font-size:14px;font-weight:600;margin-bottom:8px}
+.jp-drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:22px 12px;border:2px dashed #b8c4cf;border-radius:10px;background:var(--soft);cursor:pointer;text-align:center}
+.jp-drop span{color:var(--muted);font-size:12px}
+.jp-drop:hover,.jp-drop:focus,.jp-drop.over{border-color:var(--accent);background:var(--accent-soft);outline:none}
+.jp-files{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.jp-files li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.jp-files .name{font-weight:600;overflow-wrap:anywhere}
+.jp-files .meta{color:var(--muted);font-size:11.5px}
+.jp-files .remove{margin-left:auto;border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px}
+.jp-progress{position:relative;margin-top:10px;height:22px;border-radius:6px;background:var(--accent-soft);overflow:hidden}
+.jp-progress .bar{position:absolute;inset:0 auto 0 0;width:0;background:#9fd3cf;transition:width .15s}
+.jp-progress .label{position:relative;display:block;padding:0 8px;font-size:12px;line-height:22px}
+.jp-tbl{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:6px}
+.jp table{border-collapse:collapse;width:100%;font-size:12px}
+.jp th{text-align:left;background:var(--thbg);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding:6px 8px;border-bottom:1px solid var(--line);position:sticky;top:0}
+.jp td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.jp td.num{text-align:right}
+.jp tr.bad td{background:var(--danger-soft)}
+.jp tr.inf td{background:var(--warn-soft)}
+.jp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}
+.jp-tile{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:8px 12px}
+.jp-tile .k{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.jp-tile .v{font-size:22px;font-weight:700}
+.jp-tile .s{font-size:11.5px;color:var(--muted)}
+.jp-tile.warn{border-left-color:var(--warn)} .jp-tile.good{border-left-color:var(--ok)}
+.jp-filters{display:flex;gap:6px;flex-wrap:wrap}
+.jp-issues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:300px;overflow:auto}
+.jp-issues li{display:flex;gap:8px;align-items:baseline;padding:5px 8px;border-radius:6px;font-size:12.5px}
+.jp-issues li:nth-child(odd){background:var(--zebra)}
+.jp-badge{flex:none;font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;color:#fff;text-transform:uppercase}
+.jp-badge.error{background:var(--danger)} .jp-badge.warning{background:var(--warn)} .jp-badge.info{background:#7a8896} .jp-badge.blocking{background:#8b1f31}
+.jp-route{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.jp-rhead{width:100%;display:grid;grid-template-columns:minmax(130px,1.1fr) minmax(0,2fr) auto auto 18px;gap:14px;align-items:center;padding:9px 14px;background:var(--card);border:0;cursor:pointer;text-align:left}
+.jp-rhead:hover{background:var(--hover)}
+.jp-rname{font-size:16px;font-weight:700;overflow-wrap:anywhere}
+.jp-rname small{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.jp-route.unassigned .jp-rname,.jp-route.deferred .jp-rname{color:var(--warn)}
+.jp-route.review .jp-rname{color:var(--danger)}
+.jp-rships{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.jp-rnum{text-align:right;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.jp-rnum b{display:block;font-size:15px;color:var(--ink)}
+.jp-caret{transition:transform .15s;color:var(--muted)}
+.jp-route.open .jp-caret{transform:rotate(90deg)}
+.jp-rbody{display:none;border-top:1px solid var(--line);overflow-x:auto}
+.jp-route.open .jp-rbody{display:block}
+.jp-moved{color:var(--warn);font-weight:600} .jp-warn{color:var(--warn)}
+.jp-rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.jp-ritem{border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.jp-ritem .thumb{width:100%;aspect-ratio:.707;background:#f0f2f5;border:1px solid var(--line);border-radius:4px;object-fit:contain;cursor:zoom-in}
+.jp-ritem .title{font-weight:600}
+.jp-ritem .reason{font-size:12px;color:var(--muted)}
+.jp-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:4px;margin-right:6px}
+.jp-tag.review{background:var(--danger-soft);color:var(--danger)} .jp-tag.discard{background:#eceff3;color:#5d6b7a} .jp-tag.attached{background:#dcf3ee;color:#127a67}
+.jp-discard{padding:0}
+.jp-discard summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;cursor:pointer;list-style:none}
+.jp-discard summary::-webkit-details-marker{display:none}
+.jp-discard .jp-rgrid{padding:0 16px 16px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.jp-checks{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:4px;font-size:12px}
+.jp-checks li::before{content:"\2713";color:var(--ok);font-weight:700;margin-right:6px}
+.jp-checks li.fail::before{content:"\2717";color:var(--danger)}
+.jp-checks li.fail{color:var(--danger)}
+.jp-checks .d{color:var(--muted);display:block;margin-left:18px}
+.jp-output{border-color:var(--accent)}
+.jp-outlayout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:14px}
+@media (max-width:760px){ .jp-outlayout{grid-template-columns:1fr} }
+.jp-rtabs{display:flex;flex-direction:column;gap:4px;max-height:640px;overflow:auto}
+.jp-rtab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:7px;padding:7px 10px;cursor:pointer;text-align:left}
+.jp-rtab b{font-size:13px;overflow-wrap:anywhere} .jp-rtab span{color:var(--muted);font-size:11px;white-space:nowrap}
+.jp-rtab.on{background:var(--accent);border-color:var(--accent)} .jp-rtab.on b,.jp-rtab.on span{color:#fff}
+.jp-outhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.jp-outhead h3{margin:0;font-size:19px}
+.jp-pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;max-height:640px;overflow:auto;padding:4px;background:var(--bg);border-radius:8px}
+.jp-pages figure{margin:0;background:#fff;border:1px solid var(--line);border-radius:4px;overflow:hidden;cursor:zoom-in}
+.jp-pages figure.cover{border:2px solid var(--accent)}
+.jp-pages img{display:block;width:100%;aspect-ratio:.707;object-fit:contain;background:#fff}
+.jp-pages figcaption{font-size:11px;color:#5d6b7a;padding:4px 8px;border-top:1px solid #e2e6eb;background:#fff}
+.jp-reprint{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:18px;align-items:start}
+.jp-reprint[hidden],.jp-layout[hidden]{display:none}
+@media (max-width:900px){ .jp-reprint{grid-template-columns:1fr} }
+.jp-reprint input[type=search]{font-size:17px;padding:9px 12px}
+.jp-rplist{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:520px;overflow:auto}
+.jp-rplist button{width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 12px;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
+.jp-rplist button.on{border-color:var(--accent);background:var(--accent-soft)}
+.jp-rplist .o{font-weight:700;font-family:ui-monospace,Menlo,Consolas,monospace} .jp-rplist .m{grid-column:2;color:var(--muted);font-size:11.5px}
+dialog#jpViewer{width:min(1100px,94vw);max-height:92vh;border:0;border-radius:12px;padding:0;background:var(--card);color:var(--ink)}
+dialog#jpViewer::backdrop{background:rgba(15,25,40,.55)}
+.jp-vhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+.jp-vhead h3{margin:0;font-size:15px}
+.jp-vbody{padding:16px;display:flex;flex-wrap:wrap;gap:16px;justify-content:center;background:var(--bg)}
+.jp-vbody figure{margin:0;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15)} .jp-vbody img{display:block;width:480px;max-width:86vw} .jp-vbody figcaption{font-size:12px;color:#5d6b7a;padding:4px 8px}
+/* theme picker */
+.thpick{display:flex;gap:10px;flex-wrap:wrap}
+.thopt{border:2px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;background:var(--card);display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:150px;color:var(--ink)}
+.thopt.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.thopt .pv{width:130px;height:62px;border-radius:6px;border:1px solid #c9d1d9;display:grid;grid-template-rows:14px 1fr;overflow:hidden}
+.thopt .pv i{display:block;background:#12212e}
+.thopt .pv.l b{background:#f4f5f7;display:block} .thopt .pv.d b{background:#0f1720;display:block}
+/* dark theme (screen only: printing stays black on white) */
+@media screen{
+html[data-theme=dark]{ color-scheme:dark;
+  --bg:#0f1720; --panel:#16212c; --ink:#e3e9ef; --muted:#93a4b4; --line:#2a3846;
+  --accent:#2bb3a8; --accent-soft:#163a3a; --warn:#f0a03c; --warn-soft:#3a2a12; --danger:#f2786b; --danger-soft:#3d1c1a; --ok:#4fca7d;
+  --card:#16212c; --soft:#1a2733; --hover:#1f2d3a; --zebra:#1a2631; --thbg:#1a2733; --inputbg:#101a23; --selbg:#1d3550; --selbd:#5aa2ff; }
+html[data-theme=dark] select,html[data-theme=dark] input[type=text],html[data-theme=dark] input[type=search],html[data-theme=dark] textarea{background:var(--inputbg);color:var(--ink);border-color:var(--line)}
+html[data-theme=dark] .btn{background:#1d2a36;border-color:var(--line);color:var(--ink)}
+html[data-theme=dark] .btn:hover{background:#253545}
+html[data-theme=dark] .btn.pri{background:var(--accent);border-color:var(--accent);color:#08201f}
+html[data-theme=dark] .btn.warn{background:var(--warn);border-color:var(--warn);color:#2a1a05}
+html[data-theme=dark] .chip{background:#1d2a36;border-color:var(--line)}
+html[data-theme=dark] .chip.on{background:var(--accent);border-color:var(--accent);color:#08201f}
+html[data-theme=dark] .modal,html[data-theme=dark] .rep .card,html[data-theme=dark] .rep .kpi,html[data-theme=dark] .legend,html[data-theme=dark] .cal-g button,html[data-theme=dark] .cal-h button,html[data-theme=dark] .fbrow{background:var(--card);color:var(--ink)}
+html[data-theme=dark] .rep th,html[data-theme=dark] .lhead,html[data-theme=dark] .drops,html[data-theme=dark] .drop-zone{background:var(--soft)}
+html[data-theme=dark] .drop.dh{background:#1c2a36}
+html[data-theme=dark] .crow:hover,html[data-theme=dark] .rhead:hover,html[data-theme=dark] .fbrow:hover,html[data-theme=dark] .kpi.click:hover,html[data-theme=dark] .cal-g button:hover{background:var(--hover)}
+html[data-theme=dark] .note.warn,html[data-theme=dark] .banner{background:var(--warn-soft);color:#f6d29a;border-color:#5a4220}
+html[data-theme=dark] .note.info{background:var(--accent-soft);color:#a8e6df}
+html[data-theme=dark] .slot.ok,html[data-theme=dark] .fchip{background:#14301f;border-color:#2a5a3a}
+html[data-theme=dark] .fchip.res{background:#172a44;border-color:#2c4a75}
+html[data-theme=dark] .flag.mv{background:#1b2d4d;color:#8fb4ff}
+html[data-theme=dark] .flag.ad{background:#14301f}
+html[data-theme=dark] .flag.dk-off,html[data-theme=dark] .jp-tag.discard{background:#26323d;color:#b6c2cd}
+html[data-theme=dark] .dkbtn{background:var(--card);color:var(--ink)}
+html[data-theme=dark] .rolechip{background:#163a3a;color:#7fe0d6}
+html[data-theme=dark] .leaflet-tile-pane{filter:brightness(.78) contrast(1.05)}
+html[data-theme=dark] .leaflet-popup-content-wrapper,html[data-theme=dark] .leaflet-popup-tip{background:var(--card);color:var(--ink)}
+html[data-theme=dark] .leaflet-control-layers,html[data-theme=dark] .leaflet-bar a{background:var(--card);color:var(--ink)}
+html[data-theme=dark] .kpi.click.on{border-color:#7a3a35}
+html[data-theme=dark] .jp-drop{border-color:#3b4b5a}
+html[data-theme=dark] .jp-ritem .thumb{background:#0f1720}
+html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
+}
 </style>
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.5</span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.0</span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
+    <button data-tab="res">Resources</button>
+    <button data-tab="print">Check Sheet Print</button>
     <button data-tab="report">Change report <span class="n" id="navCount">0</span></button>
-    <button data-tab="custom" id="navCustom" hidden>Customize</button>
+    <button data-tab="custom" id="navCustom">Customize</button>
   </nav>
   <div class="spacer"></div>
   <button class="hbtn" id="userBtn" title="User and shared folder">👤</button>
@@ -386,6 +567,8 @@ th.sortable:hover{text-decoration:underline}
       <div class="print-only small" style="margin-top:24px">Planner: ______________________ &nbsp;&nbsp;&nbsp; Checked by: ______________________ &nbsp;&nbsp;&nbsp; Date: ____________</div>
     </div>
   </section>
+  <section class="tab" id="tab-res"></section>
+  <section class="tab" id="tab-print"></section>
   <section class="tab" id="tab-custom"></section>
 </main>
 
@@ -395,12 +578,1297 @@ th.sortable:hover{text-decoration:underline}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+// ===== CHECK SHEET PRINT: organiser core (from JDE Print Organiser 1.0.0, adapted). Needs pdf.js + pdf-lib, loaded on first use. =====
+/* src/core/text-lines.js */
+/*
+ * JDE Print Organiser - text helpers.
+ * Turns PDF.js text items into positioned items and visual lines.
+ * No DOM access. Safe to reuse in any project.
+ */
+(function (NS) {
+  'use strict';
+
+  var LINE_TOLERANCE = 2.5;
+
+  /** Converts a PDF.js TextContent object into simple positioned items. */
+  function fromTextContent(textContent) {
+    var out = [];
+    for (var i = 0; i < textContent.items.length; i++) {
+      var it = textContent.items[i];
+      if (!it.str || !it.str.trim()) continue;
+      var t = it.transform;
+      out.push({
+        s: it.str.replace(/\s+/g, ' ').trim(),
+        x: t[4],
+        y: t[5],
+        size: Math.hypot(t[0], t[1]) || Math.abs(t[3]) || 0,
+        w: it.width || 0
+      });
+    }
+    return out;
+  }
+
+  /** Groups items into lines (top to bottom, left to right). */
+  function groupLines(items, tolerance) {
+    var tol = tolerance == null ? LINE_TOLERANCE : tolerance;
+    var sorted = items.slice().sort(function (a, b) { return (b.y - a.y) || (a.x - b.x); });
+    var lines = [];
+    for (var i = 0; i < sorted.length; i++) {
+      var it = sorted[i];
+      var last = lines.length ? lines[lines.length - 1] : null;
+      if (last && Math.abs(last.y - it.y) <= tol) last.items.push(it);
+      else lines.push({ y: it.y, items: [it] });
+    }
+    lines.forEach(function (l) {
+      l.items.sort(function (a, b) { return a.x - b.x; });
+      l.text = l.items.map(function (x) { return x.s; }).join(' ');
+    });
+    return lines;
+  }
+
+  /** Stable content fingerprint of a page, used to prove page integrity after export. */
+  function fingerprint(lines) {
+    var text = lines.map(function (l) { return l.text; }).join('\n');
+    var h1 = 0x811c9dc5, h2 = 5381;
+    for (var i = 0; i < text.length; i++) {
+      var c = text.charCodeAt(i);
+      h1 ^= c; h1 = Math.imul(h1, 0x01000193) >>> 0;
+      h2 = (Math.imul(h2, 33) ^ c) >>> 0;
+    }
+    return ('00000000' + h1.toString(16)).slice(-8) + ('00000000' + h2.toString(16)).slice(-8) + ':' + text.length;
+  }
+
+  NS.text = { fromTextContent: fromTextContent, groupLines: groupLines, fingerprint: fingerprint };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/layouts.js */
+/*
+ * JDE Print Organiser - known JDE document layouts.
+ * Each layout says how to find Shipment (Load) Number, Order Number and Customer Name.
+ * To support a new JDE report, add one entry here. Nothing else needs to change.
+ */
+(function (NS) {
+  'use strict';
+
+  var LAYOUTS = [
+    {
+      id: 'offloading-sheet',
+      name: 'Offloading Sheet Report',
+      detect: /Offloading\s+Sheet\s+Report/i,
+      shipment: /Load\s+Number\s*:?\s*(\d{6,10})\b/i,
+      order: /Order\s+Number\s*:?\s*(\d{6,10})\b/i,
+      // Value printed to the right of "Name:" on the same line.
+      customer: { label: /^Name\s*:\s*(.*)$/i, mode: 'right', maxWidth: 230 },
+      pageOf: null,
+      orderCheck: null
+    },
+    {
+      id: 'delivery-docket',
+      name: 'Delivery Docket',
+      detect: /DELIVERY\s+DOCKET/i,
+      shipment: /Load\s+No\.?\s*:?\s*(\d{6,10})\b/i,
+      order: /Order\s+No\.?\s*:?\s*(\d{6,10})\b/i,
+      // First line under "Deliver to", same column.
+      customer: { label: /^Deliver\s+to\s*:?\s*$/i, mode: 'below', maxWidth: 280, maxDrop: 25 },
+      pageOf: /Page\s+(\d+)\s+of\s+(\d+)/i,
+      // Barcode text is "*75" + Order No + "*". It must end with the Order No.
+      orderCheck: /^\*(\d{6,14})\*$/
+    }
+  ];
+
+  // Used when no known layout is detected. Finds the numbers only.
+  var GENERIC = {
+    id: 'generic',
+    name: 'Unknown layout',
+    detect: null,
+    shipment: /(?:Load|Shipment)\s*(?:Number|No\.?)\s*:?\s*(\d{6,10})\b/i,
+    order: /Order\s*(?:Number|No\.?)\s*:?\s*(\d{6,10})\b/i,
+    customer: null,
+    pageOf: /Page\s+(\d+)\s+of\s+(\d+)/i,
+    orderCheck: null
+  };
+
+  // A page is a signature-only leftover (safe to discard) when it has
+  // signature text and nothing that identifies an order or a product line.
+  var BLANK_RULE = {
+    mustContainAny: [/signature/i],
+    mustNotContainAny: [
+      /^[A-Z]{2,5}\d{2,6}\b/,                 // product code at line start (e.g. MIX850)
+      /Order\s*(?:No|Number)/i,
+      /Load\s*(?:No|Number)/i,
+      /Shipment/i
+    ]
+  };
+
+  NS.layouts = { list: LAYOUTS, generic: GENERIC, blankRule: BLANK_RULE };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/page-parser.js */
+/*
+ * JDE Print Organiser - page parser.
+ * Reads one page (positioned text items) and returns what it could identify.
+ * status: 'ok'     -> shipment and order identified with confidence
+ *         'blank'  -> empty or signature-only page, safe to discard
+ *         'review' -> could not be identified with confidence, must be checked
+ */
+(function (NS) {
+  'use strict';
+
+  function clean(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
+
+  function uniqueMatches(lines, re) {
+    var set = [];
+    for (var i = 0; i < lines.length; i++) {
+      var m = lines[i].text.match(re);
+      if (m && set.indexOf(m[1]) < 0) set.push(m[1]);
+    }
+    return set;
+  }
+
+  function findCustomer(items, rule) {
+    if (!rule) return '';
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var m = it.s.match(rule.label);
+      if (!m) continue;
+
+      if (rule.mode === 'right') {
+        if (m[1] && clean(m[1])) return clean(m[1]);
+        var right = items.filter(function (o) {
+          return o !== it && Math.abs(o.y - it.y) <= 2.5 && o.x > it.x + 1 && o.x < it.x + rule.maxWidth;
+        }).sort(function (a, b) { return a.x - b.x; });
+        var parts = [], lastEnd = it.x + it.w;
+        for (var j = 0; j < right.length; j++) {
+          if (parts.length && right[j].x - lastEnd > 40) break;
+          parts.push(right[j].s);
+          lastEnd = right[j].x + right[j].w;
+        }
+        if (parts.length) return clean(parts.join(' '));
+      } else if (rule.mode === 'below') {
+        var below = items.filter(function (o) {
+          return o.y < it.y - 1 && o.y > it.y - rule.maxDrop && Math.abs(o.x - it.x) <= 8;
+        }).sort(function (a, b) { return b.y - a.y; });
+        if (below.length) {
+          var y = below[0].y;
+          var line = items.filter(function (o) {
+            return Math.abs(o.y - y) <= 2.5 && o.x >= it.x - 8 && o.x < it.x + rule.maxWidth;
+          }).sort(function (a, b) { return a.x - b.x; });
+          return clean(line.map(function (o) { return o.s; }).join(' '));
+        }
+      }
+    }
+    return '';
+  }
+
+  function matchesBlankRule(lines, rule) {
+    var text = lines.map(function (l) { return l.text; });
+    var hasRequired = rule.mustContainAny.some(function (re) { return text.some(function (t) { return re.test(t); }); });
+    var hasForbidden = rule.mustNotContainAny.some(function (re) { return text.some(function (t) { return re.test(t); }); });
+    return hasRequired && !hasForbidden;
+  }
+
+  /**
+   * @param {Array} items positioned items from NS.text.fromTextContent
+   * @param {Object} [options] { layouts, generic, blankRule }
+   */
+  function parsePage(items, options) {
+    var opts = options || {};
+    var layouts = opts.layouts || NS.layouts.list;
+    var generic = opts.generic || NS.layouts.generic;
+    var blankRule = opts.blankRule || NS.layouts.blankRule;
+
+    var lines = NS.text.groupLines(items);
+    var allText = lines.map(function (l) { return l.text; }).join('\n');
+    var layout = layouts.find(function (l) { return l.detect && l.detect.test(allText); }) || generic;
+
+    var r = {
+      layoutId: layout.id, layoutName: layout.name,
+      shipment: null, order: null, customer: '',
+      pageNo: null, pageCount: null,
+      status: 'ok', reasons: [], warnings: [],
+      fingerprint: NS.text.fingerprint(lines),
+      preview: lines.slice(0, 6).map(function (l) { return l.text; }).join(' | ').slice(0, 240)
+    };
+
+    if (layout.pageOf) {
+      var po = allText.match(layout.pageOf);
+      if (po) { r.pageNo = +po[1]; r.pageCount = +po[2]; }
+    }
+
+    if (!items.length) {
+      r.status = 'blank'; r.reasons.push('Empty page');
+      return r;
+    }
+
+    var ships = uniqueMatches(lines, layout.shipment);
+    var orders = uniqueMatches(lines, layout.order);
+
+    if (!ships.length && !orders.length) {
+      if (matchesBlankRule(lines, blankRule)) {
+        r.status = 'blank'; r.reasons.push('Signature-only page (no order data)');
+      } else {
+        r.status = 'review'; r.reasons.push('No shipment or order number found');
+      }
+      return r;
+    }
+
+    if (ships.length !== 1) r.reasons.push(ships.length ? 'More than one shipment number: ' + ships.join(', ') : 'Shipment number not found');
+    if (orders.length !== 1) r.reasons.push(orders.length ? 'More than one order number: ' + orders.join(', ') : 'Order number not found');
+    if (ships.length === 1) r.shipment = ships[0];
+    if (orders.length === 1) r.order = orders[0];
+
+    if (layout.orderCheck && r.order) {
+      var check = items.map(function (o) { var m = o.s.match(layout.orderCheck); return m && m[1]; }).filter(Boolean);
+      if (check.length && check.some(function (c) { return c.slice(-r.order.length) !== r.order; })) {
+        r.reasons.push('Order number ' + r.order + ' does not match barcode ' + check.join(', '));
+      }
+    }
+
+    if (r.reasons.length) { r.status = 'review'; return r; }
+
+    r.customer = findCustomer(items, layout.customer);
+    if (!r.customer) r.warnings.push('Customer name not found');
+    if (layout === generic) r.warnings.push('Unknown layout: numbers found, customer name not read');
+    return r;
+  }
+
+  NS.parser = { parsePage: parsePage };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/lists.js */
+/*
+ * JDE Print Organiser - Resources (shipment -> route) and Exceptions parsing.
+ * Accepts text pasted from Excel (tab separated), CSV, semicolons or spaces.
+ */
+(function (NS) {
+  'use strict';
+
+  var SEP = '[\\t,;\\s]+';
+  var ROUTE_RE = new RegExp('^\\s*(\\d{6,10})' + SEP + '(.+?)\\s*$');
+  var EXC_RE = new RegExp('^\\s*(\\d{6,10})' + SEP + '(\\d{6,10})' + SEP + '(.+?)\\s*$');
+
+  /** "bay 1", "Bay01", "BAY001" -> "BAY001". Other names in upper case. */
+  function normaliseRoute(raw) {
+    var s = String(raw || '').replace(/["']/g, '').replace(/[,;\t]+$/, '').trim().replace(/\s+/g, ' ').toUpperCase();
+    var m = s.match(/^BAY\s*0*(\d{1,3})$/);
+    if (m) s = 'BAY' + ('000' + m[1]).slice(-3);
+    return s;
+  }
+
+  function splitLines(text) {
+    return String(text || '').replace(/\r/g, '').split('\n');
+  }
+
+  function isHeader(line, index) {
+    return index === 0 && /[a-z]/i.test(line) && !/^\s*\d/.test(line);
+  }
+
+  /** Two columns: Shipment Number, Route / Bay. */
+  function parseRouteMapping(text) {
+    var rows = [], errors = [], seen = new Map();
+    var firstContent = true;
+    splitLines(text).forEach(function (line, i) {
+      if (!line.trim()) return;
+      var wasFirst = firstContent; firstContent = false;
+      var m = line.match(ROUTE_RE);
+      if (!m) {
+        if (wasFirst && isHeader(line, 0)) return;
+        errors.push({ level: 'error', blocking: true, line: i + 1, message: 'Resources row ' + (i + 1) + ' is incomplete or not understood: "' + line.trim() + '"' });
+        return;
+      }
+      var row = { shipment: m[1], route: normaliseRoute(m[2]), line: i + 1 };
+      if (!row.route) return;
+      var prev = seen.get(row.shipment);
+      if (prev) {
+        if (prev.route !== row.route) {
+          errors.push({ level: 'error', blocking: true, line: i + 1, message: 'Shipment ' + row.shipment + ' is mapped to two routes: ' + prev.route + ' (row ' + prev.line + ') and ' + row.route + ' (row ' + row.line + ')' });
+        }
+        return;
+      }
+      seen.set(row.shipment, row);
+      rows.push(row);
+    });
+    return { rows: rows, errors: errors };
+  }
+
+  /** Three columns: Shipment Number, Order Number, Destination Route. */
+  function parseExceptions(text) {
+    var rows = [], errors = [], seen = new Map();
+    var firstContent = true;
+    splitLines(text).forEach(function (line, i) {
+      if (!line.trim()) return;
+      var wasFirst = firstContent; firstContent = false;
+      var m = line.match(EXC_RE);
+      if (!m) {
+        if (wasFirst && isHeader(line, 0)) return;
+        errors.push({ level: 'error', blocking: true, line: i + 1, message: 'Exceptions row ' + (i + 1) + ' is incomplete or not understood: "' + line.trim() + '" (expected Shipment, Order, Route)' });
+        return;
+      }
+      var row = { shipment: m[1], order: m[2], route: normaliseRoute(m[3]), line: i + 1 };
+      var key = row.shipment + '|' + row.order;
+      var prev = seen.get(key);
+      if (prev) {
+        if (prev.route !== row.route) {
+          errors.push({ level: 'error', blocking: true, line: i + 1, message: 'Order ' + row.order + ' has two exceptions: ' + prev.route + ' (row ' + prev.line + ') and ' + row.route + ' (row ' + row.line + ')' });
+        }
+        return;
+      }
+      seen.set(key, row);
+      rows.push(row);
+    });
+    return { rows: rows, errors: errors };
+  }
+
+  NS.lists = { parseRouteMapping: parseRouteMapping, parseExceptions: parseExceptions, normaliseRoute: normaliseRoute };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/planner.js */
+/*
+ * JDE Print Organiser - planner.
+ * Groups parsed pages into orders, assigns each order to a route
+ * (Resources, then Exceptions) and lists every issue found.
+ *
+ * Route order in the output:
+ *   1. BAYnnn routes, lowest number first
+ *   2. Other mapped routes (NAVAN, DROGHEDA...) in the order they were pasted
+ *   3. Routes that exist only in Exceptions, in the order they were pasted
+ *   4. UNASSIGNED (shipments not in Resources)
+ *   5. REVIEW (pages that could not be identified with confidence)
+ * Inside a route: shipment number ascending, then original PDF order.
+ */
+(function (NS) {
+  'use strict';
+
+  var UNASSIGNED = 'UNASSIGNED';
+  var REVIEW = 'REVIEW';
+
+  function routeKind(name) { return /^BAY\d+$/.test(name) ? 'bay' : 'special'; }
+  var DEFERRED = 'DEFERRED';
+
+  /**
+   * @param {Object} input
+   *   pages:      [{ ref, fileIndex, fileName, pageIndex, seq, parsed }]
+   *   mapping:    result of NS.lists.parseRouteMapping
+   *   exceptions: result of NS.lists.parseExceptions
+   *   overrides:  { [ref]: { action: 'discard' | 'review' | 'attach', orderKey } }
+   */
+  function buildPlan(input) {
+    var pages = input.pages || [];
+    var mapping = input.mapping || { rows: [], errors: [] };
+    var exceptions = input.exceptions || { rows: [], errors: [] };
+    var overrides = input.overrides || {};
+    // Route Planner: route order of the day's plan, crew/truck text per route
+    var routeOrder = input.routeOrder || null;
+    var routeInfo = input.routeInfo || {};
+    function rowLabel(row) { return row.label || ('Reallocations row ' + row.line); }
+    var issues = [];
+
+    function issue(level, code, message, extra) {
+      var it = { level: level, code: code, message: message, blocking: false };
+      if (extra) Object.keys(extra).forEach(function (k) { it[k] = extra[k]; });
+      issues.push(it);
+    }
+
+    // source + line let the interface highlight the row that caused the issue.
+    mapping.errors.forEach(function (e) { issue('error', 'MAPPING_INPUT', e.message, { blocking: !!e.blocking, source: 'resources', line: e.line }); });
+    exceptions.errors.forEach(function (e) { issue('error', 'EXCEPTION_INPUT', e.message, { blocking: !!e.blocking, source: 'exceptions', line: e.line }); });
+
+    // ---- Route Mapping
+    var shipToRoute = new Map();
+    var routeFirstSeen = new Map();
+    mapping.rows.forEach(function (row, i) {
+      shipToRoute.set(row.shipment, row.route);
+      if (!routeFirstSeen.has(row.route)) routeFirstSeen.set(row.route, i);
+    });
+
+    // ---- Pages -> orders
+    var orders = new Map();
+    var discarded = [];
+    var reviewPages = [];
+    var attachments = [];
+    var statusBySeq = new Map();
+
+    pages.forEach(function (pg) {
+      var p = pg.parsed;
+      var ov = overrides[pg.ref];
+      if (ov && ov.action === 'discard') {
+        discarded.push({ page: pg, reason: 'Discarded by user' }); statusBySeq.set(pg.seq, 'discarded'); return;
+      }
+      if (ov && ov.action === 'attach' && ov.orderKey) { attachments.push({ page: pg, key: ov.orderKey }); return; }
+      if (p.status === 'ok') {
+        var key = p.shipment + '|' + p.order;
+        var o = orders.get(key);
+        if (!o) {
+          o = { key: key, shipment: p.shipment, order: p.order, customer: p.customer, customers: [], pages: [], layouts: [], warnings: [] };
+          orders.set(key, o);
+        }
+        o.pages.push(pg);
+        if (p.customer && o.customers.indexOf(p.customer) < 0) o.customers.push(p.customer);
+        if (!o.customer && p.customer) o.customer = p.customer;
+        if (o.layouts.indexOf(p.layoutName) < 0) o.layouts.push(p.layoutName);
+        statusBySeq.set(pg.seq, key);
+        return;
+      }
+      if (p.status === 'blank' && !(ov && ov.action === 'review')) {
+        discarded.push({ page: pg, reason: p.reasons[0] || 'Blank page' }); statusBySeq.set(pg.seq, 'discarded'); return;
+      }
+      reviewPages.push(pg); statusBySeq.set(pg.seq, 'review');
+    });
+
+    attachments.forEach(function (a) {
+      var o = orders.get(a.key);
+      if (!o) {
+        issue('warning', 'ATTACH_TARGET_MISSING', 'Page ' + pageLabel(a.page) + ' was set to join order ' + a.key.split('|')[1] + ', but that order no longer exists. Kept in Review.');
+        reviewPages.push(a.page); statusBySeq.set(a.page.seq, 'review'); return;
+      }
+      o.pages.push(a.page); a.page.attachedByUser = true; statusBySeq.set(a.page.seq, a.key);
+    });
+
+    var orderList = Array.from(orders.values());
+    orderList.forEach(function (o) {
+      o.pages.sort(function (a, b) { return a.seq - b.seq; });
+      o.firstSeq = o.pages[0].seq;
+    });
+    orderList.sort(function (a, b) { return a.firstSeq - b.firstSeq; });
+
+    // ---- Order checks
+    var byOrderNo = new Map();
+    orderList.forEach(function (o) {
+      if (!byOrderNo.has(o.order)) byOrderNo.set(o.order, []);
+      byOrderNo.get(o.order).push(o);
+
+      if (o.customers.length > 1) {
+        issue('warning', 'CUSTOMER_DIFFERS', 'Order ' + o.order + ' shows different customer names on its pages: ' + o.customers.join(' / '), { orderKey: o.key });
+      }
+      if (!o.customer) issue('warning', 'CUSTOMER_MISSING', 'Customer name not found for order ' + o.order + ' (shipment ' + o.shipment + ')', { orderKey: o.key });
+
+      // Pages of the same order separated by other content in the source PDF.
+      for (var i = 1; i < o.pages.length; i++) {
+        var a = o.pages[i - 1], b = o.pages[i];
+        if (a.fileIndex !== b.fileIndex) continue;
+        for (var s = a.seq + 1; s < b.seq; s++) {
+          var st = statusBySeq.get(s);
+          if (st !== 'discarded' && st !== o.key) {
+            issue('warning', 'ORDER_SPLIT', 'Order ' + o.order + ' was split in the source PDF (pages ' + pageLabel(a) + ' and ' + pageLabel(b) + '). Pages were joined together.', { orderKey: o.key });
+            break;
+          }
+        }
+      }
+
+      // "Page x of y" check, when the layout prints it.
+      var expected = o.pages.reduce(function (m, pg) { return Math.max(m, pg.parsed.pageCount || 0); }, 0);
+      if (expected) {
+        var last = o.pages[o.pages.length - 1];
+        var trailingBlank = 0;
+        for (var t = last.seq + 1; statusBySeq.get(t) === 'discarded'; t++) trailingBlank++;
+        if (o.pages.length > expected) {
+          issue('warning', 'PAGE_COUNT', 'Order ' + o.order + ' has ' + o.pages.length + ' pages, but the document says ' + expected + '. Check for duplicates.', { orderKey: o.key });
+        } else if (o.pages.length + trailingBlank < expected) {
+          issue('warning', 'PAGE_COUNT', 'Order ' + o.order + ' says ' + expected + ' pages, but only ' + o.pages.length + ' were found.', { orderKey: o.key });
+        }
+      }
+
+      var fps = new Set();
+      o.pages.forEach(function (pg) {
+        if (fps.has(pg.parsed.fingerprint)) issue('warning', 'DUPLICATE_PAGE', 'Order ' + o.order + ' contains two identical pages (' + pageLabel(pg) + ').', { orderKey: o.key });
+        fps.add(pg.parsed.fingerprint);
+      });
+    });
+
+    byOrderNo.forEach(function (list, orderNo) {
+      if (list.length > 1) issue('warning', 'ORDER_MULTI_SHIPMENT', 'Order ' + orderNo + ' appears in more than one shipment: ' + list.map(function (o) { return o.shipment; }).join(', '));
+    });
+
+    // ---- Exceptions
+    var exceptionFor = new Map();
+    var exceptionOnlyRoutes = [];
+    exceptions.rows.forEach(function (row) {
+      var candidates = byOrderNo.get(row.order) || [];
+      var match = candidates.find(function (o) { return o.shipment === row.shipment; });
+      if (!candidates.length) {
+        issue(row.optional ? 'info' : 'error', 'EXCEPTION_NOT_FOUND', rowLabel(row) + ': order ' + row.order + ' (shipment ' + row.shipment + ') is not in the PDF. Not applied.' + (row.optional ? ' Print it from the check sheets of its original day.' : ''), { source: 'exceptions', line: row.line });
+        return;
+      }
+      if (!match) {
+        issue('error', 'EXCEPTION_SHIPMENT_MISMATCH', rowLabel(row) + ': order ' + row.order + ' is in shipment ' + candidates.map(function (o) { return o.shipment; }).join(', ') + ', not ' + row.shipment + '. Not applied.', { source: 'exceptions', line: row.line });
+        return;
+      }
+      exceptionFor.set(match.key, row);
+      if (!routeFirstSeen.has(row.route) && row.route !== DEFERRED && row.route !== UNASSIGNED && exceptionOnlyRoutes.indexOf(row.route) < 0) {
+        exceptionOnlyRoutes.push(row.route);
+        issue('info', 'ROUTE_FROM_EXCEPTION', 'Route ' + row.route + ' is not in Resources. It was created from the Reallocations.', { source: 'exceptions', line: row.line });
+      }
+    });
+
+    // ---- Assign routes
+    var routes = new Map();
+    function getRoute(name, kind) {
+      var r = routes.get(name);
+      if (!r) { r = { name: name, kind: kind, orders: [], shipments: [], pageCount: 0 }; routes.set(name, r); }
+      return r;
+    }
+
+    var applied = 0;
+    orderList.forEach(function (o) {
+      var base = shipToRoute.get(o.shipment) || UNASSIGNED;
+      var exc = exceptionFor.get(o.key);
+      var finalRoute = exc ? exc.route : base;
+      o.originalRoute = base;
+      o.route = finalRoute;
+      o.movedFrom = exc && finalRoute !== base ? base : null;
+      if (exc) {
+        applied++;
+        if (finalRoute === base) issue('info', 'EXCEPTION_NO_EFFECT', rowLabel(exc) + ': order ' + o.order + ' is already in ' + base + '.');
+      }
+      var kind = finalRoute === UNASSIGNED ? 'unassigned' : finalRoute === DEFERRED ? 'deferred' : (routeFirstSeen.has(finalRoute) ? (routeOrder ? (routeOrder.indexOf(finalRoute) >= 0 ? 'bay' : 'special') : routeKind(finalRoute)) : 'exception');
+      getRoute(finalRoute, kind).orders.push(o);
+    });
+
+    if (reviewPages.length) {
+      var rv = getRoute(REVIEW, 'review');
+      reviewPages.sort(function (a, b) { return a.seq - b.seq; }).forEach(function (pg) {
+        rv.orders.push({
+          key: 'review:' + pg.ref, review: true,
+          shipment: pg.parsed.shipment || '', order: pg.parsed.order || '', customer: '',
+          reason: pg.parsed.reasons.join('; ') || 'Restored by user', pages: [pg]
+        });
+        issue('warning', 'PAGE_REVIEW', 'Page ' + pageLabel(pg) + ' needs review: ' + (pg.parsed.reasons.join('; ') || 'restored by user') + '. It will print in the REVIEW section.', { pageRef: pg.ref });
+      });
+    }
+
+    // Mapped shipments with no pages in the PDF.
+    var shipmentsInPdf = new Set(orderList.map(function (o) { return o.shipment; }));
+    mapping.rows.forEach(function (row) {
+      if (!shipmentsInPdf.has(row.shipment)) issue('warning', 'SHIPMENT_NOT_IN_PDF', 'Shipment ' + row.shipment + ' (' + row.route + ') is in Resources, but not in the PDF.', { source: 'resources', line: row.line });
+    });
+    var unassignedShips = Array.from(new Set(orderList.filter(function (o) { return o.originalRoute === UNASSIGNED && o.route === UNASSIGNED; }).map(function (o) { return o.shipment; })));
+    if (unassignedShips.length) {
+      issue('warning', 'SHIPMENT_UNASSIGNED', 'Shipments not in Resources (printed at the end as UNASSIGNED): ' + unassignedShips.join(', '));
+    }
+
+    // ---- Sort routes and orders
+    var kindRank = { bay: 0, special: 1, exception: 2, deferred: 3, unassigned: 4, review: 5 };
+    var routeList = Array.from(routes.values());
+    routeList.forEach(function (r) {
+      if (r.kind !== 'review') {
+        r.orders.sort(function (a, b) { return (+a.shipment - +b.shipment) || (a.firstSeq - b.firstSeq); });
+      }
+      r.info = routeInfo[r.name] || '';
+      r.shipments = Array.from(new Set(r.orders.map(function (o) { return o.shipment; }).filter(Boolean)));
+      r.pageCount = r.orders.reduce(function (n, o) { return n + o.pages.length; }, 0);
+    });
+    routeList.sort(function (a, b) {
+      var k = kindRank[a.kind] - kindRank[b.kind];
+      if (k) return k;
+      if (a.kind === 'bay') return routeOrder ? routeOrder.indexOf(a.name) - routeOrder.indexOf(b.name) : +a.name.slice(3) - +b.name.slice(3);
+      if (a.kind === 'special') return routeFirstSeen.get(a.name) - routeFirstSeen.get(b.name);
+      if (a.kind === 'exception') return exceptionOnlyRoutes.indexOf(a.name) - exceptionOnlyRoutes.indexOf(b.name);
+      return 0;
+    });
+
+    var orderPages = routeList.filter(function (r) { return r.kind !== 'review'; }).reduce(function (n, r) { return n + r.pageCount; }, 0);
+    var stats = {
+      sourcePages: pages.length,
+      orders: orderList.length,
+      shipments: shipmentsInPdf.size,
+      routes: routeList.filter(function (r) { return r.kind !== 'review' && r.kind !== 'deferred'; }).length,
+      orderPages: orderPages,
+      discardedPages: discarded.length,
+      reviewPages: reviewPages.length,
+      exceptionsTotal: exceptions.rows.length,
+      exceptionsApplied: applied
+    };
+
+    var levelRank = { error: 0, warning: 1, info: 2 };
+    issues.sort(function (a, b) { return levelRank[a.level] - levelRank[b.level]; });
+
+    return {
+      routes: routeList,
+      orders: orderList,
+      discarded: discarded,
+      reviewPages: reviewPages,
+      exceptionFor: exceptionFor,
+      issues: issues,
+      blocking: issues.some(function (i) { return i.blocking; }),
+      stats: stats
+    };
+  }
+
+  function pageLabel(pg) {
+    return (pg.fileLabel ? pg.fileLabel + ' ' : '') + 'p.' + (pg.pageIndex + 1);
+  }
+
+  NS.planner = { buildPlan: buildPlan, UNASSIGNED: UNASSIGNED, REVIEW: REVIEW, DEFERRED: DEFERRED, pageLabel: pageLabel };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/cover-builder.js */
+/*
+ * JDE Print Organiser - route cover pages (pdf-lib).
+ * One cover per route. Long order lists continue on extra cover pages.
+ * Printed in black and navy on white, readable on any office printer.
+ */
+(function (NS) {
+  'use strict';
+
+  var A4 = [595.28, 841.89];
+  var M = 40;                       // page margin
+  var MARKER = 'Route Planner Check Sheets';
+
+  function colors() {
+    var rgb = PDFLib.rgb;
+    return {
+      navy: rgb(0.106, 0.227, 0.369),
+      text: rgb(0.11, 0.13, 0.16),
+      grey: rgb(0.42, 0.47, 0.52),
+      line: rgb(0.80, 0.84, 0.88),
+      zebra: rgb(0.96, 0.97, 0.98),
+      tile: rgb(0.93, 0.95, 0.97),
+      orange: rgb(0.83, 0.55, 0.10)
+    };
+  }
+
+  function makeSafe(font) {
+    var set = new Set(font.getCharacterSet());
+    return function (s) {
+      var out = '';
+      var str = String(s == null ? '' : s).replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-');
+      for (var i = 0; i < str.length; i++) {
+        var cp = str.codePointAt(i);
+        if (cp > 0xffff) i++;
+        out += set.has(cp) ? String.fromCodePoint(cp) : '?';
+      }
+      return out;
+    };
+  }
+
+  /** Fits text in a width: shrinks to minSize, then wraps. Never cuts text. */
+  function fit(text, font, size, width, minSize) {
+    var s = size;
+    while (s > minSize && font.widthOfTextAtSize(text, s) > width) s -= 0.5;
+    if (font.widthOfTextAtSize(text, s) <= width) return { size: s, lines: [text] };
+    var words = text.split(' '), lines = [], cur = '';
+    words.forEach(function (w) {
+      var test = cur ? cur + ' ' + w : w;
+      if (font.widthOfTextAtSize(test, s) <= width || !cur) cur = test;
+      else { lines.push(cur); cur = w; }
+    });
+    if (cur) lines.push(cur);
+    // A single word wider than the column: split by characters.
+    var final = [];
+    lines.forEach(function (l) {
+      while (font.widthOfTextAtSize(l, s) > width && l.length > 1) {
+        var n = l.length;
+        while (n > 1 && font.widthOfTextAtSize(l.slice(0, n), s) > width) n--;
+        final.push(l.slice(0, n)); l = l.slice(n);
+      }
+      final.push(l);
+    });
+    return { size: s, lines: final };
+  }
+
+  function columnsFor(route) {
+    if (route.kind === 'review') {
+      return [
+        { title: '#', w: 26, get: function (o, i) { return String(i + 1); } },
+        { title: 'Source page', w: 120, get: function (o) { return NS.planner.pageLabel(o.pages[0]); } },
+        { title: 'Shipment', w: 66, get: function (o) { return o.shipment || '-'; } },
+        { title: 'Order', w: 66, get: function (o) { return o.order || '-'; } },
+        { title: 'Reason', w: 237, get: function (o) { return o.reason; } }
+      ];
+    }
+    return [
+      { title: '#', w: 26, get: function (o, i) { return String(i + 1); } },
+      { title: 'Order Number', w: 74, get: function (o) { return o.order; } },
+      { title: 'Customer Name', w: 233, get: function (o) { return o.customer || '(not found)'; } },
+      { title: 'Shipment', w: 64, get: function (o) { return o.shipment; } },
+      { title: 'Pages', w: 36, align: 'right', get: function (o) { return String(o.pages.length); } },
+      { title: 'Note', w: 82, get: function (o) { return o.movedFrom ? 'Moved from ' + o.movedFrom : ''; } }
+    ];
+  }
+
+  function subtitleFor(route) {
+    if (route.kind === 'unassigned') return 'Shipments not found in Resources. Please confirm the route before loading.';
+    if (route.kind === 'review') return 'Pages that could not be identified with confidence. Please check them before delivery.';
+    if (route.kind === 'exception') return 'Route created from the Reallocations list.';
+    if (route.kind === 'deferred') return 'Orders deferred to another day. Do not load them on this day.';
+    return route.info || '';
+  }
+
+  /**
+   * Adds the cover page(s) of one route to the output document.
+   * @returns {number} number of cover pages added
+   */
+  function addRouteCover(doc, fonts, route, ctx) {
+    var C = colors();
+    var reg = fonts.regular, bold = fonts.bold;
+    var safe = ctx.safe || (ctx.safe = makeSafe(reg));
+    var cols = columnsFor(route);
+    var tableW = cols.reduce(function (n, c) { return n + c.w; }, 0);
+    var FS = 9, PAD = 4, LH = 11;
+
+    // Prepare rows with wrapped cells.
+    var rows = route.orders.map(function (o, i) {
+      var cells = cols.map(function (c) {
+        var f = fit(safe(c.get(o, i)), reg, FS, c.w - PAD * 2, 7);
+        return f;
+      });
+      var nLines = Math.max.apply(null, cells.map(function (c) { return c.lines.length; }));
+      return { cells: cells, h: Math.max(16, nLines * LH + 6), moved: !!o.movedFrom };
+    });
+
+    var pagesUsed = [];
+    var page, y;
+
+    function newPage(first) {
+      page = doc.addPage(A4);
+      pagesUsed.push(page);
+      var W = A4[0], H = A4[1];
+      if (first) {
+        page.drawText(route.kind === 'review' ? 'CHECK' : 'ROUTE', { x: M, y: H - 58, size: 10, font: bold, color: C.grey });
+        var title = safe(route.name);
+        var ts = 54;
+        while (ts > 24 && bold.widthOfTextAtSize(title, ts) > W - M * 2) ts -= 2;
+        page.drawText(title, { x: M, y: H - 58 - ts * 0.95, size: ts, font: bold, color: C.navy });
+        y = H - 58 - ts * 0.95 - 16;
+        page.drawRectangle({ x: M, y: y, width: W - M * 2, height: 2.5, color: C.navy });
+        y -= 14;
+
+        var sub = subtitleFor(route);
+        if (sub) { page.drawText(safe(sub), { x: M, y: y - 8, size: 9.5, font: reg, color: C.text }); y -= 22; }
+
+        // Summary tiles
+        var tiles = route.kind === 'review'
+          ? [['PAGES TO CHECK', route.pageCount]]
+          : [['ORDERS', route.orders.length], ['ORDER PAGES', route.pageCount], ['SHIPMENTS', route.shipments.length]];
+        var tw = 150, th = 52, gap = 12;
+        tiles.forEach(function (t, i) {
+          var tx = M + i * (tw + gap);
+          page.drawRectangle({ x: tx, y: y - th, width: tw, height: th, color: C.tile });
+          page.drawRectangle({ x: tx, y: y - th, width: 3, height: th, color: C.navy });
+          page.drawText(t[0], { x: tx + 12, y: y - 17, size: 7.5, font: bold, color: C.grey });
+          page.drawText(String(t[1]), { x: tx + 12, y: y - 43, size: 22, font: bold, color: C.navy });
+        });
+        y -= th + 18;
+
+        if (route.shipments.length) {
+          page.drawText(route.shipments.length > 1 ? 'Shipments' : 'Shipment', { x: M, y: y, size: 8, font: bold, color: C.grey });
+          y -= 13;
+          var sh = fit(route.shipments.join('   '), bold, 12, W - M * 2, 12);
+          sh.lines.forEach(function (l) { page.drawText(l, { x: M, y: y, size: sh.size, font: bold, color: C.text }); y -= 16; });
+          y -= 6;
+        }
+      } else {
+        page.drawText(safe(route.name) + '  (continued)', { x: M, y: H - 62, size: 20, font: bold, color: C.navy });
+        y = H - 74;
+        page.drawRectangle({ x: M, y: y, width: W - M * 2, height: 1.5, color: C.navy });
+        y -= 18;
+      }
+      drawHeader();
+    }
+
+    function drawHeader() {
+      var x = M;
+      page.drawRectangle({ x: M, y: y - 18, width: tableW, height: 18, color: C.navy });
+      cols.forEach(function (c) {
+        var tx = c.align === 'right' ? x + c.w - PAD - bold.widthOfTextAtSize(c.title, 8) : x + PAD;
+        page.drawText(c.title, { x: tx, y: y - 12.5, size: 8, font: bold, color: PDFLib.rgb(1, 1, 1) });
+        x += c.w;
+      });
+      y -= 18;
+    }
+
+    newPage(true);
+    var BOTTOM = 52;
+    rows.forEach(function (r, i) {
+      if (y - r.h < BOTTOM) newPage(false);
+      if (i % 2 === 1) page.drawRectangle({ x: M, y: y - r.h, width: tableW, height: r.h, color: C.zebra });
+      var x = M;
+      r.cells.forEach(function (cell, ci) {
+        var c = cols[ci];
+        var isNote = c.title === 'Note' && r.moved;
+        var font = (c.title === 'Order Number' || isNote) ? bold : reg;
+        cell.lines.forEach(function (l, li) {
+          var lw = font.widthOfTextAtSize(l, cell.size);
+          var tx = c.align === 'right' ? x + c.w - PAD - lw : x + PAD;
+          page.drawText(l, { x: tx, y: y - 11 - li * LH, size: cell.size, font: font, color: isNote ? C.orange : C.text });
+        });
+        x += c.w;
+      });
+      page.drawLine({ start: { x: M, y: y - r.h }, end: { x: M + tableW, y: y - r.h }, thickness: 0.5, color: C.line });
+      y -= r.h;
+    });
+
+    if (!rows.length) {
+      page.drawText('No orders.', { x: M + PAD, y: y - 14, size: 9, font: reg, color: C.grey });
+    }
+
+    // Footer on every cover page. The marker text is also used by the integrity check.
+    pagesUsed.forEach(function (pg, i) {
+      var left = MARKER + '  |  Route cover  |  ' + safe(route.name);
+      var right = 'Cover page ' + (i + 1) + ' of ' + pagesUsed.length + '  |  Generated ' + ctx.generatedLabel;
+      pg.drawLine({ start: { x: M, y: 36 }, end: { x: A4[0] - M, y: 36 }, thickness: 0.5, color: C.line });
+      pg.drawText(left, { x: M, y: 24, size: 7.5, font: reg, color: C.grey });
+      pg.drawText(right, { x: A4[0] - M - reg.widthOfTextAtSize(right, 7.5), y: 24, size: 7.5, font: reg, color: C.grey });
+    });
+
+    return pagesUsed.length;
+  }
+
+  NS.covers = { addRouteCover: addRouteCover, MARKER: MARKER };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/pdf-reader.js */
+/*
+ * JDE Print Organiser - PDF reading (PDF.js).
+ * Extracts positioned text from every page and parses it.
+ */
+(function (NS) {
+  'use strict';
+
+  var CONCURRENCY = 8;
+
+  /**
+   * @param {Uint8Array} bytes
+   * @param {Object} [options] { onProgress(done, total), parserOptions }
+   * @returns {Promise<{ doc, numPages, pages: [{ pageIndex, parsed }] }>}
+   */
+  async function readPdf(bytes, options) {
+    var opts = options || {};
+    var progress = opts.onProgress || function () {};
+    // PDF.js may transfer the buffer to its worker, so always pass a copy.
+    var doc = await pdfjsLib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
+    var n = doc.numPages;
+    var pages = new Array(n);
+    var next = 0, done = 0;
+
+    async function worker() {
+      while (next < n) {
+        var i = next++;
+        var page = await doc.getPage(i + 1);
+        var tc = await page.getTextContent();
+        var items = NS.text.fromTextContent(tc);
+        pages[i] = { pageIndex: i, parsed: NS.parser.parsePage(items, opts.parserOptions) };
+        page.cleanup();
+        done++;
+        if (done % 10 === 0 || done === n) progress(done, n);
+      }
+    }
+    var workers = [];
+    for (var w = 0; w < Math.min(CONCURRENCY, n); w++) workers.push(worker());
+    await Promise.all(workers);
+    return { doc: doc, numPages: n, pages: pages };
+  }
+
+  /** Reads text fingerprints only (used to verify an exported PDF). */
+  async function readFingerprints(bytes, onProgress) {
+    var progress = onProgress || function () {};
+    var doc = await pdfjsLib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
+    var n = doc.numPages, out = new Array(n), next = 0, done = 0;
+    async function worker() {
+      while (next < n) {
+        var i = next++;
+        var page = await doc.getPage(i + 1);
+        var tc = await page.getTextContent();
+        var lines = NS.text.groupLines(NS.text.fromTextContent(tc));
+        out[i] = { fingerprint: NS.text.fingerprint(lines), text: lines.map(function (l) { return l.text; }).join('\n') };
+        page.cleanup();
+        done++;
+        if (done % 10 === 0 || done === n) progress(done, n);
+      }
+    }
+    var workers = [];
+    for (var w = 0; w < Math.min(CONCURRENCY, n); w++) workers.push(worker());
+    await Promise.all(workers);
+    await doc.destroy();
+    return out;
+  }
+
+  NS.reader = { readPdf: readPdf, readFingerprints: readFingerprints };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/exporter.js */
+/*
+ * JDE Print Organiser - export.
+ * Builds one PDF: for each route, its cover page(s) followed by the original
+ * order pages, copied without changes. Each source page can be placed only once.
+ */
+(function (NS) {
+  'use strict';
+
+  function pad(n) { return ('0' + n).slice(-2); }
+
+  function generatedLabel(d) {
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  /**
+   * @param {Array} sources [{ bytes: Uint8Array }] indexed by fileIndex
+   * @param {Object} plan result of NS.planner.buildPlan
+   * @param {Object} [options] { now: Date, onProgress(fraction, label) }
+   * @returns {Promise<{ bytes: Uint8Array, manifest: Array }>}
+   */
+  async function exportPdf(sources, plan, options) {
+    var opts = options || {};
+    var progress = opts.onProgress || function () {};
+    if (plan.blocking) throw new Error('The plan has blocking errors. Fix them before exporting.');
+
+    var L = PDFLib;
+    var now = opts.now || new Date();
+    var out = await L.PDFDocument.create();
+    out.setTitle('Route Planner check sheets ' + generatedLabel(now));
+    out.setCreator('Route Planner');
+    out.setProducer('Route Planner (pdf-lib)');
+    var fonts = {
+      regular: await out.embedFont(L.StandardFonts.Helvetica),
+      bold: await out.embedFont(L.StandardFonts.HelveticaBold)
+    };
+
+    // Which source pages are needed, per file.
+    var needed = new Map();
+    plan.routes.forEach(function (r) {
+      r.orders.forEach(function (o) {
+        o.pages.forEach(function (pg) {
+          if (!needed.has(pg.fileIndex)) needed.set(pg.fileIndex, []);
+          needed.get(pg.fileIndex).push(pg.pageIndex);
+        });
+      });
+    });
+
+    progress(0.05, 'Reading source PDF');
+    var copied = new Map();
+    var fileIdx = Array.from(needed.keys());
+    for (var k = 0; k < fileIdx.length; k++) {
+      var f = fileIdx[k];
+      var src = await L.PDFDocument.load(sources[f].bytes, { ignoreEncryption: true, updateMetadata: false });
+      var idx = needed.get(f);
+      var dup = idx.filter(function (p, i) { return idx.indexOf(p) !== i; });
+      if (dup.length) throw new Error('Integrity: page ' + (dup[0] + 1) + ' of file ' + (f + 1) + ' is planned twice.');
+      var pages = await out.copyPages(src, idx);
+      idx.forEach(function (p, i) { copied.set(f + ':' + p, pages[i]); });
+      progress(0.1 + 0.4 * (k + 1) / fileIdx.length, 'Copying original pages');
+    }
+
+    var manifest = [];
+    var ctx = { generatedLabel: generatedLabel(now) };
+    plan.routes.forEach(function (r) {
+      if (!r.orders.length) return;
+      var n = NS.covers.addRouteCover(out, fonts, r, ctx);
+      for (var c = 0; c < n; c++) manifest.push({ type: 'cover', route: r.name, coverIndex: c });
+      r.orders.forEach(function (o) {
+        o.pages.forEach(function (pg) {
+          var key = pg.fileIndex + ':' + pg.pageIndex;
+          var page = copied.get(key);
+          if (!page) throw new Error('Integrity: page ' + NS.planner.pageLabel(pg) + ' is missing or used twice.');
+          copied.delete(key);
+          out.addPage(page);
+          manifest.push({ type: 'page', route: r.name, orderKey: o.key, ref: pg.ref, fingerprint: pg.parsed.fingerprint });
+        });
+      });
+    });
+    if (copied.size) throw new Error('Integrity: ' + copied.size + ' copied page(s) were not placed in the output.');
+
+    progress(0.8, 'Saving PDF');
+    var bytes = await out.save({ useObjectStreams: true });
+    progress(1, 'Done');
+    return { bytes: bytes, manifest: manifest, generatedAt: now };
+  }
+
+  /**
+   * Builds a new PDF with selected pages, copied without changes.
+   * @param {Array} parts [{ bytes: Uint8Array, pageIndices: [n, ...] }] in output order
+   * @param {string} [title]
+   */
+  async function extractPages(parts, title) {
+    var L = PDFLib;
+    var out = await L.PDFDocument.create();
+    if (title) out.setTitle(title);
+    out.setCreator('Route Planner');
+    var loaded = new Map();
+    for (var i = 0; i < parts.length; i++) {
+      var part = parts[i];
+      var src = loaded.get(part.bytes);
+      if (!src) { src = await L.PDFDocument.load(part.bytes, { ignoreEncryption: true, updateMetadata: false }); loaded.set(part.bytes, src); }
+      var pages = await out.copyPages(src, part.pageIndices);
+      pages.forEach(function (p) { out.addPage(p); });
+    }
+    return out.save({ useObjectStreams: true });
+  }
+
+  NS.exporter = { exportPdf: exportPdf, extractPages: extractPages, generatedLabel: generatedLabel };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/integrity.js */
+/*
+ * JDE Print Organiser - integrity checks.
+ * checkPlan:    before export, every source page is accounted for exactly once.
+ * verifyOutput: after export, the real PDF is read back and compared page by page.
+ */
+(function (NS) {
+  'use strict';
+
+  function result(name, ok, detail) { return { name: name, ok: !!ok, detail: detail || '' }; }
+
+  function checkPlan(pages, plan) {
+    var checks = [];
+    var count = new Map();
+    function mark(ref) { count.set(ref, (count.get(ref) || 0) + 1); }
+
+    plan.routes.forEach(function (r) { r.orders.forEach(function (o) { o.pages.forEach(function (pg) { mark(pg.ref); }); }); });
+    plan.discarded.forEach(function (d) { mark(d.page.ref); });
+
+    var missing = pages.filter(function (pg) { return !count.has(pg.ref); }).map(function (pg) { return pg.ref; });
+    var doubled = Array.from(count.entries()).filter(function (e) { return e[1] > 1; }).map(function (e) { return e[0]; });
+    checks.push(result('Every source page is placed or discarded', !missing.length, missing.length ? 'Missing: ' + missing.join(', ') : pages.length + ' pages accounted for'));
+    checks.push(result('No source page is used twice', !doubled.length, doubled.length ? 'Twice: ' + doubled.join(', ') : ''));
+
+    var placed = plan.routes.reduce(function (n, r) { return n + r.pageCount; }, 0);
+    checks.push(result('Page totals match', placed + plan.discarded.length === pages.length,
+      placed + ' placed + ' + plan.discarded.length + ' discarded = ' + (placed + plan.discarded.length) + ' of ' + pages.length));
+
+    // Every order page really belongs to that order (unless the user attached it).
+    var wrong = [];
+    plan.routes.forEach(function (r) {
+      r.orders.forEach(function (o) {
+        if (o.review) return;
+        o.pages.forEach(function (pg) {
+          if (pg.attachedByUser) return;
+          if (pg.parsed.shipment !== o.shipment || pg.parsed.order !== o.order) wrong.push(pg.ref);
+        });
+      });
+    });
+    checks.push(result('Each order keeps only its own pages', !wrong.length, wrong.join(', ')));
+
+    // Every valid exception moved its order to the destination route.
+    var notApplied = [];
+    plan.exceptionFor.forEach(function (row, key) {
+      var r = plan.routes.find(function (rt) { return rt.orders.some(function (o) { return o.key === key; }); });
+      if (!r || r.name !== row.route) notApplied.push(row.order);
+    });
+    checks.push(result('Reallocations applied to the destination route', !notApplied.length,
+      notApplied.length ? 'Not applied: ' + notApplied.join(', ') : plan.exceptionFor.size + ' applied'));
+
+    // Discarded pages are only blank/signature pages or user choices.
+    var badDiscard = plan.discarded.filter(function (d) { return d.page.parsed.status === 'ok' && d.reason !== 'Discarded by user'; });
+    checks.push(result('Only blank or signature-only pages discarded', !badDiscard.length, badDiscard.map(function (d) { return d.page.ref; }).join(', ')));
+
+    return { ok: checks.every(function (c) { return c.ok; }), checks: checks };
+  }
+
+  /**
+   * Reads the exported PDF back and compares it with the manifest.
+   * @param {Uint8Array} outBytes exported PDF
+   * @param {Array} manifest from NS.exporter.exportPdf
+   */
+  async function verifyOutput(outBytes, manifest, onProgress) {
+    var pages = await NS.reader.readFingerprints(outBytes, onProgress);
+    var checks = [];
+    checks.push(result('Output page count matches plan', pages.length === manifest.length, pages.length + ' pages in file, ' + manifest.length + ' expected'));
+
+    var mismatched = [], coversBad = [];
+    var n = Math.min(pages.length, manifest.length);
+    for (var i = 0; i < n; i++) {
+      var m = manifest[i];
+      if (m.type === 'page') {
+        if (pages[i].fingerprint !== m.fingerprint) mismatched.push(i + 1);
+      } else if (pages[i].text.indexOf(NS.covers.MARKER) < 0 || pages[i].text.indexOf(m.route) < 0) {
+        coversBad.push(i + 1);
+      }
+    }
+    var sourceCount = manifest.filter(function (m) { return m.type === 'page'; }).length;
+    checks.push(result('Original pages are unchanged and in the planned position', !mismatched.length,
+      mismatched.length ? 'Different at output page(s): ' + mismatched.slice(0, 20).join(', ') : sourceCount + ' original pages verified'));
+    checks.push(result('Route covers in place', !coversBad.length,
+      coversBad.length ? 'Unexpected content at page(s): ' + coversBad.join(', ') : (manifest.length - sourceCount) + ' cover pages'));
+    return { ok: checks.every(function (c) { return c.ok; }), checks: checks };
+  }
+
+  NS.integrity = { checkPlan: checkPlan, verifyOutput: verifyOutput };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/core/organiser.js */
+/*
+ * JDE Print Organiser - public API.
+ *
+ *   var org = new JDEPrint.Organiser();
+ *   await org.addFile({ name: 'export.pdf', bytes: uint8Array });
+ *   var plan = org.plan({ resourcesText: '67401001\tBAY001', exceptionsText: '' });
+ *   var out = await org.export(plan);   // { bytes, manifest, integrity }
+ *
+ * Requires PDF.js (pdfjsLib) and pdf-lib (PDFLib) as globals.
+ */
+(function (NS) {
+  'use strict';
+
+  NS.version = '1.0.0';
+
+  function Organiser() {
+    this.sources = [];   // { name, bytes, doc, numPages }
+    this.pages = [];     // flat list of all pages in all files
+  }
+
+  Organiser.prototype.addFile = async function (file, onProgress) {
+    var bytes = file.bytes instanceof Uint8Array ? file.bytes : new Uint8Array(file.bytes);
+    var fileIndex = this.sources.length;
+    var res = await NS.reader.readPdf(bytes, { onProgress: onProgress });
+    this.sources.push({
+      name: file.name || ('File ' + (fileIndex + 1)), bytes: bytes, doc: res.doc, numPages: res.numPages,
+      parsedPages: res.pages.map(function (p) { return p.parsed; })
+    });
+    this._reindex();
+    return this.sources[fileIndex];
+  };
+
+  Organiser.prototype.removeFile = function (fileIndex) {
+    var s = this.sources[fileIndex];
+    if (s && s.doc) s.doc.destroy();
+    this.sources.splice(fileIndex, 1);
+    this._reindex();
+  };
+
+  Organiser.prototype.clear = function () {
+    this.sources.forEach(function (s) { if (s.doc) s.doc.destroy(); });
+    this.sources = []; this.pages = [];
+  };
+
+  // Rebuilds page refs and sequence numbers after files change.
+  Organiser.prototype._reindex = function () {
+    var multi = this.sources.length > 1;
+    var seq = 0, all = [];
+    this.sources.forEach(function (s, f) {
+      for (var i = 0; i < s.numPages; i++) {
+        all.push({
+          ref: f + ':' + i, fileIndex: f, fileName: s.name, fileLabel: multi ? 'File ' + (f + 1) : '',
+          pageIndex: i, seq: seq++, parsed: s.parsedPages[i]
+        });
+      }
+    });
+    this.pages = all;
+  };
+
+  Organiser.prototype.plan = function (input) {
+    // "Resources" is the company name for the shipment -> route list.
+    var mapping = NS.lists.parseRouteMapping(input.resourcesText || input.mappingText || '');
+    var exceptions = NS.lists.parseExceptions(input.exceptionsText || '');
+    var plan = NS.planner.buildPlan({ pages: this.pages, mapping: mapping, exceptions: exceptions, overrides: input.overrides || {} });
+    plan.mapping = mapping;
+    plan.exceptions = exceptions;
+    plan.integrity = NS.integrity.checkPlan(this.pages, plan);
+    if (!plan.integrity.ok) plan.blocking = true;
+    return plan;
+  };
+
+  /**
+   * @param {Object} plan
+   * @param {Object} [options] { verify: true, onProgress(fraction, label) }
+   */
+  Organiser.prototype.export = async function (plan, options) {
+    var opts = options || {};
+    var progress = opts.onProgress || function () {};
+    var res = await NS.exporter.exportPdf(this.sources, plan, {
+      onProgress: function (f, label) { progress(f * 0.6, label); }
+    });
+    if (opts.verify !== false) {
+      progress(0.65, 'Verifying exported PDF');
+      res.integrity = await NS.integrity.verifyOutput(res.bytes, res.manifest, function (d, n) {
+        progress(0.65 + 0.35 * d / n, 'Verifying page ' + d + ' of ' + n);
+      });
+    }
+    progress(1, 'Done');
+    return res;
+  };
+
+  /**
+   * Original pages of one order, without cover (Reprint).
+   * @param {Object} order an entry of plan.orders
+   */
+  Organiser.prototype.orderPdf = async function (order) {
+    var self = this, parts = [];
+    order.pages.forEach(function (pg) {
+      var last = parts[parts.length - 1];
+      if (last && last.fileIndex === pg.fileIndex) last.pageIndices.push(pg.pageIndex);
+      else parts.push({ fileIndex: pg.fileIndex, bytes: self.sources[pg.fileIndex].bytes, pageIndices: [pg.pageIndex] });
+    });
+    var bytes = await NS.exporter.extractPages(parts, 'Reprint order ' + order.order);
+    var check = await NS.reader.readFingerprints(bytes);
+    var ok = check.length === order.pages.length && check.every(function (c, i) { return c.fingerprint === order.pages[i].parsed.fingerprint; });
+    if (!ok) throw new Error('Integrity: the reprint of order ' + order.order + ' does not match the original pages.');
+    return bytes;
+  };
+
+  /**
+   * Pages of one route (cover + orders) taken from an exported result.
+   * @param {Object} result value returned by export()
+   * @param {string} routeName
+   */
+  Organiser.prototype.routePdf = function (result, routeName) {
+    var idx = [];
+    result.manifest.forEach(function (m, i) { if (m.route === routeName) idx.push(i); });
+    return NS.exporter.extractPages([{ bytes: result.bytes, pageIndices: idx }], 'Route ' + routeName);
+  };
+
+  NS.Organiser = Organiser;
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+/* src/ui/thumbs.js */
+/*
+ * JDE Print Organiser UI - page images rendered with PDF.js, cached, max 2 at a time.
+ */
+(function (NS) {
+  'use strict';
+
+  var cache = new Map();
+  var queue = [];
+  var running = 0;
+  var MAX = 2;
+
+  function pump() {
+    while (running < MAX && queue.length) {
+      var job = queue.shift();
+      running++;
+      job().finally(function () { running--; pump(); });
+    }
+  }
+
+  /** Returns a data URL of the page rendered at the given CSS width. */
+  function render(doc, pageIndex, width, cacheKey) {
+    var key = cacheKey + '@' + width;
+    if (cache.has(key)) return cache.get(key);
+    var p = new Promise(function (resolve, reject) {
+      queue.push(async function () {
+        try {
+          var page = await doc.getPage(pageIndex + 1);
+          var base = page.getViewport({ scale: 1 });
+          var scale = (width * (window.devicePixelRatio || 1)) / base.width;
+          var vp = page.getViewport({ scale: scale });
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.ceil(vp.width); canvas.height = Math.ceil(vp.height);
+          // intent 'print' renders without waiting for animation frames, so previews
+          // also finish when the browser tab is in the background.
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp, intent: 'print' }).promise;
+          resolve(canvas.toDataURL('image/png'));
+          page.cleanup();
+        } catch (e) { reject(e); }
+      });
+      pump();
+    });
+    cache.set(key, p);
+    return p;
+  }
+
+  function clear() { cache.clear(); }
+
+  NS.ui = NS.ui || {};
+  NS.ui.thumbs = { render: render, clear: clear };
+})(globalThis.JDEPrint = globalThis.JDEPrint || {});
+
+</script>
+<script>
 const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAILS.xlsx at runtime (never built in)
 </script>
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.10.5';
+const APP_VERSION='0.11.0';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -428,7 +1896,7 @@ const KEY='routePlannerBeta.v082.state'+NS, UPKEY='routePlannerBeta.v082.days'+N
 function load(k,def){ try{ const r=localStorage.getItem(k); if(r){ const p=JSON.parse(r); if(p!=null) return p; } }catch(e){} return def; }
 function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
 function clone0(o){ return o==null?o:JSON.parse(JSON.stringify(o)); }
-const freshState = () => ({cur:{}, log:[], seq:1, grp:{}, added:[], cust:{}, routes:[], days:[], fixed:null, dock:{}, look:{colors:{}, names:{}}});
+const freshState = () => ({cur:{}, log:[], seq:1, grp:{}, added:[], cust:{}, routes:[], days:[], fixed:null, dock:{}, look:{colors:{}, names:{}}, res:{}, resLayout:{cols:[], hide:['area']}});
 let S = Object.assign(freshState(), load(KEY, EMB?clone0(EMB.state):{}));
 ['cur','grp','cust','dock'].forEach(k=>{ if(!S[k]||typeof S[k]!=='object'||Array.isArray(S[k])) S[k]={}; });
 if(!S.look||typeof S.look!=='object') S.look={}; if(!S.look.colors) S.look.colors={}; if(!S.look.names) S.look.names={};
@@ -438,6 +1906,9 @@ let UPLOADS = load(UPKEY, EMB?clone0(EMB.uploads):[]); if(!Array.isArray(UPLOADS
 function saveUploads(){ return store(UPKEY,UPLOADS); }
 let PREFS = Object.assign({hideSample:false, name:'', lineage:null}, EMB?{hideSample:!!(EMB.prefs&&EMB.prefs.hideSample), lineage:{label:'Snapshot', current:EMB.fileName||'', history:EMB.history||[]}}:{}, load(PREFKEY,{}));
 function savePrefs(){ store(PREFKEY,PREFS); }
+// v0.11.0: light or dark theme, per browser (not saved with the plan)
+function applyTheme(){ document.documentElement.dataset.theme = PREFS.theme==='dark' ? 'dark' : 'light'; }
+applyTheme();
 
 // ---------- customers (master file + planner edits) ----------
 // v0.9.1: the master is no longer built into the file. It is loaded from MASTER_DEL_DETAILS.xlsx
@@ -490,10 +1961,11 @@ function indexDays(){
   DATA.days = Object.values(byDate).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>{
     const ids=new Set(d.loads.map(l=>l.id));
     let loads=d.loads.concat(S.routes.filter(r=>r.date===d.date && !ids.has(r.id)).map(r=>Object.assign({},r,{custom:true})));
+    loads=resLoadsFor(d, loads);   // v0.11.0: the Resources table, once edited
     const have=new Set(loads.map(l=>l.bay));
     const fx=fixedBaysFor(d.dow).filter(b=>!have.has(b)).map(b=>({id:'FX-'+b, bay:b, driver:null, helper:null, truck:null, pallets:null, km:null, mins:null, area:null, fixed:true}));
     loads=loads.concat(fx);
-    return loads.length!==d.loads.length ? Object.assign({},d,{loads}) : d;
+    return (loads.length!==d.loads.length || S.res[d.date]) ? Object.assign({},d,{loads}) : d;
   });
   dayMap={}; loadMap={}; routeColor={}; Object.keys(ORD).forEach(k=>delete ORD[k]);
   DATA.days.forEach(d=>{
@@ -550,7 +2022,6 @@ function loadInfo(dayKey, lid){
 }
 function routeName(dayKey,lid){
   if(!lid) return 'Unassigned';
-  const nm=S.look&&S.look.names[dayKey+'|'+lid]; if(nm) return nm;
   const l=loadMap[dayKey+'|'+lid]; const d=dayMap[dayKey]; if(!l||!d) return 'Load '+lid;
   const dup = d.loads.filter(x=>x.bay===l.bay).length>1;
   return dup ? `${l.bay} · ${l.id}` : l.bay;
@@ -588,26 +2059,21 @@ function dayView(dayKey){
 function bayShown(b){ const c=colorOfBay(b); if(c!=='#888') return c; for(const d of DATA.days) for(const l of d.loads) if(bayBase(l.bay)===b && routeColor[d.key+'|'+l.id]) return routeColor[d.key+'|'+l.id]; return '#888888'; }
 function allBays(){ return [...new Set(masterBays.concat(DATA.days.flatMap(d=>d.loads.map(l=>l.bay))).filter(Boolean).map(bayBase))].sort(); }
 function renderCustom(){
-  const el=$('tab-custom');
-  if(!can('custom')){ el.innerHTML='<div class="rep"><div class="card"><div class="empty">Only <b>Master</b> users can use Customize.</div></div></div>'; return; }
-  const dk=CU.day&&dayMap[CU.day]?CU.day:(P.day&&dayMap[P.day]?P.day:(DATA.days[0]&&DATA.days[0].key)); CU.day=dk;
+  const el=$('tab-custom'); const th=PREFS.theme==='dark'?'dark':'light';
   const bays=allBays();
-  const routes=dk?dayMap[dk].loads.slice().sort((a,b)=>a.bay.localeCompare(b.bay)||String(a.id).localeCompare(String(b.id))):[];
-  el.innerHTML=`<div class="rep"><div class="rep-head"><div><div class="muted small">Master users only · saved with the plan</div><h1>Customize</h1></div></div>
-   <div class="card" style="margin-bottom:14px"><h2 style="margin:0 0 6px">🎨 Bay colours</h2><div class="muted small" style="margin-bottom:10px">Used on both maps and on the route list. BAY 05A and BAY 05B share the colour of BAY 05.</div>
-    <div class="cugrid">${bays.map(b=>`<label class="curow"><input type="color" data-cucol="${esc(b)}" value="${bayShown(b)}"><span>${esc(b)}</span>${S.look.colors[b]?`<button class="btn sm" data-cureset="${esc(b)}">Default</button>`:''}</label>`).join('')||'<div class="muted">Load the customer master or a day first.</div>'}</div></div>
-   <div class="card"><h2 style="margin:0 0 6px">🏷 Route names for one day</h2><div class="muted small" style="margin-bottom:10px">Shown instead of the bay name on that day only (plan, map and new entries in the change report).</div>
-    ${dk?`<div style="width:220px;margin-bottom:10px"><select id="cuDay">${DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)}</option>`).join('')}</select></div>
-    <table><thead><tr><th>Bay</th><th>Loading no.</th><th>Driver</th><th>Name on this day</th></tr></thead><tbody>${routes.map(l=>`<tr><td><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${routeColor[dk+'|'+l.id]||'#888'}"></span> ${esc(l.bay)}</td><td class="ords">${esc(loadTxt(l.id))}</td><td>${esc(l.driver||'—')}</td><td><input type="text" data-cuname="${esc(l.id)}" value="${esc(S.look.names[dk+'|'+l.id]||'')}" placeholder="${esc(l.bay)}"></td></tr>`).join('')}</tbody></table>`:'<div class="muted">Load a planning day first.</div>'}</div></div>`;
+  el.innerHTML=`<div class="rep"><div class="rep-head"><div><div class="muted small">Look of the planner</div><h1>Customize</h1></div></div>
+   <div class="card" style="margin-bottom:14px"><h2 style="margin:0 0 6px">🌓 Theme</h2><div style="padding:0 16px 14px"><div class="muted small" style="margin:8px 0 10px">Your choice, kept in this browser. Printing always uses the light theme.</div>
+    <div class="thpick"><button class="thopt ${th==='light'?'on':''}" data-theme="light"><span class="pv l"><i></i><b></b></span><b>Light</b></button><button class="thopt ${th==='dark'?'on':''}" data-theme="dark"><span class="pv d"><i></i><b></b></span><b>Dark</b></button></div></div></div>
+   <div class="card"><h2 style="margin:0 0 6px">🎨 Bay colours</h2><div style="padding:0 16px 14px"><div class="muted small" style="margin:8px 0 10px">Used on both maps and on the route list. BAY 05A and BAY 05B share the colour of BAY 05. Saved with the plan.${can('custom')?'':' <b>Only Master users can change them.</b>'}</div>
+    <div class="cugrid">${bays.map(b=>`<label class="curow"><input type="color" data-cucol="${esc(b)}" value="${bayShown(b)}" ${can('custom')?'':'disabled'}><span>${esc(b)}</span>${S.look.colors[b]&&can('custom')?`<button class="btn sm" data-cureset="${esc(b)}">Default</button>`:''}</label>`).join('')||'<div class="muted">Load the customer master or a day first.</div>'}</div>
+    <div class="muted small" style="margin-top:12px">Route names are now changed in the <b>Resources</b> tab (Route / Bay column).</div></div></div></div>`;
 }
 const CU={day:null};
 $('tab-custom').addEventListener('change',e=>{
   if(!guard('custom','customize')) return;
   const c=e.target.closest('[data-cucol]'); if(c){ S.look.colors[c.dataset.cucol]=c.value; lookChanged(); return; }
-  const n=e.target.closest('[data-cuname]'); if(n){ const k=CU.day+'|'+n.dataset.cuname, v=n.value.trim(); if(v) S.look.names[k]=v; else delete S.look.names[k]; lookChanged(); return; }
-  if(e.target.id==='cuDay'){ CU.day=e.target.value; renderCustom(); }
 });
-$('tab-custom').addEventListener('click',e=>{ const r=e.target.closest('[data-cureset]'); if(!r||!guard('custom','customize')) return; delete S.look.colors[r.dataset.cureset]; lookChanged(); });
+$('tab-custom').addEventListener('click',e=>{ const t=e.target.closest('[data-theme]'); if(t){ PREFS.theme=t.dataset.theme; savePrefs(); applyTheme(); renderCustom(); return; } const r=e.target.closest('[data-cureset]'); if(!r||!guard('custom','customize')) return; delete S.look.colors[r.dataset.cureset]; lookChanged(); });
 function lookChanged(){ save(); indexDays(); if(pInit) renderPlan(); if(cInit) renderCustomers(false); renderCustom(); toast('Customization saved with the plan'); }
 
 // ---------- tabs ----------
@@ -621,6 +2087,8 @@ function showTab(t){
   if(t==='plan'){ initPMap(); if(pMap) setTimeout(()=>{pMap.invalidateSize(); if(!pFitted){fitRoutes(); pFitted=true;}},0); }
   if(t==='report') renderReport();
   if(t==='custom') renderCustom();
+  if(t==='res'){ RS.day=P.day; renderResources(); }
+  if(t==='print'){ JS.day=P.day; renderPrint(); }
 }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2800); }
 
@@ -1252,6 +2720,7 @@ function applyNewRoute(){
   const d=dayMap[P.day], ts=new Date().toISOString();
   const r={id:toId(v('nLoad')), date:d.date, bay:normBay(v('nBay')), driver:v('nDriver'), helper:v('nHelper'), truck:v('nTruck').toUpperCase(), pallets:num('nPal'), km:num('nKm'), mins:null, area:v('nArea')||null, note:v('nNote'), ts};
   S.routes.push(r);
+  if(S.res[d.date]){ const t=S.res[d.date]; t.rows.push({rid:++t.seq, id:r.id, bay:r.bay, driver:r.driver, helper:r.helper, truck:r.truck, pallets:r.pallets, km:r.km, mins:'', area:r.area||'', note:r.note||'', x:{}}); }
   logPush({id:S.seq++, ts, type:'route', day:P.day, date:d.date, load:r.id, bay:r.bay, driver:r.driver, helper:r.helper, truck:r.truck, pallets:r.pallets, km:r.km, area:r.area, note:r.note, ship:'', name:''});
   save(); closeModal(); afterDataChange(); P.open.add(r.id); renderRoutes();
   toast(`${r.bay} (load ${r.id}) added to ${d.label}`);
@@ -1816,6 +3285,8 @@ function uploadAct(a){
       logPush({id:S.seq++, ts, type:'resupd', day:rd.key, date:rd.date, created:true, load:'', bay:`${rd.loads.length} routes`, changes:[], file:rd.file});
     }
   });
+  // v0.11.0: days whose Resources table was edited take the new file values too
+  p.days.forEach(d=>{ if(d.res) resMerge(d.date, d.loads); }); (p.resDays||[]).forEach(rd=>resMerge(rd.date, rd.loads));
   UPLOADS.sort((a,b)=>a.date.localeCompare(b.date));
   const stored=saveUploads();
   const before=Object.values(S.cur).filter(c=>isPending(c.day)).length;
@@ -1835,6 +3306,7 @@ function uploadAct(a){
 function afterDataChange(){
   indexDays(); normalizeState(); save(); buildDaySel();
   if(pInit) renderPlan(); updateNav();
+  if(curTab==='print') renderPrint();
 }
 
 // ================= REPORT (v0.9.0: sections, filters, per-section export, clickable boxes) =================
@@ -1845,7 +3317,7 @@ const SECTIONS=[
   {id:'add', title:'Inserted orders', icon:'＋', kpi:'orders inserted', types:['add']},
   {id:'route', title:'New routes', icon:'🚚', kpi:'routes added', types:['route']},
   {id:'load', title:'Files loaded', icon:'📥', kpi:'files loaded', types:['load'], info:true},
-  {id:'res', title:'Route details updated from RESOURCES', icon:'🔄', kpi:'route updates', types:['resupd']},
+  {id:'res', title:'Route details updated (RESOURCES files and Resources tab)', icon:'🔄', kpi:'route updates', types:['resupd']},
   {id:'dock', title:'Docket type changed', icon:'🧾', kpi:'docket changes', types:['dock']},
   {id:'cust', title:'Customer details changed', icon:'✎', kpi:'customer edits', types:['cust']},
   {id:'pend', title:'Deferred — not on a bay yet', icon:'ℹ', kpi:'awaiting a bay'}
@@ -2124,7 +3596,7 @@ const cfgUser = n => UCFG && UCFG.users.find(u=>u.name===n);
 function role(){ if(EMB) return 'VIEWER'; if(GATE) return 'NONE'; const u=cfgUser(FOLDER.user); return u?u.role:'NONE'; }
 const can = a => !!ROLES[role()][a];
 function guard(a, what){ if(can(a)) return true; toast(role()==='NONE'?'Choose your user first.':(EMB?'Snapshots are view-only — ':`${ROLE_TXT[role()]} access — `)+`you can't ${what}.`); return false; }
-function applyRole(){ document.body.dataset.role=role(); const nc=$('navCustom'); if(nc) nc.hidden=!can('custom'); if(curTab==='custom'&&!can('custom')) showTab('plan'); renderUserBtn(); if(pInit) renderPlan(); if(curTab==='report') renderReport(); }
+function applyRole(){ document.body.dataset.role=role(); if(curTab==='res') renderResources(); if(curTab==='custom') renderCustom(); renderUserBtn(); if(pInit) renderPlan(); if(curTab==='report') renderReport(); }
 // who may set whose folder path: everyone their own; Managers also Users and Viewers; Masters everyone
 function canSetPath(target){ const me=cfgUser(FOLDER.user); const t=cfgUser(target); if(!me||!t) return false; if(me.name===t.name) return true;
   if(me.role==='MASTER') return true; if(me.role==='MANAGER') return RANK[t.role]<RANK.MANAGER; return false; }
@@ -2651,6 +4123,665 @@ function snapshotInfo(){
     <div class="muted small">You can look around, print the change report or export it to Excel. Changes you make here only stay in this snapshot on your computer — they don't change the planner's file. To continue the plan properly, ask for the plan file (.json) and use <b>Open plan</b> in the Route Planner.</div></div>
     <div class="mf"><button class="btn" data-act="close">Close</button></div>`);
 }
+
+// ================= RESOURCES (v0.11.0): the day's routes as an editable sheet =================
+// The table is the source of the day's route details (bay, crew, truck, figures) for planning and printing.
+// Until it is edited, it shows the day's loads from the files; the first edit stores the table with the plan (S.res[date]).
+const RES_STD=[
+  {k:'rid', t:'ID', ro:true, w:40},
+  {k:'id', t:'Shipment Number', w:122, x:'Shipment'},
+  {k:'bay', t:'Route / Bay', w:112, x:'Bay'},
+  {k:'driver', t:'Driver', w:140, x:'Driver'},
+  {k:'helper', t:'Helper', w:130, x:'Helper'},
+  {k:'truck', t:'Truck', w:100, x:'Vehicle'},
+  {k:'drops', t:'Drops', num:true, w:64, x:'Drops'},
+  {k:'kgs', t:'Kgs', num:true, w:74, x:'Kgs'},
+  {k:'pallets', t:'Pallets', num:true, w:70, x:'Number of Pallets'},
+  {k:'km', t:'DIPS Total KM', num:true, star:true, w:112, x:'DIPS Total KM'},
+  {k:'mins', t:'Estimated Time', star:true, w:120, x:'Estimated Time'},
+  {k:'area', t:'General Area', w:130, x:'General Area', opt:true},
+  {k:'note', t:'Comments', w:180, x:'Comments'}
+];
+const RES_STAR='DIPS calculation. not updated after reallocations';
+// header names accepted when a resources sheet is uploaded (first match wins)
+const RES_IN={id:['SHIPMENT','SHIPMENT NUMBER','LOAD NUMBER','LOADING NUMBER'], bay:['BAY','ROUTE / BAY','ROUTE/BAY','ROUTE'], driver:['DRIVER'], helper:['HELPER'], truck:['VEHICLE','TRUCK'],
+  drops:['DROPS'], kgs:['KGS','KG','WEIGHT'], pallets:['NUMBER OF PALLETS','PALLETS'], km:['DIPS TOTAL KM','KM'], mins:['ESTIMATED TIME','EST TIME','EST. TIME','DIPS TIME','TIME'],
+  area:['GENERAL AREA','AREA'], note:['COMMENTS','COMMENT','NOTES','NOTE'], rid:['ID']};
+if(!S.res||typeof S.res!=='object'||Array.isArray(S.res)) S.res={};
+if(!S.resLayout||typeof S.resLayout!=='object') S.resLayout={};
+if(!Array.isArray(S.resLayout.cols)) S.resLayout.cols=[];
+if(!Array.isArray(S.resLayout.hide)) S.resLayout.hide=['area'];
+const RS={day:null, a:null, f:null, edit:null, sessionLogs:new Set()};   // a = anchor cell, f = focus cell {r,c}
+function resCols(){ return RES_STD.filter(c=>!S.resLayout.hide.includes(c.k)).concat(S.resLayout.cols.map(c=>({k:'x:'+c.key, t:c.name, w:130, custom:c.key}))); }
+function resGet(row,k){ return k.startsWith('x:') ? (row.x||{})[k.slice(2)] : row[k]; }
+function resSet(row,k,v){ if(k.startsWith('x:')){ row.x=row.x||{}; if(v==null||v==='') delete row.x[k.slice(2)]; else row.x[k.slice(2)]=v; } else row[k]=v; }
+const resTxt = v => v==null ? '' : String(v);
+// rows shown for a day: the stored table, or the day's loads as they come from the files
+function resRowsDerived(dk){
+  const d=dayMap[dk]; if(!d) return [];
+  const loads=d.loads.slice().sort((a,b)=>a.bay.localeCompare(b.bay)||String(a.id).localeCompare(String(b.id)));
+  return loads.map((l,i)=>({rid:i+1, id:l.fixed?'':String(l.id), bay:l.bay, driver:l.driver||'', helper:l.helper||'', truck:l.truck||'', drops:l.drops??null, kgs:l.kgs??null,
+    pallets:l.pallets??null, km:l.km??null, mins:l.mins??'', area:l.area||'', note:l.note||'', x:{}}));
+}
+function resTable(dk){ const d=dayMap[dk]; if(!d) return null; const t=S.res[d.date]; return t ? t.rows : resRowsDerived(dk); }
+function resMaterialize(dk){
+  const d=dayMap[dk]; if(!S.res[d.date]){ const rows=resRowsDerived(dk); S.res[d.date]={rows, seq:rows.length}; }
+  return S.res[d.date];
+}
+// table row -> load used by the plan and the print
+function resRowLoad(r, base){
+  const n=v=>v==null||v===''?null:toNum(v);
+  return Object.assign({}, base||{}, {id:String(r.id), bay:r.bay?normBay(r.bay):(base&&base.bay)||'UNASSIGNED', driver:cleanStr(r.driver), helper:cleanStr(r.helper), truck:cleanStr(r.truck),
+    pallets:n(r.pallets), km:n(r.km), mins:cleanStr(r.mins), area:cleanStr(r.area), drops:n(r.drops), kgs:n(r.kgs), note:cleanStr(r.note)||'', res:true});
+}
+// called by indexDays: the loads of a day once its resources table was edited
+function resLoadsFor(d, baseLoads){
+  const t=S.res[d.date]; if(!t) return baseLoads;
+  const used=new Set(d.orders.map(o=>String(o.l)));
+  S.added.forEach(a=>{ if(a.day===d.key) used.add(String(a.load)); });
+  Object.values(S.cur).forEach(c=>{ if(c.day===d.key && c.load) used.add(String(c.load)); });
+  const out=[], seen=new Set();
+  t.rows.forEach(r=>{ const id=toId(r.id); if(!id || seen.has(id)) return; seen.add(id); out.push(resRowLoad(Object.assign({},r,{id}), baseLoads.find(l=>String(l.id)===id))); });
+  baseLoads.forEach(l=>{ if(!seen.has(String(l.id)) && used.has(String(l.id))) out.push(Object.assign({},l,{orphan:true})); });   // orders still point at it
+  return out;
+}
+// a RESOURCES file loaded for a day whose table was edited: update the table, keep comments and extra columns
+function resMerge(date, loads){
+  const t=S.res[date]; if(!t) return;
+  loads.forEach(l=>{
+    let r=t.rows.find(x=>toId(x.id)===String(l.id)) || t.rows.find(x=>!toId(x.id) && x.bay && normBay(x.bay)===l.bay);
+    if(!r){ r={rid:++t.seq, id:String(l.id), x:{}}; t.rows.push(r); }
+    r.id=String(l.id); ['bay','driver','helper','truck','drops','kgs','pallets','km','mins','area'].forEach(f=>{ if(l[f]!=null && l[f]!=='') r[f]=l[f]; });
+  });
+}
+
+// ---------- render ----------
+function resDayKey(){ if(RS.day && dayMap[RS.day]) return RS.day; if(P.day && dayMap[P.day]) return P.day; return DATA.days[0]?DATA.days[0].key:null; }
+function renderResources(){
+  const el=$('tab-res'); const dk=resDayKey(); RS.day=dk;
+  const ro=!can('edit');
+  const opts=DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)} · Week ${esc(d.week)}</option>`).join('');
+  if(!dk){ el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day</div><h1>Resources</h1></div></div>
+    <div class="card"><div class="empty">No planning day yet. Load the day's files or create a day first.<br><br><button class="btn" data-rs="loadday">⤒ Load day</button> <button class="btn" data-rs="newday">＋ Day</button></div></div></div>`; return; }
+  const d=dayMap[dk], rows=resTable(dk), stored=!!S.res[d.date], cols=resCols();
+  // keep keyboard focus and scroll position across re-renders
+  const ow=$('rsWrap'), hadFocus=!!(ow && document.activeElement && ow.contains(document.activeElement)), sc=ow?[ow.scrollTop,ow.scrollLeft]:null, sameDay=RS.lastDay===dk; RS.lastDay=dk;
+  const sum=k=>rows.reduce((s,r)=>s+(toNum(r[k])||0),0);
+  const ids=rows.map(r=>toId(r.id)).filter(Boolean); const dupIds=new Set(ids.filter((x,i)=>ids.indexOf(x)!==i));
+  const orphans=d.loads.filter(l=>l.orphan);
+  el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day · used by Plan the day and Check Sheet Print</div><h1>Resources</h1></div><div class="spacer"></div>
+    <div style="width:210px"><select id="rsDay">${opts}</select></div>
+    <label class="btn no-viewer" title="Upload a RESOURCES sheet (.xlsx / .csv) into this day">⤒ Upload sheet<input type="file" id="rsFile" accept=".xlsx,.xls,.xlsm,.csv" hidden></label>
+    <button class="btn" data-rs="export" title="Excel file in the same layout as the RESOURCES files">⤓ Export Excel</button></div>
+    <div class="kpis"><div class="kpi"><b>${ids.length}</b><span>routes with a shipment number</span></div><div class="kpi"><b>${kg(sum('drops'))}</b><span>drops</span></div><div class="kpi"><b>${kg(sum('kgs'))}</b><span>kg</span></div><div class="kpi"><b>${kg(sum('pallets'))}</b><span>pallets</span></div></div>
+    <div class="card rs-card">
+     <div class="rs-tools no-viewer"><button class="btn sm" data-rs="addrow" title="Add a row below the selected cell">＋ Row</button><button class="btn sm" data-rs="delrows" title="Delete the selected rows">− Delete rows</button>
+      <span class="rs-sep"></span><button class="btn sm" data-rs="addcol" title="Add a column of your own">＋ Column</button><button class="btn sm" data-rs="cols" title="Show or hide columns">Columns…</button>
+      <span class="spacer"></span><span class="muted small">${stored?'Edited in the planner · saved with the plan':'From the loaded files · not edited yet'}</span>${stored?'<button class="btn sm" data-rs="reset" title="Throw away the edits and show the loaded files again">↺ Back to files</button>':''}</div>
+     <div class="muted small rs-help">Click a cell and type, or double-click to edit · drag or Shift+click to select several cells · Ctrl+C / Ctrl+V copy and paste blocks (also from Excel) · Delete clears${ro?' · <b>view only</b> for your role':''}</div>
+     ${dupIds.size?`<div class="note warn" style="margin:0 12px 8px">Shipment number used twice: ${[...dupIds].map(esc).join(', ')} — only the first row is used.</div>`:''}
+     ${orphans.length?`<div class="note warn" style="margin:0 12px 8px">Orders of load${orphans.length>1?'s':''} ${orphans.map(l=>esc(l.id)).join(', ')} are on this day, but the load is not in the table — the plan keeps the details from the files.</div>`:''}
+     <div class="rs-wrap" id="rsWrap" tabindex="0"><table class="rs-grid" id="rsGrid"><colgroup><col style="width:38px">${cols.map(c=>`<col style="width:${c.w}px">`).join('')}</colgroup>
+      <thead><tr><th class="rs-corner" title="Select all" data-rsall="1"></th>${cols.map((c,ci)=>`<th data-col="${ci}"><span>${esc(c.t)}</span>${c.star?`<span class="rs-star" title="${RES_STAR}">&nbsp;*</span>`:''}${c.k!=='rid'&&c.k!=='id'&&!ro?`<button class="rs-x" data-rshide="${esc(c.k)}" title="${c.custom?'Delete this column':'Hide this column'}">×</button>`:''}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map((r,ri)=>`<tr><th class="rs-rn" data-row="${ri}">${ri+1}</th>${cols.map((c,ci)=>{ const v=resGet(r,c.k); const bad=(c.num&&v!=null&&v!==''&&toNum(v)==null)||(c.k==='id'&&v&&(!toId(v)||dupIds.has(toId(v))));
+        return `<td data-r="${ri}" data-c="${ci}" class="${c.ro?'ro':''}${c.num?' n':''}${bad?' bad':''}">${esc(resTxt(v))}</td>`; }).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length+1}" class="empty">No rows. Click ＋ Row or paste from Excel.</td></tr>`}</tbody></table></div>
+    </div></div>`;
+  const nw=$('rsWrap'); if(sc && sameDay){ nw.scrollTop=sc[0]; nw.scrollLeft=sc[1]; } if(hadFocus) nw.focus({preventScroll:true});
+  resPaintSel();
+}
+function resCell(r,c){ return $('rsGrid') && $('rsGrid').querySelector(`td[data-r="${r}"][data-c="${c}"]`); }
+function resRange(){ if(!RS.a||!RS.f) return null; return {r0:Math.min(RS.a.r,RS.f.r), r1:Math.max(RS.a.r,RS.f.r), c0:Math.min(RS.a.c,RS.f.c), c1:Math.max(RS.a.c,RS.f.c)}; }
+function resPaintSel(){
+  const g=$('rsGrid'); if(!g) return; g.querySelectorAll('td.sel,td.cur').forEach(td=>td.classList.remove('sel','cur'));
+  const R=resRange(); if(!R) return;
+  for(let r=R.r0;r<=R.r1;r++) for(let c=R.c0;c<=R.c1;c++){ const td=resCell(r,c); if(td) td.classList.add('sel'); }
+  const td=resCell(RS.f.r,RS.f.c); if(td){ td.classList.add('cur'); td.scrollIntoView({block:'nearest',inline:'nearest'}); }
+}
+function resSelect(r,c,extend){
+  const rows=resTable(RS.day)||[], n=resCols().length; if(!rows.length) return;
+  r=Math.max(0,Math.min(rows.length-1,r)); c=Math.max(0,Math.min(n-1,c));
+  RS.f={r,c}; if(!extend||!RS.a) RS.a={r,c}; resPaintSel();
+}
+
+// ---------- editing ----------
+// changes: [{r, k, v}] → stored table, change report, plan refreshed once
+function resApply(changes, extraRows){
+  if(!guard('edit','edit resources')) return false;
+  const dk=RS.day, d=dayMap[dk]; const t=resMaterialize(dk);
+  for(let i=0;i<(extraRows||0);i++) t.rows.push({rid:++t.seq, id:'', x:{}});
+  const before=new Map();
+  changes.forEach(ch=>{ const row=t.rows[ch.r]; if(!row) return; const col=resColByKey(ch.k); if(!col||col.ro) return;
+    let v=ch.v==null?'':String(ch.v).replace(/\r/g,'').trim();
+    if(col.k==='id') v=toId(v)||v; else if(col.num && v!=='' && toNum(v)!=null) v=toNum(v);
+    if(col.k==='bay' && v) v=normBay(v);
+    if(col.k==='truck' && v) v=String(v).toUpperCase();
+    const old=resGet(row,col.k); if(resTxt(old)===resTxt(v)) return;
+    if(!before.has(row)) before.set(row,{});
+    const b=before.get(row); if(!(col.k in b)) b[col.k]=old;
+    resSet(row,col.k,v===''?(col.num?null:''):v);
+  });
+  before.forEach((b,row)=>resLog(d, row, b));
+  save(); afterDataChange(); renderResources();
+  return true;
+}
+function resColByKey(k){ return RES_STD.find(c=>c.k===k) || (k.startsWith('x:')&&S.resLayout.cols.some(c=>'x:'+c.key===k) ? {k, t:S.resLayout.cols.find(c=>'x:'+c.key===k).name} : null); }
+const RES_LOGGED={id:'Shipment', bay:'Bay', driver:'Driver', helper:'Helper', truck:'Truck', pallets:'Pallets', km:'DIPS km', mins:'Est. time', drops:'Drops', kgs:'Kgs', note:'Comments', area:'Area'};
+// one change-report line per route and session: later edits of the same cells update it
+function resLog(d, row, before){
+  let e=S.log.find(x=>x.type==='resupd' && x.edit && x.date===d.date && x.rid===row.rid && RS.sessionLogs.has(x.id));
+  if(!e){ e={id:S.seq++, ts:new Date().toISOString(), type:'resupd', edit:true, day:d.key, date:d.date, rid:row.rid, load:'', bay:'', changes:[], file:'Resources tab'}; logPush(e); RS.sessionLogs.add(e.id); }
+  e.ts=new Date().toISOString(); e.load=toId(row.id)||''; e.bay=row.bay||'';
+  Object.keys(before).forEach(k=>{ const lb=RES_LOGGED[k]; if(!lb) return; const to=resTxt(row[k]);
+    const c=e.changes.find(x=>x.f===lb); if(c){ c.to=to||'—'; if(c.to===c.from) e.changes.splice(e.changes.indexOf(c),1); }
+    else e.changes.push({f:lb, from:resTxt(before[k])||'—', to:to||'—'}); });
+  if(!e.changes.length && !e.removed) S.log=S.log.filter(x=>x!==e);
+}
+function resEditStart(initial){
+  if(!can('edit')||!RS.f) return; const col=resCols()[RS.f.c]; if(!col||col.ro) return;
+  const td=resCell(RS.f.r,RS.f.c); if(!td) return; const rows=resTable(RS.day);
+  const inp=document.createElement('input'); inp.type='text'; inp.className='rs-in';
+  inp.value=initial!=null?initial:resTxt(resGet(rows[RS.f.r],col.k));
+  td.textContent=''; td.appendChild(inp); inp.focus(); if(initial==null) inp.select();
+  RS.edit={r:RS.f.r, c:RS.f.c, k:col.k, inp};
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key==='Tab'){ e.preventDefault(); const dr=e.key==='Enter'?(e.shiftKey?-1:1):0, dc=e.key==='Tab'?(e.shiftKey?-1:1):0; resEditEnd(true); resSelect(RS.f.r+dr,RS.f.c+dc); $('rsWrap').focus(); }
+    else if(e.key==='Escape'){ e.preventDefault(); resEditEnd(false); $('rsWrap').focus(); }
+    e.stopPropagation();
+  });
+  inp.addEventListener('blur',()=>{ if(RS.edit&&RS.edit.inp===inp) resEditEnd(true); });
+}
+function resEditEnd(commit){
+  const ed=RS.edit; if(!ed) return; RS.edit=null;
+  if(commit) { const keep={a:RS.a,f:RS.f}; if(!resApply([{r:ed.r,k:ed.k,v:ed.inp.value}])) renderResources(); RS.a=keep.a; RS.f=keep.f; resPaintSel(); }
+  else { renderResources(); }
+}
+function resSelectionTsv(){
+  const R=resRange(); if(!R) return ''; const rows=resTable(RS.day), cols=resCols(); const out=[];
+  for(let r=R.r0;r<=R.r1;r++){ const line=[]; for(let c=R.c0;c<=R.c1;c++) line.push(resTxt(resGet(rows[r],cols[c].k)).replace(/[\t\n]/g,' ')); out.push(line.join('\t')); }
+  return out.join('\n');
+}
+function resPaste(text){
+  if(!RS.f) return; const cols=resCols(), rows=resTable(RS.day);
+  const lines=String(text).replace(/\r/g,'').replace(/\n$/,'').split('\n').map(l=>l.split('\t'));
+  const R=resRange(); let r0=RS.f.r, c0=RS.f.c;
+  // one value pasted over a selection fills every selected cell
+  const fill=lines.length===1&&lines[0].length===1&&R&&(R.r1>R.r0||R.c1>R.c0);
+  if(R){ r0=R.r0; c0=R.c0; }
+  const changes=[]; let need=0;
+  if(fill){ for(let r=R.r0;r<=R.r1;r++) for(let c=R.c0;c<=R.c1;c++) changes.push({r,k:cols[c].k,v:lines[0][0]}); }
+  else { need=Math.max(0, r0+lines.length-rows.length);
+    lines.forEach((ln,i)=>ln.forEach((v,j)=>{ const c=c0+j; if(c<cols.length) changes.push({r:r0+i,k:cols[c].k,v}); })); }
+  if(resApply(changes, need)){ RS.a={r:r0,c:c0}; RS.f={r:fill?R.r1:r0+lines.length-1, c:fill?R.c1:Math.min(cols.length-1,c0+lines[0].length-1)}; resPaintSel(); }
+}
+function resClearSel(){ const R=resRange(); if(!R) return; const cols=resCols(), ch=[]; for(let r=R.r0;r<=R.r1;r++) for(let c=R.c0;c<=R.c1;c++) ch.push({r,k:cols[c].k,v:''}); resApply(ch); }
+function resOrdersOn(dk, id){ return Object.values(ORD).filter(o=>{ const c=curOf(o.uid); return c.day===dk && String(c.load)===String(id); }).length; }
+function resDeleteRows(){
+  if(!guard('edit','edit resources')) return; const R=resRange(); if(!R) return toast('Select a cell in the rows to delete first');
+  const dk=RS.day, rows=resTable(dk).slice(R.r0,R.r1+1); const busy=rows.map(r=>({r,n:toId(r.id)?resOrdersOn(dk,toId(r.id)):0})).filter(x=>x.n);
+  const go=()=>{ const t=resMaterialize(dk), d=dayMap[dk]; const del=t.rows.splice(R.r0,R.r1-R.r0+1);
+    del.forEach(r=>{ if(toId(r.id)||r.bay){ const e={id:S.seq++, ts:new Date().toISOString(), type:'resupd', edit:true, removed:true, day:d.key, date:d.date, rid:r.rid, load:toId(r.id)||'', bay:r.bay||'', changes:[{f:'Row', from:'in the table', to:'deleted'}], file:'Resources tab'}; logPush(e); } });
+    RS.a=RS.f={r:Math.max(0,R.r0-1),c:RS.f.c}; save(); afterDataChange(); renderResources(); toast(`${del.length} row${del.length>1?'s':''} deleted`); };
+  if(!busy.length) return go();
+  openModal(`<div class="mh"><h2>Delete rows with orders?</h2></div><div class="mb"><div class="note warn">${busy.map(x=>`<b>${esc(x.r.bay||'')}</b> (load ${esc(x.r.id)}) has <b>${x.n}</b> order${x.n>1?'s':''} on it.`).join('<br>')}<br>The orders keep their load; the plan uses the details from the loaded files for it.</div></div>
+    <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="go">Delete rows</button></div>`,{onAct:a=>{ if(a==='go'){ closeModal(); go(); } }});
+}
+function resAddRow(){
+  if(!guard('edit','edit resources')) return; const t=resMaterialize(RS.day); const at=RS.f?Math.min(t.rows.length,RS.f.r+1):t.rows.length;
+  t.rows.splice(at,0,{rid:++t.seq, id:'', x:{}}); save(); renderResources(); resSelect(at,1); $('rsWrap').focus();
+}
+function resAddCol(){
+  if(!guard('edit','edit resources')) return;
+  openModal(`<div class="mh"><h2>New column</h2></div><div class="mb"><div><label>Column name</label><input type="text" id="rsColName" placeholder="e.g. Start time"></div></div>
+    <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok">Add column</button></div>`,{onAct:a=>{ if(a!=='ok') return;
+      const nm=$('rsColName').value.trim(); if(!nm) return; if(resCols().some(c=>c.t.toUpperCase()===nm.toUpperCase())) return toast('There is a column with that name already');
+      const key='c'+Date.now().toString(36); S.resLayout.cols.push({key,name:nm}); save(); closeModal(); renderResources(); toast(`Column “${nm}” added`); }});
+  setTimeout(()=>$('rsColName')&&$('rsColName').focus(),30);
+}
+function resHideCol(k){
+  if(!guard('edit','edit resources')) return;
+  if(k.startsWith('x:')){ const key=k.slice(2), c=S.resLayout.cols.find(x=>x.key===key); if(!c) return;
+    openModal(`<div class="mh"><h2>Delete column “${esc(c.name)}”?</h2></div><div class="mb"><div class="muted">Its values are removed from every day.</div></div><div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="go">Delete column</button></div>`,
+      {onAct:a=>{ if(a!=='go') return; S.resLayout.cols=S.resLayout.cols.filter(x=>x.key!==key); Object.values(S.res).forEach(t=>t.rows.forEach(r=>{ if(r.x) delete r.x[key]; })); save(); closeModal(); RS.a=RS.f=null; renderResources(); }}); return; }
+  if(!S.resLayout.hide.includes(k)) S.resLayout.hide.push(k); save(); RS.a=RS.f=null; renderResources(); toast('Column hidden — Columns… shows it again');
+}
+function resColsModal(){
+  openModal(`<div class="mh"><h2>Columns</h2><div class="muted small">Hidden columns keep their values and are still exported.</div></div><div class="mb olist" style="gap:0">${RES_STD.filter(c=>c.k!=='rid'&&c.k!=='id').map(c=>`<label><input type="checkbox" data-rscol="${c.k}" ${S.resLayout.hide.includes(c.k)?'':'checked'}> ${esc(c.t)}</label>`).join('')}
+    ${S.resLayout.cols.map(c=>`<label><input type="checkbox" checked disabled> ${esc(c.name)} <span class="muted small">(your column — delete it with × in its header)</span></label>`).join('')}</div>
+    <div class="mf"><button class="btn" data-act="addcol" style="margin-right:auto">＋ Column</button><button class="btn pri" data-act="close">Done</button></div>`,{onAct:a=>{ if(a==='addcol') resAddCol(); }});
+  $('modal').querySelectorAll('[data-rscol]').forEach(cb=>cb.onchange=()=>{ if(!guard('edit','edit resources')){ cb.checked=!cb.checked; return; } const k=cb.dataset.rscol; S.resLayout.hide=S.resLayout.hide.filter(x=>x!==k); if(!cb.checked) S.resLayout.hide.push(k); save(); RS.a=RS.f=null; renderResources(); });
+}
+function resReset(){
+  if(!guard('edit','edit resources')) return; const d=dayMap[RS.day];
+  openModal(`<div class="mh"><h2>Back to the loaded files?</h2></div><div class="mb"><div class="note warn">The edits made in the Resources table for <b>${esc(d.label)}</b> (including comments and your columns' values) are thrown away. The change report keeps its lines.</div></div>
+    <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn warn" data-act="go">Back to files</button></div>`,{onAct:a=>{ if(a!=='go') return; delete S.res[d.date]; save(); closeModal(); afterDataChange(); RS.a=RS.f=null; renderResources(); toast('Resources shown from the loaded files again'); }});
+}
+// ---------- export / upload ----------
+function resExport(){
+  if(typeof XLSX==='undefined') return toast('The Excel library needs an internet connection');
+  const dk=RS.day, d=dayMap[dk], rows=resTable(dk);
+  // same column order as the RESOURCES files, then the planner's own columns
+  const std=['id','bay','driver','helper','truck','pallets','km','area','drops','kgs','mins','note'].map(k=>RES_STD.find(c=>c.k===k)), cus=S.resLayout.cols;
+  const aoa=[std.map(c=>c.x).concat(cus.map(c=>c.name))].concat(rows.filter(r=>toId(r.id)||r.bay).map(r=>std.map(c=>{ const v=r[c.k]; if(c.k==='id'){ const n=Number(toId(v)); return isFinite(n)&&toId(v)?n:resTxt(v); } return v==null?'':v; }).concat(cus.map(c=>(r.x||{})[c.key]??''))));
+  const ws=XLSX.utils.aoa_to_sheet(aoa); ws['!cols']=aoa[0].map(h=>({wch:Math.max(10,String(h).length+2)}));
+  const wb=XLSX.utils.book_new(); const nm=d.label.replace(/[\\\/?*\[\]:]/g,'.'); XLSX.utils.book_append_sheet(wb,ws,nm.slice(0,31));
+  const fname=`RES_${nm}.xlsx`; XLSX.writeFile(wb,fname); toast('Exported '+fname);
+}
+async function resUpload(file){
+  if(!guard('edit','upload resources')) return;
+  if(typeof XLSX==='undefined') return toast('The Excel library needs an internet connection');
+  let wb; try{ wb=await readWorkbook(file); }catch(e){ return toast('Could not read '+file.name); }
+  let h=null, rows=null, sheet=null;
+  for(const n of wb.SheetNames){ const rs=sheetRows(wb.Sheets[n]); const hh=findHeader(rs,['SHIPMENT','BAY'])||findHeader(rs,['SHIPMENT NUMBER','ROUTE / BAY']); if(hh){ h=hh; rows=rs; sheet=n; break; } }
+  if(!h) return toast(`“${file.name}” has no Shipment / Bay columns — not a resources sheet`);
+  const col=k=>{ for(const n of RES_IN[k]) if(h.idx[n]!=null) return h.idx[n]; return null; };
+  const known=new Set(Object.values(RES_IN).flat());
+  const extra=h.names.map((n,j)=>({n,j})).filter(x=>x.n && !known.has(x.n));
+  const fd=[nameDate(sheet), nameDate(file.name)].find(x=>x&&x.date);
+  const dk=RS.day, d=dayMap[dk];
+  const apply=()=>{
+    const t=resMaterialize(dk); const oldRows=t.rows; const ts=new Date().toISOString();
+    extra.forEach(x=>{ const orig=String(rows[h.row][x.j]).trim(); if(!S.resLayout.cols.some(c=>c.name.toUpperCase()===x.n)) S.resLayout.cols.push({key:'c'+Date.now().toString(36)+x.j, name:orig}); });
+    const keyOf=n=>S.resLayout.cols.find(c=>c.name.toUpperCase()===n).key;
+    const out=[]; let seq=0;
+    rows.slice(h.row+1).forEach(row=>{ const g=k=>{ const j=col(k); return j==null?null:row[j]; };
+      const id=toId(g('id')); const bay=cleanStr(g('bay')); if(!id && !bay) return;
+      const old=oldRows.find(r=>id&&toId(r.id)===id);
+      const r={rid:++seq, id:id||'', bay:bay?normBay(bay):'', driver:cleanStr(g('driver'))||'', helper:cleanStr(g('helper'))||'', truck:cleanStr(g('truck'))||'', drops:toNum(g('drops')), kgs:toNum(g('kgs')),
+        pallets:toNum(g('pallets')), km:toNum(g('km')), mins:col('mins')!=null?timeTxt(g('mins')):'', area:cleanStr(g('area'))||'', note:cleanStr(g('note'))||(old&&old.note)||'', x:Object.assign({},old&&old.x)};
+      extra.forEach(x=>{ const v=row[x.j]; if(v!=null&&v!=='') r.x[keyOf(x.n)]=typeof v==='number'?v:String(v).trim(); });
+      out.push(r); });
+    const oldLoads=oldRows.filter(r=>toId(r.id)).map(r=>resRowLoad(r)), newLoads=out.filter(r=>toId(r.id)).map(r=>resRowLoad(r));
+    const df=resDiff(oldLoads,newLoads);
+    df.forEach(x=>logPush({id:S.seq++, ts, type:'resupd', day:d.key, date:d.date, load:x.load, bay:x.bay, added:x.added, changes:x.changes, file:file.name}));
+    logLoad({kind:'res', day:d.key, date:d.date, files:[file.name], replaced:true, summary:`${out.length} rows uploaded in Resources · ${df.length} route update${df.length!==1?'s':''}`});
+    t.rows=out; t.seq=seq; save(); afterDataChange(); RS.a=RS.f=null; renderResources();
+    toast(`${out.length} rows loaded from ${file.name} into ${d.label}`);
+  };
+  if(fd && fd.date!==d.date){
+    const other=dayKeyForDate(fd.date);
+    openModal(`<div class="mh"><h2>Which day?</h2></div><div class="mb"><div class="note warn">The file name says <b>${esc(dayLbl(fd.date))}</b>, but the Resources tab shows <b>${esc(d.label)}</b>.</div></div>
+      <div class="mf"><button class="btn" data-act="close">Cancel</button>${other?`<button class="btn" data-act="other">Load into ${esc(dayLbl(fd.date))}</button>`:''}<button class="btn pri" data-act="here">Load into ${esc(d.label)}</button></div>`,
+      {onAct:a=>{ if(a==='here'){ closeModal(); apply(); } if(a==='other'){ closeModal(); RS.day=other; renderResources(); resUpload(file); } }});
+    return;
+  }
+  apply();
+}
+// ---------- events ----------
+(function(){
+  const el=$('tab-res'); let dragging=false;
+  el.addEventListener('change',e=>{
+    if(e.target.id==='rsDay'){ RS.day=e.target.value; RS.a=RS.f=null; if(pInit) selectDay(RS.day); else P.day=RS.day; renderResources(); }
+    if(e.target.id==='rsFile'){ const f=e.target.files[0]; e.target.value=''; if(f) resUpload(f); }
+  });
+  el.addEventListener('click',e=>{
+    const b=e.target.closest('[data-rs]'); if(b){ const a=b.dataset.rs;
+      if(a==='export') resExport(); if(a==='addrow') resAddRow(); if(a==='delrows') resDeleteRows(); if(a==='addcol') resAddCol(); if(a==='cols') resColsModal(); if(a==='reset') resReset();
+      if(a==='loadday') $('uploadBtn').onclick(); if(a==='newday') openNewDay(); return; }
+    const x=e.target.closest('[data-rshide]'); if(x){ e.stopPropagation(); resHideCol(x.dataset.rshide); return; }
+    if(e.target.closest('[data-rsall]')){ const n=(resTable(RS.day)||[]).length; if(n){ RS.a={r:0,c:0}; RS.f={r:n-1,c:resCols().length-1}; resPaintSel(); $('rsWrap').focus(); } return; }
+    const th=e.target.closest('thead th[data-col]'); if(th){ const n=(resTable(RS.day)||[]).length; if(n){ const c=+th.dataset.col; RS.a={r:0,c}; RS.f={r:n-1,c}; resPaintSel(); $('rsWrap').focus(); } return; }
+    const rn=e.target.closest('th[data-row]'); if(rn){ const r=+rn.dataset.row; if(!(e.shiftKey&&RS.a)) RS.a={r,c:0}; RS.f={r,c:resCols().length-1}; resPaintSel(); $('rsWrap').focus(); }
+  });
+  el.addEventListener('mousedown',e=>{ const td=e.target.closest('td[data-r]'); if(!td||e.target.closest('.rs-in')) return; e.preventDefault(); if(RS.edit) resEditEnd(true);
+    resSelect(+td.dataset.r,+td.dataset.c,e.shiftKey); dragging=true; $('rsWrap').focus(); });
+  el.addEventListener('mouseover',e=>{ if(!dragging) return; const td=e.target.closest('td[data-r]'); if(td) resSelect(+td.dataset.r,+td.dataset.c,true); });
+  window.addEventListener('mouseup',()=>{ dragging=false; });
+  el.addEventListener('dblclick',e=>{ const td=e.target.closest('td[data-r]'); if(td&&!RS.edit){ resSelect(+td.dataset.r,+td.dataset.c); resEditStart(); } });
+  el.addEventListener('keydown',e=>{
+    if(!e.target.closest('#rsWrap')||RS.edit) return; if(!RS.f){ if(/^Arrow/.test(e.key)){ e.preventDefault(); resSelect(0,1); } return; }
+    const mv={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];
+    if(mv){ e.preventDefault(); resSelect(RS.f.r+mv[0],RS.f.c+mv[1],e.shiftKey); return; }
+    if(e.key==='Tab'){ e.preventDefault(); resSelect(RS.f.r,RS.f.c+(e.shiftKey?-1:1)); return; }
+    if(e.key==='Enter'||e.key==='F2'){ e.preventDefault(); resEditStart(); return; }
+    if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); resClearSel(); return; }
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){ e.preventDefault(); const n=resTable(RS.day).length; RS.a={r:0,c:0}; RS.f={r:n-1,c:resCols().length-1}; resPaintSel(); return; }
+    if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){ e.preventDefault(); resEditStart(e.key); }
+  });
+  document.addEventListener('copy',e=>{ if(curTab!=='res'||RS.edit||!document.activeElement||!document.activeElement.closest('#rsWrap')||!RS.f) return; e.preventDefault(); e.clipboardData.setData('text/plain',resSelectionTsv()); toast('Copied'); });
+  document.addEventListener('cut',e=>{ if(curTab!=='res'||RS.edit||!document.activeElement||!document.activeElement.closest('#rsWrap')||!RS.f) return; e.preventDefault(); e.clipboardData.setData('text/plain',resSelectionTsv()); resClearSel(); });
+  document.addEventListener('paste',e=>{ if(curTab!=='res'||RS.edit||!document.activeElement||!document.activeElement.closest('#rsWrap')) return; e.preventDefault(); if(!RS.f) return toast('Click the cell to paste into first'); resPaste(e.clipboardData.getData('text/plain')); });
+})();
+
+// ================= CHECK SHEET PRINT (v0.11.0): the JDE check-sheet PDF organised by the day's plan =================
+// Resources = the day's routes (Resources tab); Reallocations = order moves / deferrals made in Plan the day.
+// PDFs are read in this browser only and are not saved with the plan.
+const PDF_LIBS=['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js'];
+let pdfLibsP=null;
+function loadPdfLibs(){
+  if(window.pdfjsLib && window.pdfjsWorker && window.PDFLib) return Promise.resolve();
+  if(!pdfLibsP) pdfLibsP=PDF_LIBS.reduce((p,u)=>p.then(()=>new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=u; s.onload=res; s.onerror=()=>rej(new Error('Could not load the PDF reader ('+u.split('/').pop()+'). It needs an internet connection.')); document.head.appendChild(s); })),Promise.resolve()).catch(e=>{ pdfLibsP=null; throw e; });
+  return pdfLibsP;
+}
+const JP=window.JDEPrint;
+const JS={org:null, plan:null, overrides:{}, issueFilter:'all', open:new Set(), result:null, outRoute:null, reprintKey:null, mode:'organise', day:null, sig:''};
+function jh(tag, attrs){
+  const el=document.createElement(tag);
+  if(attrs) Object.keys(attrs).forEach(k=>{ const v=attrs[k]; if(v==null||v===false) return;
+    if(k==='class') el.className=v; else if(k==='text') el.textContent=v; else if(k.slice(0,2)==='on') el.addEventListener(k.slice(2),v); else el.setAttribute(k,v===true?'':v); });
+  for(let i=2;i<arguments.length;i++){ const c=arguments[i]; if(c==null||c===false) continue;
+    (Array.isArray(c)?c:[c]).forEach(x=>{ if(x==null||x===false) return; el.appendChild(typeof x==='string'||typeof x==='number'?document.createTextNode(String(x)):x); }); }
+  return el;
+}
+function jpProgress(el, frac, label){ el.hidden=false; el.querySelector('.bar').style.width=Math.round(frac*100)+'%'; el.querySelector('.label').textContent=label||''; }
+const jfmt = n => Number(n).toLocaleString('en-IE');
+function jpDayKey(){ if(JS.day && dayMap[JS.day]) return JS.day; if(P.day && dayMap[P.day]) return P.day; return DATA.days[0]?DATA.days[0].key:null; }
+
+// ---------- inputs from the planner ----------
+function jpResources(dk){
+  const v=dayView(dk); const rows=[], order=[], info={};
+  v.routes.filter(r=>!r.deferred).forEach(r=>{ const l=r.load; if(!l || l.fixed || String(l.id).startsWith('FX-')) return;
+    rows.push({shipment:String(l.id), route:r.name, line:rows.length+1, driver:l.driver||'', truck:l.truck||''});
+    if(!order.includes(r.name)) order.push(r.name);
+    info[r.name]=[l.driver&&'Driver: '+l.driver, l.helper&&'Helper: '+l.helper, l.truck&&'Truck: '+l.truck].filter(Boolean).join('   ·   '); });
+  return {rows, order, info};
+}
+function jpReallocations(dk){
+  const out=[], seen=new Set(); const rn=(day,ld)=>ld?routeName(day,ld):JP.planner.UNASSIGNED;
+  Object.values(ORD).forEach(o=>{ if(o.added) return; const c=curOf(o.uid);
+    let row=null;
+    if(o.day0===dk && c.day!==dk) row={shipment:String(o.load0), order:String(o.o), route:JP.planner.DEFERRED, why:'Deferred to '+dayLabel(c.day), from:rn(dk,o.load0)};
+    else if(o.day0===dk && String(c.load||'')!==String(o.load0||'')) row={shipment:String(o.load0), order:String(o.o), route:rn(dk,c.load), why:'Moved in Plan the day', from:rn(dk,o.load0)};
+    else if(o.day0!==dk && c.day===dk) row={shipment:String(o.load0), order:String(o.o), route:rn(dk,c.load), why:'Deferred in from '+dayLabel(o.day0), from:dayLabel(o.day0), optional:true};
+    if(!row) return; const k=row.shipment+'|'+row.order; if(seen.has(k)) return; seen.add(k);
+    row.name=o.n; row.line=out.length+1; row.label=`Reallocation ${row.line} (${row.why.toLowerCase()})`; out.push(row); });
+  out.sort((a,b)=>a.route.localeCompare(b.route)||a.order.localeCompare(b.order)); out.forEach((r,i)=>{ r.line=i+1; r.label=`Reallocation ${i+1} (${r.why.toLowerCase()})`; });
+  return out;
+}
+
+// ---------- plan ----------
+function jpReplan(){
+  const dk=jpDayKey(); JS.day=dk;
+  if(!JS.org){ jpRender(); return; }
+  jpClearResult();
+  const res=dk?jpResources(dk):{rows:[],order:[],info:{}}, rea=dk?jpReallocations(dk):[];
+  const mapping={rows:res.rows, errors:[]}, exceptions={rows:rea, errors:[]};
+  const plan=JP.planner.buildPlan({pages:JS.org.pages, mapping, exceptions, overrides:JS.overrides, routeOrder:res.order, routeInfo:res.info});
+  plan.mapping=mapping; plan.exceptions=exceptions; plan.integrity=JP.integrity.checkPlan(JS.org.pages, plan); if(!plan.integrity.ok) plan.blocking=true;
+  JS.plan=plan; JS.res=res; JS.rea=rea;
+  jpRender();
+}
+function jpSig(){ const dk=jpDayKey(); return dk?JSON.stringify([dk, jpResources(dk).rows, jpReallocations(dk).map(r=>r.shipment+r.order+r.route)]):''; }
+
+// ---------- render ----------
+function renderPrint(){
+  const el=$('tab-print');
+  if(!el.dataset.built){ el.dataset.built='1'; el.innerHTML=jpSkeleton(); jpWire(); }
+  const sig=jpSig(); if(sig!==JS.sig){ JS.sig=sig; jpReplan(); } else jpRender();
+}
+function jpSkeleton(){
+  return `<div class="jp"><div class="rep-head jp-top"><div><div class="muted small">Check sheets (JDE Offloading Sheet / Delivery Docket PDF) organised by the day's plan</div><h1>Check Sheet Print</h1></div><div class="spacer"></div>
+   <div style="width:210px"><select id="jpDay"></select></div>
+   <div class="jp-modes" role="tablist"><button class="on" data-jpmode="organise">Organise</button><button data-jpmode="reprint">Reprint an order</button></div></div>
+  <div class="jp-layout" id="jpOrganise">
+   <aside class="jp-setup">
+    <section class="jp-card"><h2><span class="jp-step">1</span>Organise</h2>
+     <button class="btn pri jp-big" id="jpExport" disabled>Organise PDFs</button>
+     <p class="jp-hint" id="jpExportHint">Import the check-sheet PDF (step 2) to start.</p>
+     <div class="jp-progress" id="jpExportProgress" hidden><div class="bar"></div><span class="label"></span></div>
+     <ul class="jp-checks" id="jpChecks"></ul></section>
+    <section class="jp-card"><h2><span class="jp-step">2</span>Import PDF</h2>
+     <label class="jp-drop" id="jpDrop" tabindex="0"><input type="file" id="jpFile" accept="application/pdf,.pdf" multiple hidden><strong>Drop the check-sheet PDF here</strong><span>or click to choose. More than one file is accepted.</span></label>
+     <div class="jp-progress" id="jpReadProgress" hidden><div class="bar"></div><span class="label"></span></div>
+     <ul class="jp-files" id="jpFiles"></ul>
+     <p class="jp-hint" style="margin-top:8px">The PDF is read in this browser only. It is not saved with the plan.</p></section>
+    <section class="jp-card"><h2><span class="jp-step">3</span>Resources <span class="spacer"></span><button class="btn sm" data-jpgo="res">Edit in Resources</button></h2><div id="jpRes"></div></section>
+    <section class="jp-card"><h2><span class="jp-step">4</span>Reallocations <span class="spacer"></span><button class="btn sm" data-jpgo="plan">Plan the day</button></h2><p class="jp-hint">Changes made in Plan the day. Check them before you organise.</p><div id="jpRea"></div></section>
+   </aside>
+   <section class="jp-results">
+    <div class="jp-tiles" id="jpTiles"></div>
+    <section class="jp-card jp-output" id="jpOutput" hidden>
+     <div class="jp-cardhead"><h2>Organised PDF</h2><span class="jp-hint" id="jpOutInfo"></span><span class="spacer"></span><button class="btn" id="jpPrintAll">Print all</button><button class="btn pri" id="jpDownloadAll">Download all</button></div>
+     <div class="jp-outlayout"><div class="jp-rtabs" id="jpOutRoutes"></div><div style="min-width:0">
+      <div class="jp-outhead"><div><h3 id="jpOutTitle"></h3><span class="jp-hint" id="jpOutRouteInfo"></span></div><span class="spacer"></span><button class="btn" id="jpPrintRoute">Print this route</button><button class="btn" id="jpDownloadRoute">Download this route</button></div>
+      <div class="jp-pages" id="jpOutPages"></div></div></div></section>
+    <section class="jp-card" id="jpIssuesCard" hidden><div class="jp-cardhead"><h2>Checks</h2><div class="jp-filters" id="jpIssueFilters"></div></div><ul class="jp-issues" id="jpIssues"></ul></section>
+    <section class="jp-card" id="jpReviewCard" hidden><div class="jp-cardhead"><h2>Pages to check</h2><span class="jp-hint">Pages that are not part of an identified order.</span></div><div class="jp-rgrid" id="jpReview"></div></section>
+    <section class="jp-card"><div class="jp-cardhead"><h2>Routes</h2><span class="jp-hint">In the order of the day's plan</span><span class="spacer"></span><button class="btn sm" id="jpExpand">Expand all</button></div><div id="jpRoutes"></div></section>
+    <section class="jp-card jp-discard" id="jpDiscardCard" hidden><details id="jpDiscardBox"><summary><span class="jp-tag discard">Discarded</span><b><span id="jpDiscardCount">0</span> blank pages</b><span class="jp-hint">Signature-only pages, not printed. Open to check or restore one.</span></summary><div class="jp-rgrid" id="jpDiscard"></div></details></section>
+   </section>
+  </div>
+  <div class="jp-reprint" id="jpReprint" hidden>
+   <section class="jp-card"><h2>Reprint an order</h2><p class="jp-hint">Type the order number (or part of the customer name). Only the original pages of that order are printed, without a cover.</p>
+    <input id="jpQuery" type="search" autocomplete="off" placeholder="Order number" aria-label="Order number">
+    <p class="jp-hint" id="jpRpCount" style="margin-top:8px"></p><ul class="jp-rplist" id="jpRpList"></ul></section>
+   <section class="jp-card" id="jpRpPreview" hidden><div class="jp-outhead"><div><h3 id="jpRpTitle"></h3><span class="jp-hint" id="jpRpInfo"></span></div><span class="spacer"></span><button class="btn pri" id="jpRpPrint">Print order</button><button class="btn" id="jpRpDownload">Download</button></div><div class="jp-pages" id="jpRpPages"></div></section>
+  </div></div>
+  <dialog id="jpViewer"><div class="jp-vhead"><h3 id="jpViewerTitle"></h3><button class="btn" id="jpViewerClose">Close</button></div><div class="jp-vbody" id="jpViewerBody"></div></dialog>`;
+}
+function jpRender(){
+  const dk=jpDayKey();
+  $('jpDay').innerHTML=DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)} · Week ${esc(d.week)}</option>`).join('')||'<option>No days loaded</option>';
+  jpRenderInputs();
+  jpRenderFiles();
+  const p=JS.plan;
+  if(!p){ $('jpTiles').textContent=''; $('jpIssuesCard').hidden=true; $('jpReviewCard').hidden=true; $('jpDiscardCard').hidden=true;
+    $('jpRoutes').innerHTML='<p class="jp-empty">Routes will appear here after you import a PDF.</p>'; jpExportState(); if(JS.mode==='reprint') jpRenderReprint(); return; }
+  jpTiles(); jpIssues(); jpReview(); jpRoutes(); jpExportState(); if(JS.mode==='reprint') jpRenderReprint();
+}
+function jpRenderInputs(){
+  const dk=jpDayKey(); const res=dk?jpResources(dk):{rows:[]}, rea=dk?jpReallocations(dk):[];
+  const applied=JS.plan?JS.plan.exceptionFor:null; const issueByLine={};
+  if(JS.plan) JS.plan.issues.forEach(i=>{ if(i.source==='exceptions'&&i.line) issueByLine[i.line]=i; });
+  $('jpRes').innerHTML = !dk ? '<p class="jp-empty">Load a planning day first.</p>' : !res.rows.length ? '<div class="note warn">No routes with a shipment number on this day. Fill them in the Resources tab.</div>'
+    : `<div class="jp-hint">${res.rows.length} shipments on ${new Set(res.rows.map(r=>r.route)).size} routes.</div><div class="jp-tbl"><table><thead><tr><th>Shipment</th><th>Route / Bay</th><th>Driver</th></tr></thead><tbody>${res.rows.map(r=>`<tr><td class="ords">${esc(r.shipment)}</td><td><b>${esc(r.route)}</b></td><td>${esc(r.driver)}</td></tr>`).join('')}</tbody></table></div>`;
+  $('jpRea').innerHTML = !rea.length ? '<p class="jp-empty" style="padding:8px">No reallocations: every order is on the route of the planning file.</p>'
+    : `<div class="jp-hint">${rea.length} order${rea.length>1?'s':''}${applied?` · ${applied.size} applied to the PDF`:''}</div><div class="jp-tbl"><table><thead><tr><th>Order</th><th>Customer</th><th>From</th><th>To</th></tr></thead><tbody>${rea.map(r=>{ const iss=issueByLine[r.line];
+      return `<tr class="${iss?(iss.level==='error'?'bad':'inf'):''}" title="${esc(iss?iss.message:r.why)}"><td class="ords">${esc(r.order)}</td><td>${esc(r.name||'')}<div class="jp-hint">${esc(r.why)}</div></td><td>${esc(r.from)}</td><td><b>${esc(r.route)}</b></td></tr>`; }).join('')}</tbody></table></div>`;
+}
+function jpRenderFiles(){
+  const ul=$('jpFiles'); ul.textContent=''; if(!JS.org) return;
+  JS.org.sources.forEach((s,i)=>{ const L={}; s.parsedPages.forEach(p=>{ const k=p.status==='blank'?'Signature-only':(p.status==='review'&&p.layoutId==='generic'?'Not recognised':p.layoutName); L[k]=(L[k]||0)+1; });
+    ul.appendChild(jh('li',null, jh('div',null, jh('div',{class:'name',text:s.name}), jh('div',{class:'meta',text:s.numPages+' pages  |  '+Object.keys(L).map(k=>k+' '+L[k]).join(', ')})),
+      jh('button',{class:'remove',title:'Remove file','aria-label':'Remove '+s.name,text:'×',onclick:()=>{ JS.org.removeFile(i); jpFilesChanged(); }}))); });
+}
+function jpTiles(){
+  const s=JS.plan.stats;
+  const tiles=[{k:'Source pages',v:s.sourcePages,s:JS.org.sources.length+' file(s)'},{k:'Orders',v:s.orders,s:s.orderPages+' order pages'},{k:'Shipments',v:s.shipments},{k:'Routes',v:s.routes,s:JS.plan.routes.length?'one cover each':''},
+    {k:'Reallocations',v:s.exceptionsApplied+' / '+s.exceptionsTotal,s:'applied',cls:s.exceptionsApplied<s.exceptionsTotal?'warn':''},{k:'Blank discarded',v:s.discardedPages,s:'signature-only pages',cls:'good'},{k:'To check',v:s.reviewPages,s:'printed in REVIEW',cls:s.reviewPages?'warn':'good'}];
+  const el=$('jpTiles'); el.textContent='';
+  tiles.forEach(t=>el.appendChild(jh('div',{class:'jp-tile '+(t.cls||'')}, jh('div',{class:'k',text:t.k}), jh('div',{class:'v',text:typeof t.v==='number'?jfmt(t.v):t.v}), t.s?jh('div',{class:'s',text:t.s}):null)));
+}
+function jpIssues(){
+  const issues=JS.plan.issues; $('jpIssuesCard').hidden=!issues.length;
+  const counts={all:issues.length,error:0,warning:0,info:0}; issues.forEach(i=>counts[i.level]++);
+  const f=$('jpIssueFilters'); f.textContent='';
+  [['all','All'],['error','Errors'],['warning','Warnings'],['info','Info']].forEach(x=>{ if(x[0]!=='all'&&!counts[x[0]]) return;
+    f.appendChild(jh('button',{class:'chip'+(JS.issueFilter===x[0]?' on':''),text:x[1]+' '+counts[x[0]],onclick:()=>{ JS.issueFilter=x[0]; jpIssues(); }})); });
+  const ul=$('jpIssues'); ul.textContent='';
+  issues.filter(i=>JS.issueFilter==='all'||i.level===JS.issueFilter).forEach(i=>ul.appendChild(jh('li',null, jh('span',{class:'jp-badge '+(i.blocking?'blocking':i.level),text:i.blocking?'Must fix':i.level}), jh('span',{text:i.message}))));
+}
+function jpReview(){
+  const p=JS.plan, org=JS.org; const grid=$('jpReview'); grid.textContent='';
+  const discardReason=new Map(p.discarded.map(d=>[d.page.ref,d.reason])), reviewRefs=new Set(p.reviewPages.map(pg=>pg.ref));
+  const items=org.pages.filter(pg=>pg.parsed.status!=='ok'||JS.overrides[pg.ref]).map(pg=>({pg, kind:discardReason.has(pg.ref)?'discard':(reviewRefs.has(pg.ref)?'review':'attached'), reason:discardReason.get(pg.ref), defaultKind:pg.parsed.status==='blank'?'discard':'review'}));
+  const rank={review:0,attached:1,discard:2}; items.sort((a,b)=>(rank[a.kind]-rank[b.kind])||(a.pg.seq-b.pg.seq));
+  const toCheck=items.filter(it=>it.kind!=='discard'), discarded=items.filter(it=>it.kind==='discard');
+  $('jpReviewCard').hidden=!toCheck.length; $('jpDiscardCard').hidden=!discarded.length; $('jpDiscardCount').textContent=discarded.length;
+  const dgrid=$('jpDiscard'); dgrid.textContent=''; JS.discardThumbs=[];
+  const orderOptions=p.orders.slice().sort((a,b)=>a.order.localeCompare(b.order));
+  items.forEach(it=>{ const pg=it.pg, ov=JS.overrides[pg.ref];
+    const img=jh('img',{class:'thumb',alt:'Page '+(pg.pageIndex+1),onclick:()=>jpViewer('Source '+JP.planner.pageLabel(pg),[pg])});
+    if(it.kind==='discard') JS.discardThumbs.push(()=>{ if(!img.src) jpThumb(img,pg,230); }); else jpThumb(img,pg,230);
+    const prevO=jpNeighbour(pg,-1), nextO=jpNeighbour(pg,1);
+    const current=ov?(ov.action==='attach'?'attach:'+ov.orderKey:ov.action):it.defaultKind;
+    const sel=jh('select',{'aria-label':'Action for page '+(pg.pageIndex+1),onchange:ev=>jpOverride(pg,ev.target.value,it.defaultKind)});
+    sel.appendChild(jh('option',{value:'review',text:'Print in REVIEW section'})); sel.appendChild(jh('option',{value:'discard',text:'Discard this page'}));
+    const sug=[prevO,nextO].filter(Boolean).filter((o,i,a)=>a.indexOf(o)===i);
+    if(sug.length){ const g1=jh('optgroup',{label:'Join the order next to it'}); sug.forEach(o=>g1.appendChild(jh('option',{value:'attach:'+o.key,text:o.order+'  '+(o.customer||'')}))); sel.appendChild(g1); }
+    const g2=jh('optgroup',{label:'Join another order'}); orderOptions.forEach(o=>{ if(sug.indexOf(o)<0) g2.appendChild(jh('option',{value:'attach:'+o.key,text:o.order+'  '+(o.customer||'')+'  ('+o.shipment+')'})); }); sel.appendChild(g2);
+    sel.value=current;
+    const reason=it.kind==='discard'?it.reason:it.kind==='attached'?'Joined to order '+ov.orderKey.split('|')[1]+' by you. Original: '+(pg.parsed.reasons[0]||'not identified'):(pg.parsed.reasons.join('; ')||'Kept for review by you');
+    (it.kind==='discard'?dgrid:grid).appendChild(jh('div',{class:'jp-ritem '+(it.kind==='discard'?'discarded':'')}, img,
+      jh('div',{class:'title'}, jh('span',{class:'jp-tag '+it.kind,text:{review:'Check',discard:'Discarded',attached:'Joined'}[it.kind]}),'Source '+JP.planner.pageLabel(pg)), jh('div',{class:'reason',text:reason}), sel)); });
+  if($('jpDiscardBox').open) JS.discardThumbs.forEach(f=>f());
+}
+function jpNeighbour(pg,dir){ const pages=JS.org.pages;
+  for(let s=pg.seq+dir;s>=0&&s<pages.length;s+=dir){ const p=pages[s]; if(p.fileIndex!==pg.fileIndex) return null;
+    if(p.parsed.status==='ok'){ const key=p.parsed.shipment+'|'+p.parsed.order; return JS.plan.orders.find(o=>o.key===key)||null; } }
+  return null; }
+function jpOverride(pg,value,defaultKind){
+  if(value===(defaultKind==='review'?'review':'discard')) delete JS.overrides[pg.ref];
+  else if(value.indexOf('attach:')===0) JS.overrides[pg.ref]={action:'attach',orderKey:value.slice(7)};
+  else JS.overrides[pg.ref]={action:value};
+  jpReplan();
+}
+function jpRoutes(){
+  const list=$('jpRoutes'); list.textContent=''; const routes=JS.plan.routes;
+  if(!routes.length){ list.appendChild(jh('p',{class:'jp-empty',text:JS.org.sources.length?'No orders were identified in the PDF.':'Routes will appear here after you import a PDF.'})); return; }
+  const kindLabel={bay:'Route',special:'Route',exception:'From reallocations',deferred:'Deferred · do not load',unassigned:'Not in Resources',review:'Pages to check'};
+  routes.forEach(r=>{
+    const box=jh('div',{class:'jp-route '+r.kind+(JS.open.has(r.name)?' open':'')});
+    const body=jh('div',{class:'jp-rbody'});
+    const head=jh('button',{class:'jp-rhead','aria-expanded':JS.open.has(r.name)?'true':'false',onclick:()=>{ if(JS.open.has(r.name)) JS.open.delete(r.name); else JS.open.add(r.name);
+        box.classList.toggle('open'); head.setAttribute('aria-expanded',box.classList.contains('open')); if(box.classList.contains('open')&&!body.firstChild) jpRouteBody(body,r); }},
+      jh('div',{class:'jp-rname'}, jh('small',{text:kindLabel[r.kind]||'Route'}), r.name),
+      jh('div',{class:'jp-rships',text:(r.info?r.info+'  ·  ':'')+(r.shipments.length?'Shipments: '+r.shipments.join(', '):'')}),
+      jh('div',{class:'jp-rnum'}, jh('b',{text:jfmt(r.orders.length)}), r.kind==='review'?'pages':'orders'),
+      jh('div',{class:'jp-rnum'}, jh('b',{text:jfmt(r.pageCount)}), 'pages'), jh('span',{class:'jp-caret',text:'›'}));
+    if(JS.open.has(r.name)) jpRouteBody(body,r);
+    box.appendChild(head); box.appendChild(body); list.appendChild(box); });
+}
+function jpRouteBody(body,r){
+  const warnKeys=new Set(JS.plan.issues.filter(i=>i.orderKey).map(i=>i.orderKey));
+  const table=jh('table',null, jh('thead',null, jh('tr',null, jh('th',{text:'#'}), jh('th',{text:'Order Number'}), jh('th',{text:r.kind==='review'?'Reason':'Customer Name'}), jh('th',{text:'Shipment'}), jh('th',{text:'Pages'}), jh('th',{text:'Note'}), jh('th',{text:''}))));
+  const tb=jh('tbody');
+  r.orders.forEach((o,i)=>{ const note=o.movedFrom?jh('span',{class:'jp-moved',text:'Moved from '+o.movedFrom}):(warnKeys.has(o.key)?jh('span',{class:'jp-warn',text:'See Checks'}):'');
+    tb.appendChild(jh('tr',null, jh('td',{class:'num',text:i+1}), jh('td',{text:o.order||'-'}), jh('td',{text:r.kind==='review'?o.reason:(o.customer||'(not found)')}), jh('td',{text:o.shipment||'-'}), jh('td',{class:'num',text:o.pages.length}), jh('td',null,note),
+      jh('td',null, jh('button',{class:'btn sm',text:'View',onclick:()=>jpViewer((o.order?'Order '+o.order:'Page to check')+(o.customer?'  |  '+o.customer:''),o.pages)})))); });
+  table.appendChild(tb); body.appendChild(table);
+}
+// ---------- page images ----------
+function jpThumb(img,pg,width){ const src=JS.org.sources[pg.fileIndex];
+  JP.ui.thumbs.render(src.doc,pg.pageIndex,width,pg.fileIndex+':'+src.name+':'+pg.pageIndex).then(u=>{ img.src=u; }).catch(()=>{ img.alt='Preview not available'; }); }
+function jpViewer(title,pages){ jpImages(title,pages.map((pg,i)=>{ const src=JS.org.sources[pg.fileIndex]; return {doc:src.doc,index:pg.pageIndex,key:pg.fileIndex+':'+src.name+':'+pg.pageIndex,caption:'Page '+(i+1)+' of '+pages.length+'  |  source '+JP.planner.pageLabel(pg)}; })); }
+function jpImages(title,items){
+  $('jpViewerTitle').textContent=title; const body=$('jpViewerBody'); body.textContent='';
+  items.forEach(it=>{ const img=jh('img',{alt:it.caption}); JP.ui.thumbs.render(it.doc,it.index,480,it.key).then(u=>{ img.src=u; }).catch(()=>{ img.alt='Preview not available'; }); body.appendChild(jh('figure',null,img,jh('figcaption',{text:it.caption}))); });
+  $('jpViewer').showModal();
+}
+const jpObserver='IntersectionObserver' in window ? new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting&&e.target.__render){ const f=e.target.__render; e.target.__render=null; jpObserver.unobserve(e.target); f(); } }),{rootMargin:'200px'}) : null;
+function jpPageGrid(container,items,title){
+  container.textContent='';
+  items.forEach((it,i)=>{ const img=jh('img',{alt:it.caption,loading:'lazy'});
+    const fig=jh('figure',{class:it.cover?'cover':'',title:'Click to enlarge',onclick:()=>jpImages(title,items.slice(i).concat(items.slice(0,i)).slice(0,6))}, img, jh('figcaption',{text:it.caption}));
+    container.appendChild(fig);
+    const draw=()=>JP.ui.thumbs.render(it.doc,it.index,200,it.key).then(u=>{ img.src=u; }).catch(()=>{ img.alt='Preview not available'; });
+    if(i<8||!jpObserver) draw(); else { fig.__render=draw; jpObserver.observe(fig); } });
+}
+// ---------- import ----------
+async function jpAddFiles(fileList){
+  const files=Array.from(fileList).filter(f=>/\.pdf$/i.test(f.name)||f.type==='application/pdf'); if(!files.length) return;
+  const prog=$('jpReadProgress');
+  try{ jpProgress(prog,0,'Loading the PDF reader…'); await loadPdfLibs(); }catch(e){ prog.hidden=true; toast(e.message); return; }
+  if(!JS.org) JS.org=new JP.Organiser();
+  for(const f of files){ jpProgress(prog,0,'Reading '+f.name);
+    try{ const bytes=new Uint8Array(await f.arrayBuffer()); await JS.org.addFile({name:f.name,bytes},(d,t)=>jpProgress(prog,d/t,'Reading '+f.name+': page '+d+' of '+t)); }
+    catch(e){ toast('Could not read “'+f.name+'”: '+(e&&e.message||e)); } }
+  prog.hidden=true; jpFilesChanged();
+}
+function jpFilesChanged(){ JS.overrides={}; JP.ui.thumbs.clear(); JS.reprintKey=null; if(JS.org&&!JS.org.sources.length){ JS.plan=null; jpClearResult(); jpRender(); return; } JS.sig=jpSig(); jpReplan(); }
+// ---------- organise ----------
+function jpExportState(){
+  const p=JS.plan, btn=$('jpExport'), hint=$('jpExportHint'); const has=!!(JS.org&&JS.org.pages.length);
+  btn.disabled=!has||!p||p.blocking||!p.routes.length;
+  if(!has) hint.textContent='Import the check-sheet PDF (step 2) to start.';
+  else if(p.blocking) hint.textContent='Fix the items marked "Must fix" in Checks first.';
+  else if(!p.mapping.rows.length) hint.textContent='Resources is empty. Every order will print as UNASSIGNED.';
+  else { const warn=p.issues.filter(i=>i.level!=='info').length;
+    hint.textContent=p.routes.length+' route(s), each with its cover, and '+jfmt(p.routes.reduce((n,r)=>n+r.pageCount,0))+' original pages.'+(warn?' '+warn+' item(s) in Checks.':'')+' You will see the result before printing.'; }
+}
+let jpSeq=0;
+function jpClearResult(){ if(JS.result&&JS.result.doc) JS.result.doc.destroy(); JS.result=null; if($('jpOutput')){ $('jpOutput').hidden=true; $('jpChecks').textContent=''; } }
+function jpStamp(d){ const p=n=>('0'+n).slice(-2); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes()); }
+async function jpOrganise(){
+  const btn=$('jpExport'), prog=$('jpExportProgress'), checks=$('jpChecks'); btn.disabled=true; jpClearResult();
+  try{
+    const res=await JS.org.export(JS.plan,{onProgress:(f,l)=>jpProgress(prog,f,l)});
+    const all=JS.plan.integrity.checks.concat(res.integrity.checks);
+    all.forEach(c=>checks.appendChild(jh('li',{class:c.ok?'':'fail'}, c.name, c.detail?jh('span',{class:'d',text:c.detail}):null)));
+    res.ok=all.every(c=>c.ok); res.id=++jpSeq;
+    const d=dayMap[JS.day]; res.name='CheckSheets_'+(d?d.label.replace(/[^A-Za-z0-9.]+/g,'_')+'_':'')+jpStamp(res.generatedAt)+'.pdf';
+    res.doc=await pdfjsLib.getDocument({data:res.bytes.slice(),isEvalSupported:false}).promise;
+    res.routes=[]; res.manifest.forEach((m,i)=>{ let r=res.routes[res.routes.length-1]; if(!r||r.name!==m.route){ r={name:m.route,pages:[]}; res.routes.push(r); } r.pages.push(i); });
+    res.routes.forEach(r=>{ const pr=JS.plan.routes.find(x=>x.name===r.name); r.kind=pr?pr.kind:'special'; r.orders=pr?pr.orders.length:0; });
+    JS.result=res; JS.outRoute=res.routes.length?res.routes[0].name:null; jpOutput();
+    $('jpOutput').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){ checks.appendChild(jh('li',{class:'fail'},'Organise stopped',jh('span',{class:'d',text:e&&e.message||String(e)}))); }
+  finally{ prog.hidden=true; jpExportState(); }
+}
+function jpOutput(){
+  const res=JS.result; if(!res) return; $('jpOutput').hidden=false;
+  $('jpOutInfo').textContent=jfmt(res.manifest.length)+' pages, '+res.routes.length+' routes'+(res.ok?', all checks passed.':'. Some checks failed, see step 1.');
+  $('jpDownloadAll').textContent=res.ok?'Download all':'Download anyway';
+  const nav=$('jpOutRoutes'); nav.textContent='';
+  res.routes.forEach(r=>nav.appendChild(jh('button',{class:'jp-rtab '+r.kind+(r.name===JS.outRoute?' on':''),onclick:()=>{ JS.outRoute=r.name; jpOutput(); }}, jh('b',{text:r.name}), jh('span',{text:(r.kind==='review'?r.orders+' to check':r.orders+' orders')+' | '+r.pages.length+' p.'}))));
+  const route=res.routes.find(r=>r.name===JS.outRoute); if(!route) return;
+  const covers=route.pages.filter(i=>res.manifest[i].type==='cover').length;
+  $('jpOutTitle').textContent=route.name;
+  $('jpOutRouteInfo').textContent=covers+' cover page(s) + '+(route.pages.length-covers)+' order page(s). Pages '+(route.pages[0]+1)+' to '+(route.pages[route.pages.length-1]+1)+' of the full PDF.';
+  const byKey=new Map(JS.plan.orders.map(o=>[o.key,o])), seen={};
+  jpPageGrid($('jpOutPages'), route.pages.map(i=>{ const m=res.manifest[i]; let cap;
+    if(m.type==='cover') cap='Cover '+(m.coverIndex+1); else { const o=byKey.get(m.orderKey); seen[m.orderKey]=(seen[m.orderKey]||0)+1; cap=o?'Order '+o.order+'  ('+seen[m.orderKey]+'/'+o.pages.length+')':'Page to check'; }
+    return {doc:res.doc,index:i,key:'out'+res.id+':'+i,caption:cap,cover:m.type==='cover'}; }), route.name);
+}
+function jpDownload(bytes,name){ const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})); const a=jh('a',{href:url,download:name}); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000); }
+function jpPrintBytes(bytes){
+  const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})); const old=$('jpPrintFrame'); if(old) old.remove();
+  const fr=jh('iframe',{id:'jpPrintFrame',src:url,title:'Print',style:'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0'});
+  fr.addEventListener('load',()=>setTimeout(()=>{ try{ fr.contentWindow.focus(); fr.contentWindow.print(); }catch(e){ window.open(url,'_blank'); } },400));
+  document.body.appendChild(fr);
+}
+async function jpBusy(btn,label,fn){ const old=btn.textContent; btn.disabled=true; btn.textContent=label; try{ await fn(); }catch(e){ toast(e&&e.message||String(e)); } finally{ btn.disabled=false; btn.textContent=old; } }
+// ---------- reprint ----------
+function jpRenderReprint(){
+  const has=!!(JS.org&&JS.org.pages.length); const q=$('jpQuery').value.trim(); const list=$('jpRpList'); list.textContent='';
+  if(!has){ $('jpRpCount').textContent='Import the check-sheet PDF in Organise first.'; $('jpRpPreview').hidden=true; return; }
+  const orders=JS.plan?JS.plan.orders:[];
+  if(!q){ $('jpRpCount').textContent=jfmt(orders.length)+' orders in the loaded PDF.'; $('jpRpPreview').hidden=true; return; }
+  const qu=q.toUpperCase(), digits=/^\d+$/.test(q);
+  const m=orders.filter(o=>o.order.indexOf(q)>=0||(!digits&&(o.customer||'').toUpperCase().indexOf(qu)>=0));
+  const score=o=>o.order===q?0:(o.order.indexOf(q)===0?1:2); m.sort((a,b)=>(score(a)-score(b))||a.order.localeCompare(b.order));
+  $('jpRpCount').textContent=m.length?(m.length>30?'Showing 30 of '+m.length+' matches. Type more digits.':m.length+' match(es).'):'No order found for "'+q+'".';
+  m.slice(0,30).forEach(o=>list.appendChild(jh('li',null, jh('button',{class:JS.reprintKey===o.key?'on':'',onclick:()=>jpSelectReprint(o.key)}, jh('span',{class:'o',text:o.order}), jh('span',{class:'c',text:o.customer||'(customer not found)'}), jh('span',{class:'m',text:'Shipment '+o.shipment+'  |  '+o.route+'  |  '+o.pages.length+' page(s)'})))));
+  if(m.length===1&&JS.reprintKey!==m[0].key) jpSelectReprint(m[0].key);
+  else if(!m.some(o=>o.key===JS.reprintKey)){ JS.reprintKey=null; $('jpRpPreview').hidden=true; }
+}
+function jpSelectReprint(key){
+  JS.reprintKey=key; const o=JS.plan.orders.find(x=>x.key===key); if(!o) return;
+  $('jpRpList').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.querySelector('.o').textContent===o.order));
+  $('jpRpPreview').hidden=false; $('jpRpTitle').textContent='Order '+o.order;
+  $('jpRpInfo').textContent=(o.customer||'(customer not found)')+'  |  Shipment '+o.shipment+'  |  '+o.route+'  |  '+o.pages.length+' page(s)';
+  jpPageGrid($('jpRpPages'), o.pages.map((pg,i)=>{ const src=JS.org.sources[pg.fileIndex]; return {doc:src.doc,index:pg.pageIndex,key:pg.fileIndex+':'+src.name+':'+pg.pageIndex,caption:'Page '+(i+1)+' of '+o.pages.length}; }), 'Order '+o.order);
+}
+const jpRpOrder=()=>JS.plan&&JS.plan.orders.find(x=>x.key===JS.reprintKey);
+function jpMode(m){ JS.mode=m; $('jpOrganise').hidden=m!=='organise'; $('jpReprint').hidden=m!=='reprint'; document.querySelectorAll('[data-jpmode]').forEach(b=>b.classList.toggle('on',b.dataset.jpmode===m)); if(m==='reprint'){ jpRenderReprint(); $('jpQuery').focus(); } }
+// ---------- wiring ----------
+function jpWire(){
+  const dz=$('jpDrop'), fi=$('jpFile');
+  fi.addEventListener('change',()=>{ const f=Array.from(fi.files); fi.value=''; jpAddFiles(f); });
+  dz.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fi.click(); } });
+  dz.addEventListener('dragover',e=>{ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer&&e.dataTransfer.files.length) jpAddFiles(e.dataTransfer.files); });
+  $('jpDay').addEventListener('change',e=>{ JS.day=e.target.value; JS.overrides={}; if(pInit) selectDay(JS.day); else P.day=JS.day; JS.sig=jpSig(); jpReplan(); });
+  document.querySelectorAll('[data-jpmode]').forEach(b=>b.addEventListener('click',()=>jpMode(b.dataset.jpmode)));
+  $('tab-print').addEventListener('click',e=>{ const g=e.target.closest('[data-jpgo]'); if(g) showTab(g.dataset.jpgo); });
+  $('jpExport').addEventListener('click',jpOrganise);
+  $('jpExpand').addEventListener('click',()=>{ if(!JS.plan) return; const all=JS.plan.routes.every(r=>JS.open.has(r.name)); JS.plan.routes.forEach(r=>{ if(all) JS.open.delete(r.name); else JS.open.add(r.name); }); $('jpExpand').textContent=all?'Expand all':'Collapse all'; jpRoutes(); });
+  $('jpDownloadAll').addEventListener('click',()=>{ if(JS.result) jpDownload(JS.result.bytes,JS.result.name); });
+  $('jpPrintAll').addEventListener('click',()=>{ if(JS.result) jpPrintBytes(JS.result.bytes); });
+  $('jpPrintRoute').addEventListener('click',e=>{ if(JS.result) jpBusy(e.currentTarget,'Preparing…',async()=>jpPrintBytes(await JS.org.routePdf(JS.result,JS.outRoute))); });
+  $('jpDownloadRoute').addEventListener('click',e=>{ if(JS.result) jpBusy(e.currentTarget,'Preparing…',async()=>jpDownload(await JS.org.routePdf(JS.result,JS.outRoute),'CheckSheets_'+JS.outRoute.replace(/[^A-Z0-9_-]+/gi,'_')+'_'+jpStamp(JS.result.generatedAt)+'.pdf')); });
+  $('jpQuery').addEventListener('input',jpRenderReprint);
+  $('jpQuery').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('jpRpList').querySelector('button'); if(b) b.click(); } });
+  $('jpRpPrint').addEventListener('click',e=>{ const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpPrintBytes(await JS.org.orderPdf(o))); });
+  $('jpRpDownload').addEventListener('click',e=>{ const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpDownload(await JS.org.orderPdf(o),'Reprint_'+o.order+'.pdf')); });
+  $('jpDiscardBox').addEventListener('toggle',()=>{ if($('jpDiscardBox').open) (JS.discardThumbs||[]).forEach(f=>f()); });
+  $('jpViewerClose').addEventListener('click',()=>$('jpViewer').close());
+  $('jpViewer').addEventListener('click',e=>{ if(e.target===$('jpViewer')) $('jpViewer').close(); });
+}
+// for the browser tests
+window.__rpPrint={state:JS, replan:jpReplan, loadPdfLibs};
 
 // ---------- boot ----------
 indexDays(); normalizeState(); save();

@@ -4,6 +4,24 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.0 — 2026-11-09
+
+### Features
+- **Check Sheet Print tab.** The JDE Print Organiser is now part of the planner. Import the check-sheet PDF and it is organised by the day's plan: a cover per route, routes in plan order, pages checked before printing, blank signature pages left out, **Reprint an order**.
+  - **Resources** come from the Resources tab; **Reallocations** (the old "Exceptions") are made automatically from the moves and deferrals in Plan the day. Deferred orders print in a **DEFERRED** section.
+  - **Organise PDFs** is at the top, above Import PDF.
+  - pdf.js and pdf-lib are loaded from the CDN on first use, so the page itself stays small.
+- **Resources tab.** The day's routes as an editable sheet (ID, Shipment Number, Route / Bay, Driver, Helper, Truck, Drops, Kgs, Pallets, DIPS Total KM \*, Estimated Time \*, Comments) used by planning and printing.
+  - Excel-like: select several cells, copy and paste blocks (also from / to Excel), add and delete rows, add your own columns, hide and show columns.
+  - **Upload sheet** into the open day; **Export Excel** in the RESOURCES file layout.
+  - Edits are saved with the plan and listed in the change report.
+- **Light and dark theme** in Customize, for every user (kept in the browser).
+
+### Edits
+- **Customize** is visible to everyone (theme). Bay colours are still Master only.
+- **Route names for one day** removed from Customize: rename a route in the Resources tab (Route / Bay column).
+- The demo week has fake check-sheet PDFs (`REPORTS/week_46/CheckSheets_*.pdf`). PDFs are git-ignored everywhere else.
+
 ## v0.10.5 — 2026-11-06
 
 ### Features
