@@ -43,6 +43,7 @@ fs.writeFileSync(path.join(OUT,'MASTER_DATA','users.json'),JSON.stringify({compa
 // ---- one week of reports: week 46, Mon 09.11 – Fri 13.11.2026
 const WEEK=[['Mon','09/11/2026'],['Tue','10/11/2026'],['Wed','11/11/2026'],['Thu','12/11/2026'],['Fri','13/11/2026']];
 let load=74600001, order=5600001;
+const SHEETS={};   // orders per weekday, for the fake check-sheet PDFs
 WEEK.forEach(([wd,date],di)=>{
   const plan=[['Load Number','Order Number','Address Number Ship To','Ship To Name','Address Line 2','Address Line 3','Date Promised Shipment','Weight','Route Code']];
   const res=[['Shipment','Bay','Driver','Helper','Vehicle','Number of Pallets','DIPS Total KM','General Area','Drops','Kgs']];
@@ -53,6 +54,7 @@ WEEK.forEach(([wd,date],di)=>{
     const L=loads[lk]; L.drops++; const n=1+Math.floor(rnd()*3);
     for(let i=0;i<n;i++){ const w=Math.round(40+rnd()*460); L.kg+=w; const o=order++;
       plan.push([L.id,o,c.id,c.name,c.addr.split(', ')[0],c.addr.split(', ')[1],date,w,'R'+c.bay.slice(4)]);
+      (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, addr:c.addr, date});
       prod.push([o,pick(['KEG50','CS24','EA1']),pick(['Cider keg 50L','Cider case 24x500ml','Point of sale pack']),1+Math.floor(rnd()*8),pick(['KEGS','CS','EA'])]); }
     if(rnd()<.15) upl.push([c.id,c.name,'KEG50',1+Math.floor(rnd()*3),pick(['Empty kegs','Damaged stock'])]);
   });
@@ -61,3 +63,10 @@ WEEK.forEach(([wd,date],di)=>{
   write(`REPORTS/week_46/PROD_${wd}.xlsx`,'Sheet1',prod); if(upl.length>1) write(`REPORTS/week_46/UPLIFTS_${wd}.xlsx`,'Sheet1',upl);
 });
 console.log(`Demo data written to ${OUT}: ${customers.length} customers, ${order-5600001} orders, ${load-74600001} loads over 5 days`);
+// ---- fake check-sheet PDFs (JDE Offloading Sheet layout), one per day, for the Check Sheet Print tab.
+// Pages come in load order, as JDE prints them; one signature-only page is added to show the blank-page check.
+(async()=>{ const {checkSheetPdf}=require('../lib/checksheet');
+  for(const wd of Object.keys(SHEETS)){ const list=SHEETS[wd].slice().sort((a,b)=>a.load.localeCompare(b.load)||a.order.localeCompare(b.order));
+    fs.writeFileSync(path.join(OUT,'REPORTS','week_46',`CheckSheets_${wd}.pdf`), await checkSheetPdf(list,{blankAfter:[2]})); }
+  console.log('Check-sheet PDFs written: '+Object.keys(SHEETS).map(w=>'CheckSheets_'+w+'.pdf').join(', '));
+})();

@@ -8,6 +8,8 @@
 - produce a change report used to update other systems;
 - share plans as `.json` files or view-only `.html` snapshots;
 - tag every order's docket (P&W / Check Sheet);
+- keep each day's routes, crews and trucks in an Excel-like **Resources** sheet;
+- organise the JDE check-sheet PDF by route, in the order of the day's plan (**Check Sheet Print**);
 - give each person a role (Master, Manager, User, Viewer) from a users file.
 
 Open `Route Planner.html` in Chrome or Edge.
@@ -29,7 +31,8 @@ This repository is public, so no customer, staff or operational data is committe
 | `users.json` (people, roles, folders) | Read from `MASTER_DATA` on the start window. Nobody can use the planner without picking a name from it and passing the folder check. See [users-config.md](docs/users-config.md) |
 | `MASTER_DEL_DETAILS.xlsx` (customer master) | Read from `MASTER_DATA` when the shared folder is linked (or **Load day** → drop the file). It's kept in the browser and copied into saved plans and snapshots |
 | `FIXED_ROUTES_DIPSDATA.xls` | Same as the customer master |
-| Planning + RESOURCES (`DIPS_Plan_<wd>.xlsx`, `RES_<wd>.xlsx`) | **Load day** |
+| Planning + RESOURCES (`DIPS_Plan_<wd>.xlsx`, `RES_<wd>.xlsx`) | **Load day**, or **Resources → Upload sheet** for RESOURCES |
+| Check-sheet PDF (JDE Offloading Sheet / Delivery Docket) | **Check Sheet Print → Import PDF**. Read in the browser only, never saved with the plan. PDFs are git-ignored (except the demo week's fake ones) |
 
 ## Shared folder
 

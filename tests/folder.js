@@ -2,7 +2,8 @@
 // The File System Access API is mocked in the page; all spreadsheets are made-up data.
 const {chromium}=require('playwright'); const XLSX=require('xlsx'); const path=require('path');
 const APP=path.resolve(process.argv[2]||path.join(__dirname,'..','Route Planner.html'));
-const libs={'leaflet.js':require.resolve('leaflet/dist/leaflet.js'),'leaflet.css':require.resolve('leaflet/dist/leaflet.css'),'xlsx.full.min.js':require.resolve('xlsx/dist/xlsx.full.min.js')};
+const libs={'leaflet.js':require.resolve('leaflet/dist/leaflet.js'),'leaflet.css':require.resolve('leaflet/dist/leaflet.css'),'xlsx.full.min.js':require.resolve('xlsx/dist/xlsx.full.min.js'),
+  'pdf.min.js':require.resolve('pdfjs-dist/build/pdf.min.js'),'pdf.worker.min.js':require.resolve('pdfjs-dist/build/pdf.worker.min.js'),'pdf-lib.min.js':require.resolve('pdf-lib/dist/pdf-lib.min.js')};
 const book=(sheet,rows)=>{ const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),sheet); return XLSX.write(wb,{type:'base64',bookType:'xlsx'}); };
 const master=book('Sheet1',[['Ship To','Name','Postal Code','Address','latitude','longitude','BAYS','Monday','Tuesday','Wednesday','Thursday','Friday','Time Window'],
   [90000001,'TEST PUB ONE','D01 AA11','1 Main St',53.35,-6.26,'BAY 01','','Y','','Y','',''],[90000002,'TEST PUB TWO','D02 BB22','2 High St',53.33,-6.25,'BAY 02','Y','','Y','','','10:00-15:00']]);

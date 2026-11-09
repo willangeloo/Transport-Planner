@@ -5,7 +5,8 @@ const {chromium}=require('playwright'); const fs=require('fs'); const path=requi
 const APP=path.resolve(process.argv[2]||path.join(__dirname,'..','..','Route Planner.html'));
 const DEMO=path.resolve(process.argv[3]||path.join(__dirname,'..','..','demo','Route_planning'));
 const IMG=process.argv[4]===undefined?path.join(__dirname,'..','..','docs','img'):(process.argv[4]?path.resolve(process.argv[4]):null);
-const libs={'leaflet.js':require.resolve('leaflet/dist/leaflet.js'),'leaflet.css':require.resolve('leaflet/dist/leaflet.css'),'xlsx.full.min.js':require.resolve('xlsx/dist/xlsx.full.min.js')};
+const libs={'leaflet.js':require.resolve('leaflet/dist/leaflet.js'),'leaflet.css':require.resolve('leaflet/dist/leaflet.css'),'xlsx.full.min.js':require.resolve('xlsx/dist/xlsx.full.min.js'),
+  'pdf.min.js':require.resolve('pdfjs-dist/build/pdf.min.js'),'pdf.worker.min.js':require.resolve('pdfjs-dist/build/pdf.worker.min.js'),'pdf-lib.min.js':require.resolve('pdf-lib/dist/pdf-lib.min.js')};
 // ---- the demo folder as an in-memory tree (PLANS starts empty; what the app saves is written back at the end)
 const readTree=d=>Object.fromEntries(fs.readdirSync(d,{withFileTypes:true}).filter(e=>e.name!=='PLANS').map(e=>{ const q=path.join(d,e.name);
   return [e.name, e.isDirectory()?readTree(q):{b64:fs.readFileSync(q).toString('base64'),mod:Math.floor(fs.statSync(q).mtimeMs)}]; }));
@@ -166,11 +167,36 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await shot('report-after');
   const [dl]=await Promise.all([p.waitForEvent('download'), p.click('#xlsBtn')]); ok(/Route changes .*\.xlsx$/.test(dl.suggestedFilename()),'full report exported to Excel: '+dl.suggestedFilename());
 
-  // 11. CUSTOMIZE (Master only) — bay colour and a route name for one day
-  ok(await p.isVisible('#navCustom'),'Customize tab visible for Master'); await p.click('#navCustom');
+  // 11. CUSTOMIZE — theme (everyone) and bay colours (Master); route names moved to the Resources tab
+  ok(await p.isVisible('#navCustom'),'Customize tab visible'); await p.click('#navCustom');
   await p.$eval('input[data-cucol="BAY 01"]',e=>{ e.value='#ff00aa'; e.dispatchEvent(new Event('change',{bubbles:true})); });
-  await p.selectOption('#cuDay','D2026-11-09'); const nm=await p.$('input[data-cuname]'); await nm.fill('City Express'); await nm.press('Tab'); await shot('customize');
-  await p.click('nav [data-tab=plan]'); ok((await p.textContent('#pRoutes')).includes('City Express'),'route renamed for Monday');
+  ok(!(await p.$('#cuDay')) && !(await p.$('input[data-cuname]')),'Customize: the route-names section is gone');
+  await p.click('.thopt[data-theme=dark]'); ok(await p.evaluate(()=>document.documentElement.dataset.theme)==='dark','dark theme applied'); await shot('customize-dark');
+  await p.click('nav [data-tab=plan]'); await p.selectOption('#pDay','D2026-11-09'); await shot('plan-dark');
+  await p.click('#navCustom'); await p.click('.thopt[data-theme=light]'); ok(await p.evaluate(()=>document.documentElement.dataset.theme==='light' && JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')).theme==='light'),'light theme back, kept in this browser'); await shot('customize');
+
+  // 11b. RESOURCES — the day's routes as a sheet: rename a route, add a comment
+  await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09');
+  ok(await p.isVisible('#rsGrid th .rs-star[title="DIPS calculation. not updated after reallocations"]'),'Resources: * on DIPS km / estimated time with the hint');
+  const bayCell='#rsGrid td[data-r="0"][data-c="2"]'; await p.click(bayCell); await p.keyboard.type('City Express'); await p.keyboard.press('Enter');
+  ok((await p.textContent(bayCell)).trim()==='CITY EXPRESS','Resources: route renamed by typing in the Route / Bay cell');
+  await p.click('#rsGrid td[data-r="0"][data-c="11"]'); await p.keyboard.type('Keys at the gate'); await p.keyboard.press('Enter'); await shot('resources');
+  await p.click('nav [data-tab=plan]'); ok((await p.textContent('#pRoutes')).includes('CITY EXPRESS'),'renamed route shown in Plan the day');
+
+  // 11c. CHECK SHEET PRINT — the day's check-sheet PDF, organised by the plan (with the moves as reallocations)
+  await p.click('nav [data-tab=print]'); await p.selectOption('#jpDay','D2026-11-09');
+  ok(await p.evaluate(()=>{ const a=document.getElementById('jpExport'), b=document.getElementById('jpDrop'); return !!(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING); }),'Organise PDFs button is above Import PDF');
+  await p.setInputFiles('#jpFile',path.join(DEMO,'REPORTS','week_46','CheckSheets_Mon.pdf'));
+  await p.waitForSelector('#jpExport:not([disabled])',{timeout:60000});
+  ok((await p.textContent('#jpRes')).includes('CITY EXPRESS'),'Print: resources come from the Resources tab');
+  { const t=await p.textContent('#jpRea'); console.log('   reallocations: '+t.replace(/\s+/g,' ').slice(0,400)); ok(/Moved in Plan the day|Deferred/.test(t),'Print: reallocations listed from Plan the day'); }
+  await p.click('#jpExport'); await p.waitForSelector('#jpOutput:not([hidden])',{timeout:90000});
+  ok(await p.$$eval('#jpChecks li',x=>x.length>0 && x.every(li=>!li.classList.contains('fail'))),'Print: organised PDF passed every integrity check');
+  { const tabs=await p.$$eval('#jpOutRoutes .jp-rtab b',x=>x.map(e=>e.textContent)); console.log('   route tabs: '+tabs.join(' | '));
+    ok(tabs.includes('CITY EXPRESS') && tabs.indexOf('BAY 02')<tabs.indexOf('BAY 03'),'Print: one cover per route, in the order of the plan, with the Resources name'); }
+  await shot('check-sheet-print');
+  const [pdl]=await Promise.all([p.waitForEvent('download'), p.click('#jpDownloadAll')]); ok(/^CheckSheets_Mon_09\.11_.*\.pdf$/.test(pdl.suggestedFilename()),'organised PDF downloaded: '+pdl.suggestedFilename());
+  await p.click('nav [data-tab=plan]');
 
   // 12. SAVE — straight into PLANS/week_46; then one plan per day of the week
   // each day's plan is saved the afternoon before (the browser clock is set for the save only)
@@ -196,7 +222,8 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   // 13. ROLES — Viewer and User see fewer buttons; a user without a folder can't get in until it is set
   await switchTo('Warehouse');
   await p.click('nav [data-tab=plan]'); await p.click('#expAll');
-  ok(!(await p.isVisible('.drop [data-act=move] >> nth=0')) && !(await p.isVisible('#saveBtn')) && !(await p.isVisible('#navCustom')),'Viewer: no move / save / customize');
+  ok(!(await p.isVisible('.drop [data-act=move] >> nth=0')) && !(await p.isVisible('#saveBtn')),'Viewer: no move / save');
+  await p.click('#navCustom'); ok(await p.isDisabled('input[data-cucol] >> nth=0') && await p.isVisible('.thopt'),'Viewer: can pick a theme, cannot change bay colours');
   await shot('viewer');
   // Jordan has no folder: the check fails and there is NO way to set it from the start window
   await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); await p.click('#modal [data-act="u:Jordan"]');

@@ -10,6 +10,7 @@ demo/Route_planning/
 │   └── users.json                   Alex (Master), Sam (Manager), Jordan + Casey (User), Warehouse (Viewer)
 ├── REPORTS/week_46/                 Mon 09.11 – Fri 13.11.2026
 │   ├── DIPS_Plan_<wd>.xlsx  RES_<wd>.xlsx  PROD_<wd>.xlsx  UPLIFTS_<wd>.xlsx
+│   └── CheckSheets_<wd>.pdf         fake check sheets (Offloading Sheet layout) for Check Sheet Print
 └── PLANS/week_46/                   five plans (one per day, each based on the previous one) + one snapshot
 ```
 
@@ -43,9 +44,11 @@ Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how role
    - allocate the deferred group (it stays one line);
    - change a docket;
    - sort, filter, export and print.
-7. **Customize:** bay colour and a route name.
-8. **Save** (into `PLANS/week_46`), then **Open plan**, then a snapshot.
-9. Switch to **Warehouse**: view-only.
+7. **Customize:** dark / light theme and a bay colour.
+8. **Resources:** rename a route (Route / Bay), add a comment, copy and paste a block, export to Excel.
+9. **Check Sheet Print:** import `REPORTS/week_46/CheckSheets_Mon.pdf` and click **Organise PDFs**: a cover per route in plan order, moved orders on their new route, deferred orders apart.
+10. **Save** (into `PLANS/week_46`), then **Open plan**, then a snapshot.
+11. Switch to **Warehouse**: view-only.
 
 ## Rebuild it
 

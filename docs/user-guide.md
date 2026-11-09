@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.10.6). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.11.0). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
@@ -17,8 +17,10 @@ How to do each task in the Route Planner (v0.10.6). The screenshots come from th
 11. [Docket type (P&W / Check Sheet)](#11-docket-type-pw--check-sheet)
 12. [Change report and exporting changes](#12-change-report-and-exporting-changes)
 13. [Save and share](#13-save-and-share)
-14. [Customize (Master only)](#14-customize-master-only)
-15. [Roles: who can do what](#15-roles-who-can-do-what)
+14. [Resources (routes, crews and trucks)](#14-resources-routes-crews-and-trucks)
+15. [Check Sheet Print](#15-check-sheet-print)
+16. [Customize: theme and bay colours](#16-customize-theme-and-bay-colours)
+17. [Roles: who can do what](#17-roles-who-can-do-what)
 
 ---
 
@@ -61,7 +63,7 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 
 | A registered laptop shows only its owner | Your user on another laptop | No folder set: blocked |
 |---|---|---|
-| ![Laptop registered](img/29-laptop-registered.png) | ![Other laptop](img/30-other-laptop.png) | ![No folder](img/26-folder-check-failed.png) |
+| ![Laptop registered](img/33-laptop-registered.png) | ![Other laptop](img/34-other-laptop.png) | ![No folder](img/30-folder-check-failed.png) |
 
 **Folders and laptops are managed only from inside the planner**, under 👤 → **My folder…** / **Manage users…**. Changes are saved into `MASTER_DATA/users.json`.
 
@@ -70,7 +72,7 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 | **Set a folder** | anyone | their own, Users and Viewers | their own |
 | **Unregister a laptop** (e.g. a replacement laptop) | anyone else | Users and Viewers | — |
 
-![A Master sets a folder](img/27-master-sets-folder.png)
+![A Master sets a folder](img/31-master-sets-folder.png)
 
 > A browser can't read a folder's full path or the Windows user. That's why the laptop registration is what ties a laptop to a person. Use **one browser** (Chrome or Edge) on your laptop: a different browser counts as a different computer.
 
@@ -240,16 +242,48 @@ The **Change report** tab lists every change, with the order numbers staff need 
 
 The company folder link and the users file are **kept**, and the laptop stays registered to its owner. The app goes straight back to **Who is planning?**. Files in the shared folder aren't touched, so save first if you want to keep the plan.
 
-## 14. Customize (Master only)
+## 14. Resources (routes, crews and trucks)
 
-The **Customize** tab is only visible to Master users. Changes are saved with the plan.
+The **Resources** tab shows the routes of a planning day as a sheet: **ID, Shipment Number, Route / Bay, Driver, Helper, Truck, Drops, Kgs, Pallets, DIPS Total KM, Estimated Time, Comments**. Plan the day and Check Sheet Print use what is in this table.
 
-- **Bay colours:** pick a colour for each bay, used on both maps and the route list. **Default** goes back to the automatic colour.
-- **Route names for one day:** give a route a name for one day only, e.g. "City Express" instead of BAY 01.
+- Until you change something, the table shows the day's RESOURCES file (and fixed bays). The first edit stores the table **with the plan**; **↺ Back to files** throws the edits away.
+- **DIPS Total KM \*** and **Estimated Time \*** come from DIPS. Hover the star: *DIPS calculation. not updated after reallocations*.
+- **Edit like Excel:** click a cell and type (or double-click / F2), Enter or Tab to move on, Escape to cancel. Arrow keys move; **drag** or **Shift+click** selects several cells; **Ctrl+C / Ctrl+V** copy and paste blocks, also to and from Excel (pasting past the last row adds rows; one value pasted over a selection fills it); **Delete** clears.
+- **Rows:** **＋ Row** adds a row below the selected cell, **− Delete rows** deletes the selected rows (it asks first if orders are on that load).
+- **Columns:** **＋ Column** adds a column of your own; **×** in a header hides a standard column (or deletes your own); **Columns…** shows hidden ones again (also **General Area**).
+- **Rename a route:** type the new name in **Route / Bay**. It is shown in Plan the day, on the map and on the check-sheet covers.
+- **⤒ Upload sheet:** load a RESOURCES sheet (.xlsx / .csv) into the open day. If the file name has another date (e.g. `RES_Tue 10.11.xlsx`), you're asked which day. Columns with other names become your own columns.
+- **⤓ Export Excel:** the table in the layout of the RESOURCES files (`Shipment, Bay, Driver, Helper, Vehicle, Number of Pallets, DIPS Total KM, General Area, Drops, Kgs`, then Estimated Time, Comments and your columns), named e.g. `RES_Mon 09.11.xlsx`.
+- Every edit is in the change report under **Route details updated**, one line per route.
 
-![Customize](img/24-customize.png)
+![Resources](img/27-resources.png)
 
-## 15. Roles: who can do what
+## 15. Check Sheet Print
+
+Organises the JDE check-sheet PDF (Offloading Sheet Report or Delivery Docket) by the day's plan: one cover per route, then that route's check sheets, ready to print.
+
+1. Open the Route Planner, choose your user and open the last plan (**⤒ Open plan**) or plan the day.
+2. Open **Check Sheet Print** and pick the day.
+3. **Import PDF** (step 2): drop the check-sheet PDF (more than one file is fine). It is read in your browser only and **not** saved with the plan. The PDF reader needs an internet connection the first time.
+4. Check **Resources** (step 3: shipment → route, from the Resources tab) and **Reallocations** (step 4: orders moved or deferred in Plan the day). Rows not found in the PDF are highlighted.
+5. Click **Organise PDFs** (step 1, at the top). Routes come in the order of the plan; reallocated orders go to their new route ("Moved from …" on the cover), deferred orders go to **DEFERRED**, loads not in Resources to **UNASSIGNED**, unclear pages to **REVIEW**, and signature-only pages are left out.
+6. Look through the result, then **Print all**, **Print this route** or **Download**. Every page is checked against the original before you print.
+
+**Reprint an order** (top right) finds one order by number or customer and prints only its original pages, without a cover.
+
+![Check Sheet Print](img/28-check-sheet-print.png)
+
+## 16. Customize: theme and bay colours
+
+- **Theme:** **Light** or **Dark**, for everyone. It's kept in your browser (not in the plan). Printing always uses the light theme.
+- **Bay colours** (Master only, saved with the plan): pick a colour for each bay, used on both maps and the route list. **Default** goes back to the automatic colour.
+- Route names are now changed in the **Resources** tab (the old "route names for one day" section was removed).
+
+| Customize | Dark theme |
+|---|---|
+| ![Customize](img/26-customize.png) | ![Dark theme](img/25-plan-dark.png) |
+
+## 17. Roles: who can do what
 
 | | Master | Manager | User | Viewer |
 |---|:-:|:-:|:-:|:-:|
@@ -260,10 +294,13 @@ The **Customize** tab is only visible to Master users. Changes are saved with th
 | Set the folder path of… | anyone | themselves, Users and Viewers | themselves | themselves |
 | Unregister someone's laptop | anyone else | Users and Viewers | — | — |
 | Add or remove users | ✅ | — | — | — |
-| Customize tab | ✅ | — | — | — |
+| Edit Resources | ✅ | ✅ | ✅ | — |
+| Check Sheet Print | ✅ | ✅ | ✅ | ✅ |
+| Customize: theme | ✅ | ✅ | ✅ | ✅ |
+| Customize: bay colours | ✅ | — | — | — |
 
 A **Viewer** sees the planner like a snapshot, with no editing buttons. Roles are guardrails for this prototype, not security; see [backend-blueprint.md](backend-blueprint.md).
 
 | Viewer | Manage users (Manager) |
 |---|---|
-| ![Viewer](img/25-viewer.png) | ![Manage users](img/28-manage-users.png) |
+| ![Viewer](img/29-viewer.png) | ![Manage users](img/32-manage-users.png) |
