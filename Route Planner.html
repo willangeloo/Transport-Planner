@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.11.0</title>
+<title>Route Planner BETA v0.10.6</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -290,7 +290,7 @@ th.sortable:hover{text-decoration:underline}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.0</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.10.6</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="customers" class="on">Customers</button>
     <button data-tab="plan">Plan the day</button>
@@ -406,7 +406,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.11.0';
+const APP_VERSION='0.10.6';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1061,7 +1061,7 @@ function openDefer(keys){
   upd();
 }
 
-// v0.11.0: every change in the log records the user who made it
+// v0.10.6: every change in the log records the user who made it
 function logPush(...es){ es.forEach(e=>{ if(!e.by) e.by=(typeof FOLDER!=='undefined'&&FOLDER.user)||''; S.log.push(e); }); return S.log.length; }
 // ---------- docket type (v0.10): every order is printed on a P&W (Pink & White) docket or a Check Sheet ----------
 // Orders from the planning file are Check Sheet; inserted orders choose one; it can be changed in the change report.
@@ -2127,7 +2127,7 @@ let UCFG=null;                 // read fresh from MASTER_DATA every time the app
 let GATE=!EMB;                 // true = locked (no user has passed the folder check yet)
 const FOLDER={user:'', handle:null, status:'none', name:''};
 const cfgUser = n => UCFG && UCFG.users.find(u=>u.name===n);
-// v0.11: the company name comes from users.json ("company"); if the file has none it is taken from the file's name (users_Acme.json → Acme)
+// v0.10.6: the company name comes from users.json ("company"); if the file has none it is taken from the file's name (users_Acme.json → Acme)
 const companyFromFile = f => String(f||'').replace(/\.json$/i,'').replace(/^users?[\s_.-]*/i,'').replace(/[_]+/g,' ').trim();
 const companyName = () => UCFG ? (UCFG.company || companyFromFile(UCFG.file)) : '';
 function renderCompany(){ const el=$('coName'); if(!el) return; const c=EMB?'':companyName(); el.hidden=!c; el.textContent=c; el.title=c?'Company: '+c:''; }
@@ -2309,7 +2309,7 @@ async function enterAs(name, quiet){
   FOLDER.user=name; FOLDER.status='ok'; try{ sessionStorage.setItem('rp.user',name); }catch(e){}
   PREFS.name=name; savePrefs(); GATE=false; closeModal(true); setGate(false); toast(`${name} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}” ready`);
   let again=false; try{ again=sessionStorage.getItem('rp.datawin')==='1'; sessionStorage.removeItem('rp.datawin'); }catch(e){}
-  autoRef(!quiet || again);   // v0.11: after choosing a user, the master data and reports window
+  autoRef(!quiet || again);   // v0.10.6: after choosing a user, the master data and reports window
 }
 // ---- folder paths (Master: anyone; Manager: themselves, Users and Viewers; others: themselves)
 async function writeUsersFile(){
@@ -2415,7 +2415,7 @@ async function autoRefCore(win){
     }
   }catch(e){ console.warn('MASTER_DATA not read:', e); }
 }
-// ---- v0.11: after choosing a user — master data (customer master, fixed routes) on one side, the week's reports on the other,
+// ---- v0.10.6: after choosing a user — master data (customer master, fixed routes) on one side, the week's reports on the other,
 // each tagged with the same rule: ✓ loaded = this exact file is in the planner · ⚠ changed = the folder has a different version · not loaded
 async function openDataWindow(){
   if(EMB || GATE || FOLDER.status!=='ok' || !FOLDER.handle) return;
@@ -2614,7 +2614,7 @@ async function saveFile(suggested, build, mime, ext, desc, saveAs){
       return {name:used, picked:true, folder:true, path};
     } }catch(e){ toast('Could not save to the shared folder — choose where to save instead'); }
   }
-  // v0.11.0: Save as chooses only the folder; the file name stays version_date_time_user and can't be changed
+  // v0.10.6: Save as chooses only the folder; the file name stays version_date_time_user and can't be changed
   if(typeof window.showDirectoryPicker==='function' && window.self===window.top){
     let dir=null;
     try{ dir=await window.showDirectoryPicker({id:'routeplanner-saveas', mode:'readwrite'}); }

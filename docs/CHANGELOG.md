@@ -4,7 +4,7 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
-## v0.11.0 — 2026-11-09
+## v0.10.6 — 2026-11-09
 
 ### Features
 - **Company name.** Taken from `users.json` (`company`), or from the users file's name when it has none (`users_Acme.json` → Acme). It's shown top left next to the version, as a heading on the start windows and in the user menu. A Master can change it in **Manage users**; it's saved into `users.json`.
