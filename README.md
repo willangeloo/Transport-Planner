@@ -24,7 +24,7 @@ Open `Route Planner.html` in Chrome or Edge.
 
 ## No data in this repository
 
-This repository is public, so no customer, staff or operational data is committed, and no names are built into the app. The app reads everything at runtime from files the planner chooses. The only spreadsheets in the repository are the invented [demo week](demo/README.md).
+The app reads everything at runtime from files the planner chooses. The only spreadsheets in the repository are the invented [demo week](demo/README.md).
 
 | File | How it gets into the app |
 |---|---|
