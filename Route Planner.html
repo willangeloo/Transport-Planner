@@ -2110,7 +2110,7 @@ $('tab-options').addEventListener('change',e=>{
   const c=e.target.closest('[data-cucol]'); if(c){ if(!guard('custom','customize')) return; S.look.colors[c.dataset.cucol]=c.value; lookChanged(); return; }
 });
 $('tab-options').addEventListener('click',e=>{
-  const t=e.target.closest('[data-theme]'); if(t){ PREFS.theme=t.dataset.theme; savePrefs(); applyTheme(); renderOptions(); return; }
+  const t=e.target.closest('button[data-theme]'); if(t){ PREFS.theme=t.dataset.theme; savePrefs(); applyTheme(); renderOptions(); return; }
   if(e.target.closest('[data-opt=users]')){ openUsersAdmin(); return; }
   const r=e.target.closest('[data-cureset]'); if(!r||!guard('custom','customize')) return; delete S.look.colors[r.dataset.cureset]; lookChanged();
 });

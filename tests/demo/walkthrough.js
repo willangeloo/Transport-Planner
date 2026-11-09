@@ -246,7 +246,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   { const nav=+(await p.textContent('#navCount')); const real=await p.evaluate(()=>JSON.parse(localStorage.getItem('routePlannerBeta.v082.state')).log.filter(e=>e.type!=='load'&&e.type!=='resupd').length);
     ok(nav===real && !(await p.$('[data-sec=load]')) && !(await p.$('[data-sec=res]')),'files loaded (now in Options) and resources edits are not in the change report or its count'); }
   await switchTo('Sam');
-  await p.click('nav [data-tab=options]'); ok(!(await p.$('#opt-users')) && !(await p.$('[data-opt=users]')) && await p.isVisible('#opt-customize'),'Manager: no user control (Master only)'); await p.click('#userBtn'); ok(!(await p.$('#modal [data-act=admin]')),'Manager: no “Manage users” in the user menu'); await closeModal();
+  await p.click('nav [data-tab=options]'); ok(!(await p.$('#opt-users')) && !(await p.$('[data-opt=users]')) && await p.isVisible('#opt-customize'),'Manager: no user control (Master only)'); await p.click('#userBtn'); ok(!(await p.$('#modal [data-act=admin]')),'Manager: no “Manage users” in the user menu'); await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   // the saved plans (collected before the full reset below)
   const plans=await p.evaluate(()=>window.__TREE.PLANS.week_46);
 

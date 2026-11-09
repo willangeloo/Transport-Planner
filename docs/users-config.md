@@ -39,7 +39,7 @@ In JSON every `\` in a Windows path is written twice (`\\`). The demo file is [`
 | Role | Can do |
 |---|---|
 | **MASTER** | Everything: add and remove users, change any role, set **anyone's** folder, unregister anyone's laptop, Customize, undo, reset |
-| **MANAGER** | Everything except adding users and Customize. Can change the role and folder of **Users and Viewers**, unregister their laptops, and set **their own** folder |
+| **MANAGER** | Everything except user control and bay colours. Can set **their own** folder |
 | **USER** | Create and edit (load days, move, defer, split, insert, routes, days, customers, dockets, save), but not remove anything. Can set **their own** folder |
 | **VIEWER** | View only, like a snapshot: open plans, look at the maps and the report, print and export. Can set **their own** folder |
 
@@ -67,7 +67,7 @@ When someone picks their name, the app checks, in this order:
 Only from **inside the planner**, after passing the checks on your own laptop:
 
 - **Your own folder (everyone):** 👤 → **My folder…** → paste the path or **Browse…** → **Save**.
-- **Other users (Master, or Manager for Users and Viewers):** 👤 → **Manage users…** → edit roles and folders, or **Unregister** a laptop (a Master can also add or remove users) → **Save to MASTER_DATA**.
+- **Other users (Master only):** **Options › Users** → **Manage users…** → edit roles and folders, or **Unregister** a laptop (a Master can also add or remove users) → **Save to MASTER_DATA**.
 
 Changes are written straight into `MASTER_DATA/users.json`, so everyone gets them the next time they open the app.
 
