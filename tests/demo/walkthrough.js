@@ -27,7 +27,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   if(IMG) fs.mkdirSync(IMG,{recursive:true});
   const b=await chromium.launch(); const c=await b.newContext({viewport:{width:1360,height:800},acceptDownloads:true}); const errs=[];
   await c.route('**/*',r=>{ const u=r.request().url(); if(u.startsWith('file:')) return r.continue(); const k=Object.keys(libs).find(k=>u.endsWith('/'+k)); return k?r.fulfill({path:libs[k]}):r.abort(); });
-  await c.addInitScript(t=>{ let s=sessionStorage.getItem('__tree'); if(!s){ s=t; } window.__TREE=JSON.parse(s);
+  await c.addInitScript(t=>{ let s=null; try{ s=sessionStorage.getItem('__tree'); }catch(e){ return; } if(!s){ s=t; } window.__TREE=JSON.parse(s);
     window.addEventListener('beforeunload',()=>{ try{ sessionStorage.setItem('__tree',JSON.stringify(window.__TREE)); }catch(e){} }); }, JSON.stringify(TREE));
   await c.addInitScript(MOCK);
   const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message));
@@ -40,6 +40,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
     const settled=async()=>{ if(!(await done())) return false; if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) return false; await p.waitForTimeout(1200); if(await p.waitForSelector('#modal [data-act=dgo]',{timeout:5000}).then(()=>true).catch(()=>false)) return false; return await done(); };   // the app may reload itself once (new customer master)
     for(let i=0;i<40 && !(await settled());i++){
       if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) await p.click('#modal [data-act=dgo]').catch(()=>{});
+      else if(await p.isVisible('#modal [data-act=allow]').catch(()=>false)) await p.click('#modal [data-act=allow]').catch(()=>{});
       else if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=link]').catch(()=>{})]);
       else if(await p.isVisible(`#modal [data-act="u:${name}"]`).catch(()=>false)) await p.click(`#modal [data-act="u:${name}"]`).catch(()=>{});
       else if(await p.isVisible('#modal [data-act=go]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=go]').catch(()=>{})]);
@@ -62,15 +63,15 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   ok(/Demo Transport Ltd/.test(await p.textContent('#coName')) && /Demo Transport Ltd/.test(chk),'company name shown next to the version (top left) and on the start windows');
   await Promise.all([p.waitForEvent('load',{timeout:8000}).catch(()=>null), p.click('#modal [data-act=go]')]);
   // right after choosing the user: master data (left) and reports (right), each compared with the folder
-  for(let i=0;i<20 && !(await p.isVisible('#modal [data-act=dgo]').catch(()=>false));i++){ if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]').catch(()=>{}); await p.waitForTimeout(300); }   // the app reloads once (customer master); the mock folder is linked again
-  await p.waitForSelector('#modal [data-act=dgo]',{timeout:10000}); await p.waitForTimeout(500); const dw=await modalText();
+  for(let i=0;i<40 && !(await p.isVisible('#modal [data-act=dgo]').catch(()=>false));i++){ if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]').catch(()=>{}); await p.waitForTimeout(300); }   // the app reloads once (customer master); the mock folder is linked again
+  await p.waitForSelector('#modal [data-act=dgo]',{timeout:30000}); await p.waitForTimeout(500); const dw=await modalText();
   ok(dw.includes('Demo Transport Ltd') && dw.includes('Master data') && dw.includes('Reports') && /MASTER_DEL_DETAILS\.xlsx\s*✓ loaded/.test(dw) && /FIXED_ROUTES_DIPSDATA\.xlsx\s*✓ loaded/.test(dw) && dw.includes('master data in the planner is the version found in the folder'),'after choosing the user: master data window, both files ✓ loaded (same as the folder)');
   ok(/DIPS_Plan_Mon\.xlsx\s*not loaded/.test(dw) && /0 of 10 loaded/.test(dw),'reports side lists week 46 (nothing loaded yet)'); await shot('data-window');
   await enter('Alex');
   ok((await p.textContent('#cBay')).includes('All bays (58)'),'customer master read from MASTER_DATA automatically (58 customers)');
   ok(/Alex\s*Master/.test(await p.textContent('#userBtn')),'header shows user and role');
-  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Planning|Resources|Change report|Check Sheet Print|Options|Customers' && await p.evaluate(()=>document.getElementById('tab-plan').classList.contains('on')),'tab order: Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers');
-  ok((await p.$$eval('nav button.hl',b=>b.map(x=>x.dataset.tab).join()))==='report,print','Change report and Check Sheet Print tabs are highlighted in the header');
+  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Planning|Resources|Change report|Printing|Options|Customers' && await p.evaluate(()=>document.getElementById('tab-plan').classList.contains('on')),'tab order: Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers');
+  ok((await p.$$eval('nav button.hl',b=>b.map(x=>x.dataset.tab).join()))==='report,print','Change report and Printing tabs are highlighted in the header');
   await p.click('nav [data-tab=customers]'); await p.waitForTimeout(500);
   ok(await p.evaluate(()=>{ const m=__rpMaps.cMap(); const b=m.getBounds(); return m.getSize().x>200 && b.contains([53.6,-6.65]) && b.contains([53.05,-6.15]) && b.contains([53.347,-6.262]); }),'Customers: the map opens fitted to all the customers (not blank)');
   await shot('customers');
@@ -107,6 +108,12 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   { const cnt=()=>p.evaluate(()=>__rpMaps.pCount()); await p.click('#colAll'); const nAll=await cnt(); const ids=await p.$$eval('.route:not(.deferred)',r=>r.map(x=>x.dataset.r));
     await p.click(`.route[data-r="${ids[0]}"] .rhead`); const nA=await cnt(); await p.click(`.route[data-r="${ids[1]}"] .rhead`); const nAB=await cnt();
     await p.click(`#pBays .chip[data-r="${ids[2]}"]`); const nABC=await cnt(); await p.click('#expAll'); const nEx=await cnt();
+    // opening a route fits the map to the open routes; “show on map” never changes the fit; opening a route replaces earlier “show on map” choices
+    { const zoom=()=>p.evaluate(()=>__rpMaps.pMap().getZoom()), bounds=()=>p.evaluate(()=>JSON.stringify(__rpMaps.pMap().getBounds())), fitted=()=>p.evaluate(()=>{ const m=__rpMaps.pMap(), b=m.getBounds(); return __rpMaps.pPoints().every(q=>b.contains(q)); });
+      await p.click('#colAll'); const zAll=await zoom(); await p.click(`.route[data-r="${ids[0]}"] .rhead`); await p.waitForTimeout(500);
+      ok(await fitted() && await zoom()>=zAll,'opening a route fits the map to the open routes'); const b1=await bounds(); await p.click(`#pBays .chip[data-r="${ids[2]}"]`); await p.waitForTimeout(300);
+      ok(await bounds()===b1,'“show on map” does not change the fit of the map');
+      await p.click('#colAll'); await p.click('#bayAll'); await p.click(`.route[data-r="${ids[0]}"] .rhead`); ok(await cnt()===nA,'after “show on map › All”, opening one route shows only that route on the map'); await p.click('#expAll'); }
     ok(nAll>nA && nAB>nA && nABC>nAB && nEx===nAll,`map: all collapsed ${nAll} · bay 1 expanded ${nA} · bays 1+2 ${nAB} · plus bay 3 chosen in “show on map” ${nABC} · all expanded ${nEx}`); }
 
   // 3. MOVE — one drop, then a group
@@ -181,7 +188,14 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const [dl]=await Promise.all([p.waitForEvent('download'), p.click('#xlsBtn')]); ok(/Route changes .*\.xlsx$/.test(dl.suggestedFilename()),'full report exported to Excel: '+dl.suggestedFilename());
 
   // 11. CUSTOMIZE — theme (everyone) and bay colours (Master); route names moved to the Resources tab
-  ok(await p.isVisible('nav [data-tab=options]'),'Options tab visible'); await p.click('nav [data-tab=options]'); ok(await p.isVisible('#opt-customize') && await p.isVisible('#opt-users') && await p.isVisible('#opt-files'),'Options: Customize, Users (Master) and Files loaded sections');
+  ok(await p.isVisible('nav [data-tab=options]'),'Options tab visible'); await p.click('nav [data-tab=options]'); ok(await p.isVisible('#opt-customize') && await p.isVisible('#opt-users') && await p.isVisible('#opt-files'),'Options: Customize, Users (Master) and Files loaded sections'); ok(!!(await p.$('.thopt.on[data-theme=system]')),'the default theme is “Same as the browser”');
+  // DELIVERY SHORTAGES: the Power BI report embedded; its link is kept in users.json (set once by a Master)
+  { await p.click('[data-tab=shortages]'); ok(/not set up yet/.test(await p.textContent('#tab-shortages')) && await p.isVisible('#biNew'),'Delivery Shortages tab: a Master can set the report link');
+    await p.fill('#biNew','https://evil.example.com/report'); await p.click('#biSave'); await p.waitForTimeout(300); ok(!(await p.$('#biFrame')) && /not a Power BI/.test(await p.textContent('#toast')),'only powerbi.com links are accepted');
+    const code='<iframe title="IRLDeliveryShortages" width="1140" height="541.25" src="https://app.powerbi.com/reportEmbed?reportId=00000000-0000-0000-0000-000000000000&amp;autoAuth=true&ctid=11111111-1111-1111-1111-111111111111" frameborder="0" allowFullScreen="true"></iframe>';
+    await p.fill('#biNew',code); await p.click('#biSave'); await p.waitForSelector('#biFrame');
+    ok((await p.getAttribute('#biFrame','src'))==='https://app.powerbi.com/reportEmbed?reportId=00000000-0000-0000-0000-000000000000&autoAuth=true&ctid=11111111-1111-1111-1111-111111111111' && await p.evaluate(()=>JSON.parse(window.__TREE.MASTER_DATA['users.json'].text).deliveryShortagesUrl.startsWith('https://app.powerbi.com/reportEmbed')),'the embed code is accepted: the report is embedded and its link saved in users.json');
+    await shot('delivery-shortages'); await p.click('nav [data-tab=options]'); }
   await p.$eval('input[data-cucol="BAY 01"]',e=>{ e.value='#ff00aa'; e.dispatchEvent(new Event('change',{bubbles:true})); });
   ok(!(await p.$('#cuDay')) && !(await p.$('input[data-cuname]')),'Customize: the route-names section is gone');
   await p.click('.thopt[data-theme=dark]'); ok(await p.evaluate(()=>document.documentElement.dataset.theme)==='dark','dark theme applied'); await shot('customize-dark');
@@ -189,7 +203,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=options]'); await p.click('.thopt[data-theme=system]'); ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')).theme==='system' && document.documentElement.dataset.theme===(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')),'“Same as the browser” theme follows the browser'); await p.click('.thopt[data-theme=light]'); ok(await p.evaluate(()=>document.documentElement.dataset.theme==='light' && JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')).theme==='light'),'light theme back, kept in this browser'); await shot('customize');
 
   // 11b. RESOURCES — the day's routes as a sheet: rename a route, add a comment
-  await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09');
+  await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]');
   ok(await p.isVisible('#rsGrid th .rs-star[title="DIPS calculation. not updated after reallocations"]'),'Resources: * on DIPS km / estimated time with the hint');
   const bayCell='#rsGrid td[data-r="0"][data-c="1"]'; await p.click(bayCell); await p.keyboard.type('City Express'); await p.keyboard.press('Enter');
   ok((await p.textContent(bayCell)).trim()==='CITY EXPRESS','Resources: route renamed by typing in the Route / Bay cell');
@@ -199,8 +213,15 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   // 11c. CHECK SHEET PRINT — the day's check-sheet PDF, organised by the plan (with the moves as reallocations)
   await p.click('nav [data-tab=print]'); await p.selectOption('#jpDay','D2026-11-09');
   ok(await p.evaluate(()=>{ const a=document.getElementById('jpExport').getBoundingClientRect(), b=document.getElementById('jpDrop').getBoundingClientRect(), m=document.getElementById('jpOutput').getBoundingClientRect(); return b.top<a.top && a.right<=m.left+1; }),'steps on the left: Import PDF first … Organise (step 4); merged Routes & Organised PDF on the right');
-  await p.setInputFiles('#jpFile',path.join(DEMO,'REPORTS','week_46','CheckSheets_Mon.pdf'));
-  await p.waitForSelector('#jpExport:not([disabled])',{timeout:60000});
+  await p.click('#jpJde'); await p.waitForSelector('input[name=jde]'); await p.waitForFunction(()=>!document.querySelector('#modal [data-jd]')||![...document.querySelectorAll('#modal [data-jd]')].some(e=>/reading/.test(e.textContent)),null,{timeout:60000}); await p.waitForTimeout(400);
+  { const rows=await p.$$eval('#modal .fbrow',x=>x.map(r=>({n:r.querySelector('.fn').firstChild.textContent.trim(), t:r.querySelector('[data-jd]').textContent.trim()})));
+    const want={Mon:'Mon 09.11',Tue:'Tue 10.11',Wed:'Wed 11.11',Thu:'Thu 12.11',Fri:'Fri 13.11'}; const nm=require('../lib/checksheet').JDE_NAMES;
+    ok(Object.keys(want).every(d=>rows.some(r=>r.n===nm[d] && r.t===want[d])),'JDE folder: the day of each PDF is read from its first pages, not from its name ('+rows.map(r=>r.t).join(', ')+')'); await shot('jde-browser');
+    await p.check(`input[value="CHECK_SHEETS/JDE/week_46/${require('../lib/checksheet').JDE_NAMES.Wed}"]`); await p.click('#jdeOk'); await p.waitForSelector('#jpExport:not([disabled])',{timeout:60000});
+    ok(await p.$eval('#jpDay',s=>s.value)==='D2026-11-11','importing a PDF sets the Printing day from the PDF (Wed 11.11)');
+    await p.click('#jpFiles .remove'); await p.selectOption('#jpDay','D2026-11-09'); await p.click('#jpJde'); await p.waitForSelector('input[name=jde]'); await p.waitForTimeout(800);
+    await p.check(`input[value="CHECK_SHEETS/JDE/week_46/${nm.Mon}"]`); await p.click('#jdeOk'); await p.waitForSelector('#jpExport:not([disabled])',{timeout:60000});
+    await p.click('#jpJde'); await p.waitForSelector('input[name=jde]'); await p.waitForTimeout(800); ok(/✓ loaded/.test(await p.textContent(`#modal .fbrow:has-text("${nm.Mon}")`)),'the imported PDF is tagged “✓ loaded” in the folder window'); await p.click('#modal [data-act=close]'); }
   ok((await p.textContent('#jpRes')).includes('CITY EXPRESS'),'Print: resources come from the Resources tab');
   { const t=await p.textContent('#jpRea'); console.log('   reallocations: '+t.replace(/\s+/g,' ').slice(0,400)); ok(/Moved in Planning|Deferred/.test(t),'Print: reallocations listed from Planning'); }
   await p.click('#jpExport'); await p.waitForSelector('#jpSelBar:not([hidden])',{timeout:90000});
@@ -208,7 +229,8 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   { const tabs=await p.$$eval('#jpRoutes .jp-route .jp-rname',x=>x.map(e=>e.textContent.replace(/^[^]*?(BAY|CITY|DEFERRED|UNASSIGNED)/,'$1').trim())); console.log('   route tabs: '+tabs.join(' | '));
     ok(tabs.includes('CITY EXPRESS') && tabs.indexOf('BAY 02')<tabs.indexOf('BAY 03'),'Print: one cover per route, in the order of the plan, with the Resources name'); }
   await shot('check-sheet-print');
-  const [pdl]=await Promise.all([p.waitForEvent('download'), p.click('#jpDownloadAll')]); ok(/^CheckSheets_Mon_09\.11_.*\.pdf$/.test(pdl.suggestedFilename()),'organised PDF downloaded: '+pdl.suggestedFilename());
+  const [pdl]=await Promise.all([p.waitForEvent('download'), p.click('#jpDownloadAll')]); ok(/^\d{4}-\d\d-\d\d_\d\d\.\d\d_Alex\.pdf$/.test(pdl.suggestedFilename()),'organised PDF named date_time_user: '+pdl.suggestedFilename());
+  ok(await p.evaluate(()=>{ const o=((window.__TREE.CHECK_SHEETS||{}).Organised)||{}; return Object.keys(o).some(f=>/^\d{4}-\d\d-\d\d_\d\d\.\d\d_Alex\.pdf$/.test(f)); }),'the organised PDF is also saved in CHECK_SHEETS/Organised');
   await p.click('nav [data-tab=plan]');
 
   // 12. SAVE — straight into PLANS/week_46; then one plan per day of the week
@@ -237,6 +259,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=plan]'); await p.click('#expAll');
   ok(!(await p.isVisible('.drop [data-act=move] >> nth=0')) && !(await p.isVisible('#saveBtn')),'Viewer: no move / save');
   await p.click('nav [data-tab=options]'); ok(await p.isDisabled('input[data-cucol] >> nth=0') && await p.isVisible('.thopt') && !(await p.$('#opt-users')),'Viewer: can pick a theme, cannot change bay colours, no Users section');
+  await p.click('[data-tab=shortages]'); ok(!!(await p.$('#biFrame')) && !(await p.$('#biNew')),'Viewer: sees the embedded Delivery Shortages report (opens with the account signed in to the browser), cannot change the link'); await p.click('nav [data-tab=options]');
   await shot('viewer');
   // Jordan has no folder: the check fails and there is NO way to set it from the start window
   await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); await p.click('#modal [data-act="u:Jordan"]');
@@ -292,8 +315,9 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]');
   await p.waitForSelector('#modal [data-act="u:Alex"]',{state:'visible'});
   // the app writes a fresh, empty plan as it starts again; only the users file choice may be left
-  const left=await p.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !/usersConfig|usersFile/.test(k) && !(k.endsWith('.state') && JSON.parse(localStorage.getItem(k)).log.length===0)));
+  const left=await p.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !/usersConfig|usersFile|\.prefs$/.test(k) && !(k.endsWith('.state') && JSON.parse(localStorage.getItem(k)).log.length===0)));
   ok(left.length===0 && (await p.textContent('#cBay')).includes('All bays (0)') && await p.evaluate(()=>!!localStorage.getItem('routePlannerBeta.usersConfig')),'after reset: plan cleared, users file kept, “Who is planning?” open'+(left.length?' — left: '+left.join(','):''));
+  ok(await p.evaluate(()=>{ const q=JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')||'{}'); return q.theme==='light' && Object.keys(q).length===1; }),'Reset does not reset the theme option (and clears the other preferences)');
   ok(errs.length===0,'no page errors'+(errs.length?': '+errs.join(' | '):''));
 
   const out=path.join(DEMO,'PLANS','week_46'); fs.rmSync(path.join(DEMO,'PLANS'),{recursive:true,force:true}); fs.mkdirSync(out,{recursive:true});

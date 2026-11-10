@@ -28,6 +28,7 @@ Nobody can use the planner without choosing a name from this file and passing th
 | `users[].role` | yes | `MASTER`, `MANAGER`, `USER` or `VIEWER`. At least one user must be `MASTER` |
 | `users[].path` | for access | The `Route_planning` folder as it appears on that person's laptop. A user with no path can't get in until a Master or Manager sets it |
 | `users[].device` | written by the app | The laptop registered to that person (a random id plus the date). Added the first time they get in on their laptop. Remove it with **Unregister** in Manage users |
+| `deliveryShortagesUrl` | no | The Power BI report shown in the **Delivery Shortages** tab (a `https://app.powerbi.com/…` link). A Master sets it in the app (**Options › Users**); only powerbi.com is accepted |
 | `shareComputers` | no | `true` lets anyone use any computer. It's **for demos only** (one presenter switching users). Leave it out in the company file |
 
 In JSON every `\` in a Windows path is written twice (`\\`). The demo file is [`demo/Route_planning/MASTER_DATA/users.json`](../demo/Route_planning/MASTER_DATA/users.json).

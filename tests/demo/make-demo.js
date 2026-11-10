@@ -6,7 +6,7 @@ const OUT=path.resolve(process.argv[2]||path.join(__dirname,'..','..','demo','Ro
 let seed=46; const rnd=()=>{ seed=(seed*1103515245+12345)%2147483648; return seed/2147483648; };   // repeatable "random"
 const pick=a=>a[Math.floor(rnd()*a.length)];
 const write=(rel,sheet,rows)=>{ const f=path.join(OUT,rel); fs.mkdirSync(path.dirname(f),{recursive:true}); const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(rows); ws['!cols']=rows[0].map(()=>({wch:16})); XLSX.utils.book_append_sheet(wb,ws,sheet); XLSX.writeFile(wb,f); };
-fs.rmSync(path.join(OUT,'MASTER_DATA'),{recursive:true,force:true}); fs.rmSync(path.join(OUT,'REPORTS'),{recursive:true,force:true});
+fs.rmSync(path.join(OUT,'MASTER_DATA'),{recursive:true,force:true}); fs.rmSync(path.join(OUT,'REPORTS'),{recursive:true,force:true}); fs.rmSync(path.join(OUT,'CHECK_SHEETS'),{recursive:true,force:true});
 
 // ---- customers: 6 bays around a fictional depot (coordinates near Dublin so the map has streets)
 const BAYS=[{bay:'BAY 01',area:'City Centre',lat:53.347,lng:-6.262,r:.018},{bay:'BAY 02',area:'North Side',lat:53.392,lng:-6.250,r:.025},{bay:'BAY 03',area:'South Side',lat:53.300,lng:-6.250,r:.025},
@@ -54,7 +54,7 @@ WEEK.forEach(([wd,date],di)=>{
     const L=loads[lk]; L.drops++; const n=1+Math.floor(rnd()*3);
     for(let i=0;i<n;i++){ const w=Math.round(40+rnd()*460); L.kg+=w; const o=order++;
       plan.push([L.id,o,c.id,c.name,c.addr.split(', ')[0],c.addr.split(', ')[1],date,w,'R'+c.bay.slice(4)]);
-      (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, addr:c.addr, date});
+      (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, addr:c.addr, date, orderDate:(()=>{ const [dd,mm,yy]=date.split('/').map(Number); const od=new Date(Date.UTC(yy,mm-1,dd-3)); const z=n=>String(n).padStart(2,'0'); return z(od.getUTCDate())+'/'+z(od.getUTCMonth()+1)+'/'+od.getUTCFullYear(); })()});
       prod.push([o,pick(['KEG50','CS24','EA1']),pick(['Cider keg 50L','Cider case 24x500ml','Point of sale pack']),1+Math.floor(rnd()*8),pick(['KEGS','CS','EA'])]); }
     if(rnd()<.15) upl.push([c.id,c.name,'KEG50',1+Math.floor(rnd()*3),pick(['Empty kegs','Damaged stock'])]);
   });
@@ -63,10 +63,11 @@ WEEK.forEach(([wd,date],di)=>{
   write(`REPORTS/week_46/PROD_${wd}.xlsx`,'Sheet1',prod); if(upl.length>1) write(`REPORTS/week_46/UPLIFTS_${wd}.xlsx`,'Sheet1',upl);
 });
 console.log(`Demo data written to ${OUT}: ${customers.length} customers, ${order-5600001} orders, ${load-74600001} loads over 5 days`);
-// ---- fake check-sheet PDFs (JDE Offloading Sheet layout), one per day, for the Check Sheet Print tab.
+// ---- fake check-sheet PDFs (JDE Offloading Sheet layout), one per day, in CHECK_SHEETS/JDE/week_46 (the Printing tab imports them).
+// The file names do NOT say the day: the app reads the day from the first pages of each PDF.
 // Pages come in load order, as JDE prints them; one signature-only page is added to show the blank-page check.
-(async()=>{ const {checkSheetPdf}=require('../lib/checksheet');
+(async()=>{ const {checkSheetPdf, JDE_NAMES}=require('../lib/checksheet');
   for(const wd of Object.keys(SHEETS)){ const list=SHEETS[wd].slice().sort((a,b)=>a.load.localeCompare(b.load)||a.order.localeCompare(b.order));
-    fs.writeFileSync(path.join(OUT,'REPORTS','week_46',`CheckSheets_${wd}.pdf`), await checkSheetPdf(list,{blankAfter:[2]})); }
-  console.log('Check-sheet PDFs written: '+Object.keys(SHEETS).map(w=>'CheckSheets_'+w+'.pdf').join(', '));
+    const f=path.join(OUT,'CHECK_SHEETS','JDE','week_46',JDE_NAMES[wd]); fs.mkdirSync(path.dirname(f),{recursive:true}); fs.writeFileSync(f, await checkSheetPdf(list,{blankAfter:[2]})); }
+  console.log('Check-sheet PDFs written: '+Object.keys(SHEETS).map(w=>'CHECK_SHEETS/JDE/week_46/'+JDE_NAMES[w]).join(', '));
 })();

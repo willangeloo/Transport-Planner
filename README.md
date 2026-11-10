@@ -9,7 +9,7 @@
 - share plans as `.json` files or view-only `.html` snapshots;
 - tag every order's docket (P&W / Check Sheet);
 - keep each day's routes, crews and trucks in an Excel-like **Resources** sheet;
-- organise the JDE check-sheet PDF by route, in the order of the day's plan (**Check Sheet Print**);
+- organise the JDE check-sheet PDF by route, in the order of the day's plan (**Printing**);
 - give each person a role (Master, Manager, User, Viewer) from a users file.
 
 Open `Route Planner.html` in Chrome or Edge.
@@ -32,7 +32,7 @@ The app reads everything at runtime from files the planner chooses. The only spr
 | `MASTER_DEL_DETAILS.xlsx` (customer master) | Read from `MASTER_DATA` when the shared folder is linked (or **Load day** → drop the file). It's kept in the browser and copied into saved plans and snapshots |
 | `FIXED_ROUTES_DIPSDATA.xls` | Same as the customer master |
 | Planning + RESOURCES (`DIPS_Plan_<wd>.xlsx`, `RES_<wd>.xlsx`) | **Load day**, or **Resources → Upload sheet** for RESOURCES |
-| Check-sheet PDF (JDE Offloading Sheet / Delivery Docket) | **Check Sheet Print → Import PDF**. Read in the browser only, never saved with the plan. PDFs are git-ignored (except the demo week's fake ones) |
+| Check-sheet PDF (JDE Offloading Sheet / Delivery Docket) | `CHECK_SHEETS/JDE/week_XX`, imported from **Printing → Import PDF**. The day is read from the first 3 pages of the PDF, not from its name. Read in the browser only, never saved with the plan. Organised PDFs are saved in `CHECK_SHEETS/Organised` as `date_time_user.pdf`. PDFs are git-ignored (except the demo week's fake ones) |
 
 ## Shared folder
 

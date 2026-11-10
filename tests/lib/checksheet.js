@@ -11,6 +11,7 @@ async function checkSheetPdf(orders, opts){
     t('Demo Drinks Ltd',250,770,reg,12); t('Offloading Sheet Report',225,752,bold,13);
     t('Load Number:',30,715,bold); t(x.load,95,715);
     t('Order Number:',430,715,bold); t(x.order,500,715);
+    if(x.orderDate){ t('Order Date:',30,690,bold); t(x.orderDate,95,690); }   // the app must NOT take this one as the day
     t('Delivery Date:',430,690,bold); t(x.date||'',500,690);
     t('Name:',30,665,bold); t(x.name,120,665);
     t('Address:',30,653,bold); t(x.addr||'1 Demo Street',120,653);
@@ -20,4 +21,6 @@ async function checkSheetPdf(orders, opts){
   });
   return await doc.save();
 }
-module.exports={checkSheetPdf};
+// the demo's file names say nothing about the day (the app reads the day from the first pages)
+const JDE_NAMES={Mon:'Offloading_Sheet_Report_2.pdf',Tue:'Offloading_Sheet_Report_4.pdf',Wed:'Offloading_Sheet_Report_1.pdf',Thu:'Offloading_Sheet_Report_5.pdf',Fri:'Offloading_Sheet_Report_3.pdf'};
+module.exports={checkSheetPdf, JDE_NAMES};

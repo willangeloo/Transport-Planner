@@ -4,6 +4,29 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.4 — 2026-11-11
+
+### Features
+- **Delivery Shortages tab.** The Power BI report is embedded, in a tab of its own colour at the top right; it opens with the account signed in to the browser. A Master pastes the report link (or the embed code) once, in the tab or in **Options › Users**; it is kept in `users.json` (`deliveryShortagesUrl`), not in the repository. Only powerbi.com is accepted.
+- **Resources: weeks and days as buttons** instead of a drop-down list. Days with a plan open are filled, days without are dashed; pressing a day with no plan asks you to confirm before it is opened.
+- **Printing balloons filter the orders.** **Reallocations** and **To check** show only those orders in the routes list (click again to show all).
+
+### Edits
+- **Printing › Import PDF reads the delivery date**, never the order date, from the first pages of the check sheet.
+
+## v0.11.3 — 2026-11-10
+
+### Features
+- **Printing › Import PDF from the company folder.** **📁 Choose from CHECK_SHEETS › JDE** lists the PDFs like Load day does (week chips, newest first, ✓ loaded / ⚠ changed / not loaded). The **day of a PDF is read from its first 3 pages**, not from its file name; only those pages are parsed and the result is remembered per file. Importing a PDF sets the Printing day from it (also for dropped files).
+- **Organised PDFs are saved** in `CHECK_SHEETS/Organised` as `date_time_user.pdf` (for example `2026-11-10_14.35_Alex.pdf`); Download all uses the same name.
+- **Start window.** The first window always asks for access to the company folder (the remembered one, or "Choose folder…") and has a **↺ Reset** button that clears **everything** the browser saved for the planner: plan, days, customer master, fixed routes, the cached users list and preferences. Only the theme, the computer's registration and the folder link are kept.
+
+### Edits
+- **Check Sheet Print is now called Printing.**
+- **Planning map:** opening or closing a route in Routes & orders refits the map to the open routes and replaces earlier "show on map" choices (for example after **All**, opening one bay shows only that bay). "Show on map" alone never changes the fit.
+- **Theme:** the default is **Same as the browser**, and Reset no longer resets the theme.
+- The demo's check-sheet PDFs moved to `CHECK_SHEETS/JDE/week_46` with names that don't say the day.
+
 ## v0.11.2 — 2026-11-10
 
 ### Bug fixes
