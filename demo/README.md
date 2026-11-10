@@ -6,7 +6,7 @@ A complete **made-up** planning folder for training and for presenting the Route
 demo/Route_planning/
 ├── MASTER_DATA/
 │   ├── MASTER_DEL_DETAILS.xlsx      58 customers in 7 bays (a few without a map location)
-│   ├── FIXED_ROUTES_DIPSDATA.xlsx   BAY 07 Mon/Wed/Fri, BAY 06 Tue/Thu, BAY 01 every day
+│   ├── FIXED_ROUTES_DIPSDATA.xlsx   BAY 07 Mon/Wed/Fri, BAY 06 Tue/Thu, BAY 01 every day (only a reference when deferring orders; no routes are built from it)
 │   └── users.json                   Alex (Master), Sam (Manager), Jordan + Casey (User), Warehouse (Viewer)
 ├── REPORTS/week_46/                 Mon 09.11 – Fri 13.11.2026
 │   ├── DIPS_Plan_<wd>.xlsx  RES_<wd>.xlsx  PROD_<wd>.xlsx  UPLIFTS_<wd>.xlsx
@@ -33,7 +33,7 @@ Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how role
 1. Start window: the company name is the heading and sits next to the version, top left. It's locked, so link the folder, pick a name and pass the checks. Then try **Jordan**: the check fails because no folder is set. Only a Master or Manager can fix it, from inside the planner.
 2. **Master data & reports** window, then the **Customers** map (master and fixed routes loaded automatically). Change a master file in the folder and reopen the window from 👤 to show the ⚠ tag.
 3. **Load day:** the whole week in one go.
-4. **Plan the day:**
+4. **Planning:**
    - move one drop, then a group (box-select on the map);
    - defer one drop onto a bay, then a group without a bay;
    - split with dockets;
