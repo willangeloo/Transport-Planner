@@ -59,7 +59,6 @@ The repo mirrors the shared "Planning app" folder. Data folders exist only on yo
 | `MASTER_DATA/` | no | Customer master, fixed routes, manifest, `users.json` |
 | `REPORTS/week_XX/` | no | Daily reports |
 | `PLANS/week_XX/` | no | Saved plans and snapshots |
-| `PROMPTS/` | no | Requirement notes |
 | `_ARCHIVE/` | no | Old app versions and samples |
 
 ## Contributing
