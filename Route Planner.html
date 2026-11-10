@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.11.1</title>
+<title>Route Planner BETA v0.11.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -289,6 +289,9 @@ th.sortable:hover{text-decoration:underline}
 }
 /* v0.11.0 — surfaces used by the new tabs and the dark theme */
 :root{ --card:#fff; --soft:#fafbfc; --hover:#f3f5f7; --zebra:#f8fafc; --thbg:#fafbfc; --inputbg:#fff; --selbg:#dbeafe; --selbd:#2563eb; }
+nav button.hl{color:#fcd34d;font-weight:600}
+nav button.hl::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:7px;vertical-align:1px}
+nav button.hl.on{color:#fff}
 /* resources */
 .rs-body{display:flex;align-items:stretch;gap:8px;padding:0 12px 12px}.rs-main{flex:1;min-width:0}
 .rs-foot{padding:8px 0 0}
@@ -332,17 +335,19 @@ body[data-role=VIEWER] .no-viewer,body[data-role=NONE] .no-viewer{display:none!i
 .jp-modes{display:flex;gap:4px;background:var(--accent-soft);padding:4px;border-radius:9px}
 .jp-modes button{border:0;background:none;padding:6px 14px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--accent)}
 .jp-modes button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.jp-stack{display:flex;flex-direction:column;gap:14px;min-width:0}
-.jp-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
-@media (max-width:1300px){ .jp-steps{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:720px){ .jp-steps{grid-template-columns:1fr} }
-.jp-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
-@media (max-width:1100px){ .jp-split{grid-template-columns:1fr} }
+.jp-layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1050px){ .jp-layout{grid-template-columns:1fr} }
+.jp-mgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:1250px){ .jp-mgrid{grid-template-columns:1fr} }
+
+.jp-rhead.hd{font-size:11px!important;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:600;cursor:default;background:none}
+.jp-rhead.hd:hover{background:none}
+.jp-rhead .n{text-align:right;font-variant-numeric:tabular-nums}
+.jp-route.cur{box-shadow:0 0 0 2px var(--accent-soft)}
+.jp-mright{position:sticky;top:8px}
 .jp-search{flex:1;min-width:140px;max-width:300px;width:auto}
 .jp-selbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.jp-selall{display:flex;gap:6px;align-items:center;font-weight:600;margin:0}
-.jp-rrow{display:flex;gap:6px;align-items:stretch}.jp-rrow>input{align-self:center}.jp-rrow .jp-rtab{flex:1}
-.jp-orders{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px;max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
-.jp-orders label{display:flex;gap:8px;align-items:baseline;margin:0;font-weight:400;font-size:12.5px}.jp-orders .o{font-variant-numeric:tabular-nums;font-weight:600}
+
 .jp-setup,.jp-results{display:flex;flex-direction:column;gap:14px;min-width:0}
 .jp-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
 .jp-card h2{font-size:14px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
@@ -385,6 +390,9 @@ body[data-role=VIEWER] .no-viewer,body[data-role=NONE] .no-viewer{display:none!i
 .jp-route{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden}
 .jp-rhead{width:100%;display:grid;grid-template-columns:minmax(130px,1.1fr) minmax(0,2fr) auto auto 18px;gap:14px;align-items:center;padding:9px 14px;background:var(--card);border:0;cursor:pointer;text-align:left}
 .jp-rhead:hover{background:var(--hover)}
+.jp-rhead.jp-rcols{grid-template-columns:22px minmax(80px,1.1fr) minmax(70px,1fr) minmax(70px,1fr) 40px 52px minmax(80px,1.2fr) 12px;gap:8px;padding:8px 10px;font-size:12.5px}
+.jp-rhead.jp-rcols .jp-rname{font-size:14px}
+.jp-rhead.jp-rcols.hd{padding:4px 10px}
 .jp-rname{font-size:16px;font-weight:700;overflow-wrap:anywhere}
 .jp-rname small{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
 .jp-route.unassigned .jp-rname,.jp-route.deferred .jp-rname{color:var(--warn)}
@@ -428,7 +436,7 @@ body[data-role=VIEWER] .no-viewer,body[data-role=NONE] .no-viewer{display:none!i
 .jp-pages img{display:block;width:100%;aspect-ratio:.707;object-fit:contain;background:#fff}
 .jp-pages figcaption{font-size:11px;color:#5d6b7a;padding:4px 8px;border-top:1px solid #e2e6eb;background:#fff}
 .jp-reprint{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:18px;align-items:start}
-.jp-reprint[hidden],.jp-stack[hidden],#jpOutBody[hidden]{display:none}
+.jp-reprint[hidden],.jp-layout[hidden],#jpPreviewHead[hidden],.jp-selbar[hidden]{display:none}
 @media (max-width:900px){ .jp-reprint{grid-template-columns:1fr} }
 .jp-reprint input[type=search]{font-size:17px;padding:9px 12px}
 .jp-rplist{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:520px;overflow:auto}
@@ -486,12 +494,12 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.1</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.2</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
-    <button data-tab="plan" class="on">Plan the day</button>
+    <button data-tab="plan" class="on">Planning</button>
     <button data-tab="res">Resources</button>
-    <button data-tab="report">Change report <span class="n" id="navCount">0</span></button>
-    <button data-tab="print">Check Sheet Print</button>
+    <button data-tab="report" class="hl">Change report <span class="n" id="navCount">0</span></button>
+    <button data-tab="print" class="hl">Check Sheet Print</button>
     <button data-tab="options">Options</button>
     <button data-tab="customers">Customers</button>
   </nav>
@@ -1107,7 +1115,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
     var exceptionOnlyRoutes = [];
     exceptions.rows.forEach(function (row) {
       var candidates = byOrderNo.get(row.order) || [];
-      var match = candidates.find(function (o) { return o.shipment === row.shipment; });
+      var match = candidates.find(function (o) { return o.shipment === row.shipment; }) || (row.anyShipment && candidates.length === 1 ? candidates[0] : null);
       if (!candidates.length) {
         issue(row.optional ? 'info' : 'error', 'EXCEPTION_NOT_FOUND', rowLabel(row) + ': order ' + row.order + ' (shipment ' + row.shipment + ') is not in the PDF. Not applied.' + (row.optional ? ' Print it from the check sheets of its original day.' : ''), { source: 'exceptions', line: row.line });
         return;
@@ -1891,7 +1899,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.11.1';
+const APP_VERSION='0.11.2';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1989,9 +1997,7 @@ function indexDays(){
     const ids=new Set(d.loads.map(l=>l.id));
     let loads=d.loads.concat(S.routes.filter(r=>r.date===d.date && !ids.has(r.id)).map(r=>Object.assign({},r,{custom:true})));
     loads=resLoadsFor(d, loads);   // v0.11.0: the Resources table, once edited
-    const have=new Set(loads.map(l=>l.bay));
-    const fx=fixedBaysFor(d.dow).filter(b=>!have.has(b)).map(b=>({id:'FX-'+b, bay:b, driver:null, helper:null, truck:null, pallets:null, km:null, mins:null, area:null, fixed:true}));
-    loads=loads.concat(fx);
+    // v0.11.2: fixed routes are only a reference when deferring orders — routes come from the RESOURCES details only
     const dg=new Set(loads.filter(dgLoad).map(l=>String(l.id))); loads=loads.filter(l=>!dgLoad(l));
     const orders=d.orders.map((o,i)=>Object.assign({_i:i},o)).filter(o=>!dg.has(String(o.l)) && !dgCust(o.s));
     return Object.assign({},d,{loads,orders});
@@ -2017,7 +2023,7 @@ function fixLoad(day, ld){
   if(String(ld).startsWith('FX-')){ const bay=String(ld).slice(3); const l=dayMap[day].loads.find(x=>x.bay===bay); if(l) return l.id; }
   return null;
 }
-const loadTxt = id => !id ? '' : String(id).startsWith('FX-') ? 'fixed bay · no load no. yet' : 'Load '+id;
+const loadTxt = id => !id ? '' : String(id).startsWith('FX-') ? 'wanted bay · not on the day yet' : 'Load '+id;
 
 // ---------- state helpers ----------
 const isPending = k => typeof k==='string' && k[0]==='@';          // "@2026-11-05" = a date whose file isn't loaded yet
@@ -2046,11 +2052,13 @@ function normalizeState(){
 function dayLabel(k){ if(!k) return '—'; if(dayMap[k]) return dayMap[k].label; const dt=dateOfKey(k); return dt ? dayLbl(dt)+' (not loaded)' : k; }
 function loadInfo(dayKey, lid){
   if(!lid) return {bay:'Unassigned', id:'', driver:'', truck:'', color:DEF_COLOR};
+  if(String(lid).startsWith('FX-') && !loadMap[dayKey+'|'+lid]) return {bay:String(lid).slice(3)+' (not assigned)', id:lid, driver:'', helper:'', truck:'', color:DEF_COLOR};
   const l = loadMap[dayKey+'|'+lid] || {bay:'?',id:lid};
   return {bay:l.bay, id:l.id, driver:l.driver||'', helper:l.helper||'', truck:l.truck||'', color:routeColor[dayKey+'|'+lid]||'#888'};
 }
 function routeName(dayKey,lid){
   if(!lid) return 'Unassigned';
+  if(String(lid).startsWith('FX-') && !loadMap[dayKey+'|'+lid]) return String(lid).slice(3)+' (not assigned)';
   const l=loadMap[dayKey+'|'+lid]; const d=dayMap[dayKey]; if(!l||!d) return 'Load '+lid;
   const dup = d.loads.filter(x=>x.bay===l.bay).length>1;
   return dup ? `${l.bay} · ${l.id}` : l.bay;
@@ -2066,7 +2074,7 @@ function dayView(dayKey){
     const c = curOf(o.uid); if(c.day!==dayKey) return;
     const g = S.grp[o.uid]||'';
     const k = (c.load||'')+'|'+o.s+'|'+g;
-    if(!drops[k]) drops[k] = {key:k, day:dayKey, load:c.load, ship:o.s, name:o.n, addr:o.a, grp:g, uids:[], kg:0, moved:false, deferredIn:false, added:false, dup:false};
+    if(!drops[k]) drops[k] = {key:k, day:dayKey, load:c.load, ship:o.s, name:o.n, addr:o.a, grp:g, uids:[], kg:0, moved:false, deferredIn:false, added:false, dup:false, refBay:String(c.load||'').startsWith('FX-')?String(c.load).slice(3):''};
     const dr=drops[k]; dr.uids.push(o.uid); dr.kg+=o.w;
     if(o.added) dr.added=true;
     if(o.day0!==dayKey) dr.deferredIn=true;
@@ -2123,7 +2131,7 @@ function showTab(t){
   curTab=t;
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
-  if(t==='customers'){ initCMap(); if(cMap) setTimeout(()=>cMap.invalidateSize(),0); }
+  if(t==='customers'){ initCMap(); if(cMap) setTimeout(()=>{ cMap.invalidateSize(); if(!cFitted){ cFitted=true; renderCustomers(true); } },0); }
   if(t==='plan'){ initPMap(); if(pMap) setTimeout(()=>{pMap.invalidateSize(); if(!pFitted){fitRoutes(); pFitted=true;}},0); }
   if(t==='report') renderReport();
   if(t==='options') renderOptions();
@@ -2151,7 +2159,7 @@ function tiles(map){
 let cMap=null, cLayer=null, cMarkers={};
 const cState={days:new Set(), bay:'', q:'', noLoc:false, area:''};
 const isDonegal = c => /DONEGAL/i.test(c.bay||'');
-let cInit=false, pInit=false;
+let cInit=false, pInit=false, cFitted=false;
 function initCMap(){
   if(cInit) return; cInit=true;
   if(NOMAP){ renderCustomers(false); return; }
@@ -2247,7 +2255,7 @@ function defaultDay(){
   if(UPLOADS.length){ const up=DATA.days.filter(d=>uploadOf(d.date)); const nx=up.find(d=>d.date>=t); return (nx||up[up.length-1]).key; }
   return dayMap['W39-2']?'W39-2':DATA.days[0].key;
 }
-const P={day:null, hidden:new Set(), sel:new Set(), open:new Set(), q:''};
+const P={day:null, hidden:new Set(), show:new Set(), sel:new Set(), open:new Set(), q:''};
 const daySel=$('pDay');
 function buildDaySel(){
   if(!DATA.days.length){ daySel.innerHTML='<option value="">No days loaded</option>'; P.day=null; return; }
@@ -2263,7 +2271,7 @@ function renderSrc(){
   const d=dayMap[P.day]; if(!d){ $('pSrc').innerHTML=''; return; } const u=uploadOf(d.date);
   $('pSrc').innerHTML = (u ? `Week ${esc(d.week)} · uploaded ${esc(fmtTime(u.at))} · ${u.files.map(esc).join(' + ')}` : `Week ${esc(d.week)}`);
 }
-function selectDay(k){ P.day=k; daySel.value=k; P.hidden.clear(); P.sel.clear(); P.open.clear(); renderPlan(); fitRoutes(); }
+function selectDay(k){ P.day=k; daySel.value=k; P.hidden.clear(); P.show.clear(); P.sel.clear(); P.open.clear(); renderPlan(); fitRoutes(); }
 daySel.addEventListener('change',()=>selectDay(daySel.value));
 
 function initPMap(){
@@ -2291,14 +2299,18 @@ function renderBanner(){
   $('pBanner').innerHTML = `<div class="banner"><b>⚠ ${inc.length} deferred drop${inc.length>1?'s':''} rescheduled to this day</b>${ords} order${ords>1?'s':''} · ${kg(inc.reduce((s,d)=>s+d.kg,0))} kg from ${esc(from)}. They are not on a bay yet — allocate them when you're ready.<br><button class="btn sm warn" data-act="showdef">Show on map</button> <button class="btn sm" data-act="allocdef">Allocate to bay…</button></div>`;
 }
 function renderBayChips(){
-  $('pBays').innerHTML = view.routes.map(r=>`<button class="chip ${P.hidden.has(r.id)?'off':''}" data-r="${r.id}"><span class="sw" style="background:${r.color}"></span>${esc(r.deferred?'Unassigned':r.name)}</button>`).join('');
+  $('pBays').innerHTML = view.routes.map(r=>`<button class="chip ${mapVisible(r)?'':'off'}" data-r="${r.id}"><span class="sw" style="background:${r.color}"></span>${esc(r.deferred?'Unassigned':r.name)}</button>`).join('');
   $('pLegend').innerHTML = `<div><i style="background:#2f9e44"></i>Each bay has its own colour</div><div><i style="background:${DEF_COLOR};border:2px solid #f59e0b"></i>Deferred in, not on a bay</div><div><i style="background:#fff;border:3px solid #111"></i>Moved / inserted / split</div>`;
 }
-$('pBays').addEventListener('click',e=>{const b=e.target.closest('.chip'); if(!b) return; const r=b.dataset.r; P.hidden.has(r)?P.hidden.delete(r):P.hidden.add(r); renderBayChips(); renderPlanMap();});
-$('expAll').onclick=()=>{ view.routes.forEach(r=>P.open.add(r.id)); renderRoutes(); };
-$('colAll').onclick=()=>{ P.open.clear(); renderRoutes(); };
-$('bayAll').onclick=()=>{P.hidden.clear(); renderBayChips(); renderPlanMap();};
-$('bayNone').onclick=()=>{view.routes.forEach(r=>P.hidden.add(r.id)); renderBayChips(); renderPlanMap();};
+// v0.11.2: which routes are on the map. None or all expanded = all; some expanded = only those; "show on map" adds or removes single routes.
+function mapVisible(r){ const id=r.id, n=view.routes.length, o=P.open.size; const base=(o===0||o>=n)?true:P.open.has(id); return (base && !P.hidden.has(id)) || P.show.has(id); }
+function refreshMap(){ renderBayChips(); renderPlanMap(); }
+$('pBays').addEventListener('click',e=>{const b=e.target.closest('.chip'); if(!b) return; const id=b.dataset.r; const r=view.routes.find(x=>String(x.id)===id); if(!r) return;
+  if(mapVisible(r)){ P.hidden.add(id); P.show.delete(id); } else { P.show.add(id); P.hidden.delete(id); } refreshMap(); });
+$('expAll').onclick=()=>{ view.routes.forEach(r=>P.open.add(r.id)); renderRoutes(); refreshMap(); };
+$('colAll').onclick=()=>{ P.open.clear(); renderRoutes(); refreshMap(); };
+$('bayAll').onclick=()=>{P.hidden.clear(); view.routes.forEach(r=>P.show.add(r.id)); refreshMap();};
+$('bayNone').onclick=()=>{P.show.clear(); view.routes.forEach(r=>P.hidden.add(r.id)); refreshMap();};
 $('insBtn').onclick=()=>openInsert();
 $('newRouteBtn').onclick=()=>openNewRoute();
 $('newCustBtn').onclick=()=>openCustEdit(null);
@@ -2306,7 +2318,7 @@ $('newCustBtn').onclick=()=>openCustEdit(null);
 function routeStats(r){ return {drops:r.drops.length, orders:r.drops.reduce((s,d)=>s+d.uids.length,0), kg:r.drops.reduce((s,d)=>s+d.kg,0)}; }
 function dropFlags(d){
   const c=custMap[d.ship];
-  return (d.moved?'<span class="flag mv">moved</span>':'')+(d.deferredIn?'<span class="flag df">deferred in</span>':'')+(d.added?'<span class="flag ad">inserted</span>':'')
+  return (d.refBay?`<span class="flag dup" title="This order was deferred to ${esc(d.refBay)}, but there is no such bay on this day (no RESOURCES for it). Not assigned.">⚠ not assigned · wanted ${esc(d.refBay)}</span>`:'')+(d.moved?'<span class="flag mv">moved</span>':'')+(d.deferredIn?'<span class="flag df">deferred in</span>':'')+(d.added?'<span class="flag ad">inserted</span>':'')
     +(d.grp?'<span class="flag sp">split</span>':'')+(d.dup?'<span class="flag dup" title="This order number is also in the planning file for this day">also in file</span>':'')
     +(!c||c.lat==null?'<span class="flag nl">no location</span>':'')+dockSummary(d.uids);
 }
@@ -2368,7 +2380,7 @@ $('pSearchN').addEventListener('click',e=>{ const b=e.target.closest('[data-goda
 $('pRoutes').addEventListener('click',e=>{
   const actEl=e.target.closest('[data-act]'); if(!actEl) return;
   const act=actEl.dataset.act;
-  if(act==='toggle'){ const r=actEl.closest('.route').dataset.r; P.open.has(r)?P.open.delete(r):P.open.add(r); actEl.closest('.route').classList.toggle('open'); return; }
+  if(act==='toggle'){ const r=actEl.closest('.route').dataset.r; P.open.has(r)?P.open.delete(r):P.open.add(r); actEl.closest('.route').classList.toggle('open'); refreshMap(); return; }
   const k=actEl.closest('.drop')?.dataset.k; if(!k) return;
   if(act==='tick'){ actEl.checked?P.sel.add(k):P.sel.delete(k); actEl.closest('.drop').classList.toggle('sel',actEl.checked); renderPlanMap(); renderSelBar(); }
   if(act==='locate') locate(k);
@@ -2379,7 +2391,7 @@ $('pRoutes').addEventListener('click',e=>{
 });
 function locate(k){
   const m=pMarkers[k]; if(!m){ toast('No coordinates for this customer — use “Edit customer” to set the location'); return; }
-  const d=view.drops[k]; const rid=d.load||''; if(P.hidden.has(rid)){P.hidden.delete(rid); renderBayChips(); renderPlanMap();}
+  const d=view.drops[k]; const rr=view.routes.find(x=>x.drops.includes(d)); if(rr && !mapVisible(rr)){ P.hidden.delete(rr.id); P.show.add(rr.id); renderBayChips(); renderPlanMap(); }
   pMap.setView(pMarkers[k].getLatLng(),14); pMarkers[k].openPopup();
 }
 function dropPopup(d){
@@ -2400,7 +2412,7 @@ function renderPlanMap(){
   if(!pMap) return;
   pLayer.clearLayers(); pMarkers={};
   view.routes.forEach(r=>{
-    if(P.hidden.has(r.id)) return;
+    if(!mapVisible(r)) return;
     r.drops.forEach(d=>{
       if(P.q && !routeMatch(r,P.q) && !dropMatch(d,P.q)) return;
       const c=custMap[d.ship]; if(!c||c.lat==null) return;
@@ -2422,7 +2434,7 @@ $('fitBtn').onclick=fitRoutes;
 $('pBanner').addEventListener('click',e=>{
   const inc=incomingDeferred();
   if(e.target.closest('[data-act="showdef"]')){
-    P.hidden.clear(); P.sel=new Set(inc.map(d=>d.key)); P.open.add('');
+    P.hidden.clear(); P.sel=new Set(inc.map(d=>d.key)); P.open.add(''); P.show.add('');
     renderPlan(); const pts=inc.map(d=>pMarkers[d.key]).filter(Boolean).map(m=>m.getLatLng()); if(pts.length&&pMap) pMap.fitBounds(L.latLngBounds(pts),{padding:[80,80],maxZoom:13});
   }
   if(e.target.closest('[data-act="allocdef"]')) openMove(inc.map(d=>d.key));
@@ -2550,11 +2562,11 @@ function openDefer(keys){
   const upd=()=>{
     const dk=dayKeyForDate(st.date), dw=dateDow(st.date);
     $('dSel').innerHTML = `<div class="note ${dk?'info':'warn'}"><b>${dayLbl(st.date)}</b> · Week ${isoWeek(st.date)} — ${dk?'planning file loaded. Choose a bay now or leave it unassigned.':'not loaded yet. The orders will appear on that day (unassigned) as soon as its file is loaded.'}</div>`;
-    const fx=!dk?fixedBaysFor(dw):[];
-    $('dBayWrap').innerHTML = dk ? `<label>Bay on ${dayLbl(st.date)} (optional)</label><select id="dBay"><option value="">Leave unassigned for now</option>${routeOptions(dk)}</select><div id="dImp" style="margin-top:6px"></div>`
-      : fx.length ? `<label>Fixed bay on ${dayLbl(st.date)} (optional)</label><select id="dBay"><option value="">Leave unassigned for now</option>${fx.map(b=>`<option value="FX-${esc(b)}">${esc(b)} — fixed route</option>`).join('')}</select><div class="muted small" style="margin-top:4px">Choosing a bay creates ${dayLbl(st.date)} in the planner with its fixed bays. The loading number, driver and truck are filled in when that day's RESOURCES are loaded.</div>` : '';
-    if(!dk && fx.length) $('dBay').addEventListener('change',()=>{ $('dOk').textContent=$('dBay').value?'Defer to bay':'Defer'; });
-    if(dk) $('dBay').addEventListener('change',()=>{ const lid=$('dBay').value; $('dImp').innerHTML= lid? bayImpactHtml(dk,lid,keys.map(k=>view.drops[k]),tot,keys.length):''; $('dOk').textContent=lid?'Defer to bay':'Defer'; });
+    const noRoutes=!dk||!dayMap[dk].loads.length; const fx=noRoutes?fixedBaysFor(dw):[];
+    $('dBayWrap').innerHTML = (dk&&!noRoutes) ? `<label>Bay on ${dayLbl(st.date)} (optional)</label><select id="dBay"><option value="">Leave unassigned for now</option>${routeOptions(dk)}</select><div id="dImp" style="margin-top:6px"></div>`
+      : fx.length ? `<label>Bay wanted on ${dayLbl(st.date)} (optional)</label><select id="dBay"><option value="">Leave unassigned for now</option>${fx.map(b=>`<option value="FX-${esc(b)}">${esc(b)} — fixed route (reference)</option>`).join('')}</select><div class="muted small" style="margin-top:4px">The fixed routes are only a reference: no route is created. When that day's RESOURCES are loaded the orders go to that bay; if the day has no such bay they stay <b>not assigned</b> and a warning is shown.</div>` : '';
+    if(noRoutes && fx.length) $('dBay').addEventListener('change',()=>{ $('dOk').textContent=$('dBay').value?'Defer to bay':'Defer'; });
+    if(dk&&!noRoutes) $('dBay').addEventListener('change',()=>{ const lid=$('dBay').value; $('dImp').innerHTML= lid? bayImpactHtml(dk,lid,keys.map(k=>view.drops[k]),tot,keys.length):''; $('dOk').textContent=lid?'Defer to bay':'Defer'; });
     const off=keys.map(k=>custMap[view.drops[k].ship]).filter(c=>c&&c.days.length&&!c.days.includes(dw));
     $('dHint').innerHTML = (dw>4?`<div class="note warn" style="margin-bottom:6px">${DOW[dw]} is a weekend day.</div>`:'')+(off.length? `<div class="note warn">${off.length} customer${off.length>1?'s are':' is'} not normally delivered on ${DOW[dw]}: ${off.slice(0,3).map(c=>esc(c.name)+' ('+c.days.map(i=>DOW[i]).join('/')+')').join(', ')}${off.length>3?'…':''}</div>`:'');
     $('dOk').textContent='Defer';
@@ -2713,14 +2725,14 @@ function applyInsert(){
 function openNewDay(){
   if(!guard('edit','create days')) return; const back=curTab;
   const st={date:nextWorkday(todayStr())};
-  openModal(`<div class="mh"><h2>New planning day</h2><div class="muted small">Creates a day without planning files, using the fixed routes for that weekday. Load its planning / RESOURCES files later and they fill in the same day.</div></div>
+  openModal(`<div class="mh"><h2>New planning day</h2><div class="muted small">Creates a day with no routes yet. Routes come only from the RESOURCES of that day: load its RESOURCES file, or add the bays in the Resources tab. Orders can be deferred to it meanwhile.</div></div>
    <div class="mb"><div class="cal" id="ndCal"></div><div id="ndInfo"></div></div>
    <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok" id="ndOk">Create day</button></div>`,
-   {onAct:a=>{ if(a!=='ok' || $('ndOk').disabled) return; if(!S.days.includes(st.date)) S.days.push(st.date); save(); closeModal(); afterDataChange(); showTab('plan'); selectDay(dayKeyForDate(st.date)); if(back==='res') showTab('res'); toast(`${dayLbl(st.date)} created${fixedBaysFor(dateDow(st.date)).length?' with '+fixedBaysFor(dateDow(st.date)).length+' fixed bays':''}`); }});
+   {onAct:a=>{ if(a!=='ok' || $('ndOk').disabled) return; if(!S.days.includes(st.date)) S.days.push(st.date); save(); closeModal(); afterDataChange(); showTab('plan'); selectDay(dayKeyForDate(st.date)); if(back==='res') showTab('res'); toast(`${dayLbl(st.date)} created — no routes planned yet`); }});
   $('modal').classList.add('wide');
   const upd=()=>{ const ex=dayKeyForDate(st.date), fx=fixedBaysFor(dateDow(st.date));
     $('ndInfo').innerHTML = ex ? `<div class="note warn">${dayLbl(st.date)} is already in the planner.</div>`
-      : `<div class="note ${fx.length?'info':'warn'}"><b>${dayLbl(st.date)}</b> · Week ${isoWeek(st.date)} — ${fx.length?`${fx.length} fixed bays: ${fx.map(esc).join(', ')}`:'no fixed routes for this weekday'+(S.fixed?'':' (fixed routes file not loaded)')+'. You can still add routes with + New route.'}</div>`;
+      : `<div class="note info"><b>${dayLbl(st.date)}</b> · Week ${isoWeek(st.date)} — no routes planned yet.${fx.length?` Fixed routes for this weekday (${fx.map(esc).join(', ')}) are only a reference when deferring orders.`:''}</div>`;
     $('ndOk').disabled=!!ex; };
   mountCalendar($('ndCal'),{min:addDays(todayStr(),-60), value:st.date, usual:null, onPick:d=>{st.date=d; upd();}});
   upd();
@@ -3453,7 +3465,7 @@ function renderReport(){
   const files=[...new Set(DATA.days.flatMap(d=>{const u=uploadOf(d.date); return u?u.files:[];}))];
   $('printMeta').textContent='Generated '+new Date().toLocaleString('en-IE')+(R.day?' · Day: '+dayLabel(R.day):'')+(R.q?' · Search: '+R.q:'')+' · Source files: '+files.concat(MASTER?[MASTER.file]:[]).join(', ');
   const anyAtAll=S.log.length||pendingGroups().length;
-  if(!anyAtAll || !S.log.some(isChange) && !pendingGroups().length){ $('rBody').innerHTML=`<div class="card"><div class="empty">No changes yet.<br>Go to <b>Plan the day</b> to move, defer, split or insert orders, or edit a customer from the <b>Customers</b> map — every change is logged here with the order numbers staff need to update in other systems.</div></div>`; return; }
+  if(!anyAtAll || !S.log.some(isChange) && !pendingGroups().length){ $('rBody').innerHTML=`<div class="card"><div class="empty">No changes yet.<br>Go to <b>Planning</b> to move, defer, split or insert orders, or edit a customer from the <b>Customers</b> map — every change is logged here with the order numbers staff need to update in other systems.</div></div>`; return; }
   const undoBtn=(e,lbl)=>`<button class="btn sm no-print" data-undo="${e.id}" ${canUndo(e)?'':'disabled title="Later changes affect this — undo those first"'}>${lbl||'Undo'}</button>`;
   const dayTd=k=>`<td data-s="${esc(dateOfKey(k)||'')}">${esc(dayLabel(k))}</td>`, kgTd=w=>`<td data-s="${w||0}">${kg(w)}</td>`, tsTd=e=>`<td class="muted" data-s="${esc(e.ts)}">${fmtTime(e.ts)}${e.by?`<div><span class="flag dk-off byflag" title="Changed by ${esc(e.by)}">👤 ${esc(e.by)}</span></div>`:''}</td>`;
   const cust=e=>`<td><b>${esc(e.name)}</b><div class="muted">${esc(e.ship)}</div></td>`;
@@ -3546,7 +3558,7 @@ $('xlsBtn').onclick=()=>{
 function dayDate(k){ return dateOfKey(k)||'9999'; }
 function pendingGroups(){
   const g={};
-  Object.values(ORD).forEach(o=>{ const c=curOf(o.uid); if(c.load) return;
+  Object.values(ORD).forEach(o=>{ const c=curOf(o.uid); if(c.load && !String(c.load).startsWith('FX-')) return;
     const k=c.day+'|'+o.s+'|'+(S.grp[o.uid]||'');
     (g[k]=g[k]||{key:k, day:c.day, ship:o.s, name:o.n, orders:[], uids:[], kg:0, from:dayLabel(o.day0), day0s:new Set()});
     g[k].orders.push(o.o); g[k].uids.push(o.uid); g[k].kg+=o.w; g[k].day0s.add(o.day0); });
@@ -4296,7 +4308,7 @@ function renderResources(){
   const sum=k=>rows.reduce((s,r)=>s+(toNum(resGet(r,k))||0),0);
   const ids=rows.map(r=>toId(r.id)).filter(Boolean); const dupIds=new Set(ids.filter((x,i)=>ids.indexOf(x)!==i));
   const orphans=d.loads.filter(l=>l.orphan);
-  el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day · used by Plan the day and Check Sheet Print</div><h1>Resources</h1></div><div class="spacer"></div>
+  el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day · used by Planning and Check Sheet Print</div><h1>Resources</h1></div><div class="spacer"></div>
     <div style="width:210px"><select id="rsDay">${opts}</select></div><button class="btn no-viewer" data-rs="newday" title="Create a new planning day (from the fixed routes)">＋ Day</button>
     <label class="btn no-viewer" title="Upload a RESOURCES sheet (.xlsx / .csv) into this day">⤒ Upload sheet<input type="file" id="rsFile" accept=".xlsx,.xls,.xlsm,.csv" hidden></label>
     <button class="btn" data-rs="export" title="Excel file in the same layout as the RESOURCES files">⤓ Export Excel</button></div>
@@ -4539,7 +4551,7 @@ async function resUpload(file){
 })();
 
 // ================= CHECK SHEET PRINT (v0.11.0): the JDE check-sheet PDF organised by the day's plan =================
-// Resources = the day's routes (Resources tab); Reallocations = order moves / deferrals made in Plan the day.
+// Resources = the day's routes (Resources tab); Reallocations = order moves / deferrals made in Planning.
 // PDFs are read in this browser only and are not saved with the plan.
 const PDF_LIBS=['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js'];
 let pdfLibsP=null;
@@ -4564,21 +4576,23 @@ function jpDayKey(){ if(JS.day && dayMap[JS.day]) return JS.day; if(P.day && day
 
 // ---------- inputs from the planner ----------
 function jpResources(dk){
-  const v=dayView(dk); const rows=[], order=[], info={};
+  const v=dayView(dk); const rows=[], order=[], info={}, people={};
   v.routes.filter(r=>!r.deferred).forEach(r=>{ const l=r.load; if(!l || l.fixed || String(l.id).startsWith('FX-')) return;
     rows.push({shipment:String(l.id), route:r.name, line:rows.length+1, driver:l.driver||'', truck:l.truck||''});
-    if(!order.includes(r.name)) order.push(r.name);
+    if(!order.includes(r.name)) order.push(r.name); people[r.name]={driver:l.driver||'', helper:l.helper||''};
     info[r.name]=[l.driver&&'Driver: '+l.driver, l.helper&&'Helper: '+l.helper, l.truck&&'Truck: '+l.truck].filter(Boolean).join('   ·   '); });
-  return {rows, order, info};
+  return {rows, order, info, people};
 }
 function jpReallocations(dk){
   const out=[], seen=new Set(); const rn=(day,ld)=>ld?routeName(day,ld):JP.planner.UNASSIGNED;
-  Object.values(ORD).forEach(o=>{ if(o.added) return; const c=curOf(o.uid);
+  Object.values(ORD).forEach(o=>{ const c=curOf(o.uid);
     let row=null;
     if(o.day0===dk && c.day!==dk) row={shipment:String(o.load0), order:String(o.o), route:JP.planner.DEFERRED, why:'Deferred to '+dayLabel(c.day), from:rn(dk,o.load0)};
-    else if(o.day0===dk && String(c.load||'')!==String(o.load0||'')) row={shipment:String(o.load0), order:String(o.o), route:rn(dk,c.load), why:'Moved in Plan the day', from:rn(dk,o.load0)};
+    else if(o.day0===dk && String(c.load||'')!==String(o.load0||'')) row={shipment:String(o.load0), order:String(o.o), route:rn(dk,c.load), why:'Moved in Planning', from:rn(dk,o.load0)};
     else if(o.day0!==dk && c.day===dk) row={shipment:String(o.load0), order:String(o.o), route:rn(dk,c.load), why:'Deferred in from '+dayLabel(o.day0), from:dayLabel(o.day0), optional:true};
-    if(!row) return; const k=row.shipment+'|'+row.order; if(seen.has(k)) return; seen.add(k);
+    else if(o.added && o.day0===dk && c.day===dk) row={shipment:String(o.load0), order:String(o.o), route:rn(dk,c.load), why:'Inserted in Planning', from:'Inserted'};
+    if(!row) return;
+    if(o.added){ row.anyShipment=true; row.optional=true; if(row.why==='Moved in Planning') { row.why='Inserted, then moved in Planning'; row.from='Inserted on '+rn(dk,o.load0); } } const k=row.shipment+'|'+row.order; if(seen.has(k)) return; seen.add(k);
     row.name=o.n; row.ship=o.s; row.line=out.length+1; row.label=`Reallocation ${row.line} (${row.why.toLowerCase()})`; out.push(row); });
   out.sort((a,b)=>a.route.localeCompare(b.route)||a.order.localeCompare(b.order)); out.forEach((r,i)=>{ r.line=i+1; r.label=`Reallocation ${i+1} (${r.why.toLowerCase()})`; });
   return out;
@@ -4608,37 +4622,36 @@ function jpSkeleton(){
   return `<div class="jp"><div class="rep-head jp-top"><div><div class="muted small">Check sheets (JDE Offloading Sheet / Delivery Docket PDF) organised by the day's plan</div><h1>Check Sheet Print</h1></div><div class="spacer"></div>
    <div style="width:210px"><select id="jpDay"></select></div>
    <div class="jp-modes" role="tablist"><button class="on" data-jpmode="organise">Organise</button><button data-jpmode="reprint">Reprint an order</button></div></div>
-  <div class="jp-stack" id="jpOrganise">
-   <div class="jp-steps">
+  <div class="jp-layout" id="jpOrganise">
+   <aside class="jp-setup">
     <section class="jp-card"><h2><span class="jp-step">1</span>Import PDF</h2>
      <label class="jp-drop" id="jpDrop" tabindex="0"><input type="file" id="jpFile" accept="application/pdf,.pdf" multiple hidden><strong>Drop the check-sheet PDF here</strong><span>or click to choose. More than one file is accepted.</span></label>
      <div class="jp-progress" id="jpReadProgress" hidden><div class="bar"></div><span class="label"></span></div>
      <ul class="jp-files" id="jpFiles"></ul>
      <p class="jp-hint" style="margin-top:8px">The PDF is read in this browser only. It is not saved with the plan.</p></section>
     <section class="jp-card"><h2><span class="jp-step">2</span>Resources <span class="spacer"></span><button class="btn sm" data-jpgo="res">Edit in Resources</button></h2><div id="jpRes"></div></section>
-    <section class="jp-card"><h2><span class="jp-step">3</span>Reallocations <span class="spacer"></span><button class="btn sm" data-jpgo="plan">Plan the day</button></h2><p class="jp-hint">Changes made in Plan the day. Check them before you organise.</p><div id="jpRea"></div></section>
+    <section class="jp-card"><h2><span class="jp-step">3</span>Reallocations <span class="spacer"></span><button class="btn sm" data-jpgo="plan">Planning</button></h2><p class="jp-hint">Changes made in Planning (moves, deferrals and inserted orders). Check them before you organise.</p><div id="jpRea"></div></section>
     <section class="jp-card"><h2><span class="jp-step">4</span>Organise</h2>
      <button class="btn pri jp-big" id="jpExport" disabled>Organise PDFs</button>
      <p class="jp-hint" id="jpExportHint">Import the check-sheet PDF (step 1) to start.</p>
      <div class="jp-progress" id="jpExportProgress" hidden><div class="bar"></div><span class="label"></span></div>
      <ul class="jp-checks" id="jpChecks"></ul></section>
-   </div>
-   <div class="jp-tiles" id="jpTiles"></div>
-   <section class="jp-card" id="jpIssuesCard" hidden><div class="jp-cardhead"><h2>Checks</h2><div class="jp-filters" id="jpIssueFilters"></div></div><ul class="jp-issues" id="jpIssues"></ul></section>
-   <section class="jp-card" id="jpReviewCard" hidden><div class="jp-cardhead"><h2>Pages to check</h2><span class="jp-hint">Pages that are not part of an identified order.</span></div><div class="jp-rgrid" id="jpReview"></div></section>
-   <section class="jp-card jp-discard" id="jpDiscardCard" hidden><details id="jpDiscardBox"><summary><span class="jp-tag discard">Discarded</span><b><span id="jpDiscardCount">0</span> blank pages</b><span class="jp-hint">Signature-only pages, not printed. Open to check or restore one.</span></summary><div class="jp-rgrid" id="jpDiscard"></div></details></section>
-   <div class="jp-split">
-    <section class="jp-card"><div class="jp-cardhead"><h2>Routes</h2><span class="jp-hint">In the order of the day's plan</span><span class="spacer"></span><input type="search" id="jpSearch" class="jp-search" placeholder="Search order, customer, ship to, loading, bay…" aria-label="Search the routes"><button class="btn sm" id="jpExpand">Expand all</button></div><div id="jpRoutes"></div></section>
-    <section class="jp-card jp-output" id="jpOutput">
-     <div class="jp-cardhead"><h2>Organised PDF</h2><span class="jp-hint" id="jpOutInfo"></span></div>
-     <p class="jp-hint" id="jpOutEmpty">Press <b>Organise PDFs</b> (step 4) to see the organised pages here.</p>
-     <div id="jpOutBody" hidden>
-      <div class="jp-selbar"><label class="jp-selall"><input type="checkbox" id="jpSelAll" checked> Select all</label><span class="jp-hint" id="jpSelInfo"></span><span class="spacer"></span><button class="btn pri" id="jpPrintSel">Print Selected</button><button class="btn" id="jpPrintAll">Print all</button><button class="btn" id="jpDownloadAll">Download all</button></div>
-      <div class="jp-outlayout"><div class="jp-rtabs" id="jpOutRoutes"></div><div style="min-width:0">
-       <div class="jp-outhead"><div><h3 id="jpOutTitle"></h3><span class="jp-hint" id="jpOutRouteInfo"></span></div><span class="spacer"></span><button class="btn" id="jpPrintRoute">Print this route</button><button class="btn" id="jpDownloadRoute">Download this route</button></div>
-       <div class="jp-orders" id="jpOutOrders"></div>
-       <div class="jp-pages" id="jpOutPages"></div></div></div></div></section>
-   </div>
+   </aside>
+   <section class="jp-results">
+    <div class="jp-tiles" id="jpTiles"></div>
+    <section class="jp-card" id="jpIssuesCard" hidden><div class="jp-cardhead"><h2>Checks</h2><div class="jp-filters" id="jpIssueFilters"></div></div><ul class="jp-issues" id="jpIssues"></ul></section>
+    <section class="jp-card" id="jpReviewCard" hidden><div class="jp-cardhead"><h2>Pages to check</h2><span class="jp-hint">Pages that are not part of an identified order.</span></div><div class="jp-rgrid" id="jpReview"></div></section>
+    <section class="jp-card jp-discard" id="jpDiscardCard" hidden><details id="jpDiscardBox"><summary><span class="jp-tag discard">Discarded</span><b><span id="jpDiscardCount">0</span> blank pages</b><span class="jp-hint">Signature-only pages, not printed. Open to check or restore one.</span></summary><div class="jp-rgrid" id="jpDiscard"></div></details></section>
+    <section class="jp-card jp-merged" id="jpOutput">
+     <div class="jp-cardhead"><h2>Routes &amp; Organised PDF</h2><span class="jp-hint" id="jpOutInfo">In the order of the day's plan</span><span class="spacer"></span><input type="search" id="jpSearch" class="jp-search" placeholder="Search order, customer, ship to, loading, bay…" aria-label="Search the routes"><button class="btn sm" id="jpExpand">Expand all</button></div>
+     <div class="jp-selbar" id="jpSelBar" hidden><label class="jp-selall"><input type="checkbox" id="jpSelAll" checked> Select all</label><span class="jp-hint" id="jpSelInfo"></span><span class="spacer"></span><button class="btn pri" id="jpPrintSel">Print Selected</button><button class="btn" id="jpPrintAll">Print all</button><button class="btn" id="jpDownloadAll">Download all</button></div>
+     <div class="jp-mgrid">
+      <div class="jp-mleft" id="jpRoutes"></div>
+      <div class="jp-mright"><p class="jp-hint" id="jpOutEmpty">Press <b>Organise PDFs</b> (step 4) to see the organised pages here.</p>
+       <div id="jpPreviewHead" hidden><div class="jp-outhead"><div><h3 id="jpOutTitle"></h3><span class="jp-hint" id="jpOutRouteInfo"></span></div><span class="spacer"></span><button class="btn" id="jpPrintRoute">Print this route</button><button class="btn" id="jpDownloadRoute">Download this route</button></div></div>
+       <div class="jp-pages" id="jpOutPages"></div></div>
+     </div></section>
+   </section>
   </div>
   <div class="jp-reprint" id="jpReprint" hidden>
    <section class="jp-card"><h2>Reprint an order</h2><p class="jp-hint">Type the order number (or part of the customer name). Only the original pages of that order are printed, without a cover.</p>
@@ -4656,7 +4669,7 @@ function jpRender(){
   const p=JS.plan;
   if(!p){ $('jpTiles').textContent=''; $('jpIssuesCard').hidden=true; $('jpReviewCard').hidden=true; $('jpDiscardCard').hidden=true;
     $('jpRoutes').innerHTML='<p class="jp-empty">Routes will appear here after you import a PDF.</p>'; jpExportState(); if(JS.mode==='reprint') jpRenderReprint(); return; }
-  jpTiles(); jpIssues(); jpReview(); jpRoutes(); jpExportState(); if(JS.mode==='reprint') jpRenderReprint();
+  jpTiles(); jpIssues(); jpReview(); jpRoutes(); jpPreview(); jpExportState(); if(JS.mode==='reprint') jpRenderReprint();
 }
 function jpRenderInputs(){
   const dk=jpDayKey(); const res=dk?jpResources(dk):{rows:[]}, rea=dk?jpReallocations(dk):[];
@@ -4728,28 +4741,33 @@ function jpOverride(pg,value,defaultKind){
 function jpShipMap(){ const m=new Map(); Object.values(ORD).forEach(o=>{ if(!m.has(String(o.o))) m.set(String(o.o),o.s); }); return m; }
 function jpRoutes(){
   const list=$('jpRoutes'); list.textContent=''; const q=JS.q||''; const ships=jpShipMap(); JS.ships=ships;
+  const res=JS.result, st=res?jpSelState():null, people=(JS.res&&JS.res.people)||{};
   const hit=(r,o)=>!q || [r.name,r.shipments.join(' '),o.order,o.customer,o.shipment,ships.get(String(o.order))].some(x=>x!=null && String(x).toLowerCase().includes(q));
-  const routes=JS.plan.routes.map(r=>{ if(!q) return r; const own=[r.name,r.shipments.join(' ')].some(x=>String(x).toLowerCase().includes(q)); const orders=own?r.orders:r.orders.filter(o=>hit(r,o)); return orders.length?Object.assign({},r,{orders}):null; }).filter(Boolean);
-  if(!routes.length){ list.appendChild(jh('p',{class:'jp-empty',text:JS.org.sources.length?'No orders were identified in the PDF.':'Routes will appear here after you import a PDF.'})); return; }
-  const kindLabel={bay:'Route',special:'Route',exception:'From reallocations',deferred:'Deferred · do not load',unassigned:'Not in Resources',review:'Pages to check'};
+  const routes=JS.plan.routes.map(r=>{ if(!q) return r; const own=[r.name,r.shipments.join(' '),(people[r.name]||{}).driver,(people[r.name]||{}).helper].some(x=>x&&String(x).toLowerCase().includes(q)); const orders=own?r.orders:r.orders.filter(o=>hit(r,o)); return orders.length?Object.assign({},r,{orders}):null; }).filter(Boolean);
+  if(!routes.length){ list.appendChild(jh('p',{class:'jp-empty',text:q?'Nothing matches the search.':(JS.org.sources.length?'No orders were identified in the PDF.':'Routes will appear here after you import a PDF.')})); return; }
+  const kindLabel={bay:'',special:'',exception:'From reallocations',deferred:'Deferred · do not load',unassigned:'Not in Resources',review:'Pages to check'};
+  list.appendChild(jh('div',{class:'jp-rhead jp-rcols hd'}, jh('span'), jh('span',{text:'Bay'}), jh('span',{text:'Driver'}), jh('span',{text:'Helper'}), jh('span',{class:'n',text:'Drops'}), jh('span',{class:'n',text:'Orders'}), jh('span',{text:'Shipments attached'}), jh('span')));
   routes.forEach(r=>{
-    const isOpen=JS.open.has(r.name)||!!q; const box=jh('div',{class:'jp-route '+r.kind+(isOpen?' open':'')});
+    const isOpen=JS.open.has(r.name)||!!q; const rr=res?res.routes.find(x=>x.name===r.name):null; const pe=people[r.name]||{};
+    const box=jh('div',{class:'jp-route '+r.kind+(isOpen?' open':'')+(JS.outRoute===r.name?' cur':'')});
     const body=jh('div',{class:'jp-rbody'});
-    const head=jh('button',{class:'jp-rhead','aria-expanded':isOpen?'true':'false',onclick:()=>{ if(JS.open.has(r.name)) JS.open.delete(r.name); else JS.open.add(r.name);
-        box.classList.toggle('open'); head.setAttribute('aria-expanded',box.classList.contains('open')); if(box.classList.contains('open')&&!body.firstChild) jpRouteBody(body,r); }},
-      jh('div',{class:'jp-rname'}, jh('small',{text:kindLabel[r.kind]||'Route'}), r.name),
-      jh('div',{class:'jp-rships',text:(r.info?r.info+'  ·  ':'')+(r.shipments.length?'Shipments: '+r.shipments.join(', '):'')}),
-      jh('div',{class:'jp-rnum'}, jh('b',{text:jfmt(r.orders.length)}), r.kind==='review'?'pages':'orders'),
-      jh('div',{class:'jp-rnum'}, jh('b',{text:jfmt(r.pageCount)}), 'pages'), jh('span',{class:'jp-caret',text:'›'}));
+    const cb=jh('input',{type:'checkbox','aria-label':'Print route '+r.name,disabled:!res,title:res?'':'Organise the PDFs first',onclick:ev=>ev.stopPropagation(),
+      onchange:ev=>{ if(ev.target.checked){ JS.exR.delete(r.name); jpRouteKeys(r.name).forEach(k=>JS.exO.delete(k)); } else JS.exR.add(r.name); jpAfterSel(); }}); cb.checked=st?(rr?st.routeOn(rr):true):true;
+    const drops=new Set(r.orders.map(o=>ships.get(String(o.order))||o.customer||o.key)).size;
+    const head=jh('div',{class:'jp-rhead jp-rcols',role:'button',tabindex:'0','aria-expanded':isOpen?'true':'false',onclick:()=>{ if(JS.open.has(r.name)) JS.open.delete(r.name); else JS.open.add(r.name); JS.outRoute=r.name; jpRoutes(); jpPreview(); }},
+      cb, jh('div',{class:'jp-rname'}, kindLabel[r.kind]?jh('small',{text:kindLabel[r.kind]}):null, r.name), jh('span',{text:pe.driver||'—'}), jh('span',{text:pe.helper||'—'}),
+      jh('span',{class:'n',text:r.kind==='review'?'—':drops}), jh('span',{class:'n',text:r.orders.length}), jh('span',{class:'jp-rships',text:r.shipments.join(', ')||'—'}), jh('span',{class:'jp-caret',text:'›'}));
     if(isOpen) jpRouteBody(body,r);
     box.appendChild(head); box.appendChild(body); list.appendChild(box); });
+  $('jpExpand').textContent=JS.plan.routes.every(r=>JS.open.has(r.name))?'Collapse all':'Expand all';
 }
 function jpRouteBody(body,r){
-  const warnKeys=new Set(JS.plan.issues.filter(i=>i.orderKey).map(i=>i.orderKey));
-  const table=jh('table',null, jh('thead',null, jh('tr',null, jh('th',{text:'#'}), jh('th',{text:'Order Number'}), jh('th',{text:r.kind==='review'?'Reason':'Customer Name'}), jh('th',{text:'Ship To'}), jh('th',{text:'Shipment'}), jh('th',{text:'Pages'}), jh('th',{text:'Note'}), jh('th',{text:''}))));
+  const warnKeys=new Set(JS.plan.issues.filter(i=>i.orderKey).map(i=>i.orderKey)); const res=JS.result;
+  const table=jh('table',null, jh('thead',null, jh('tr',null, jh('th',{text:''}), jh('th',{text:'Order Number'}), jh('th',{text:r.kind==='review'?'Reason':'Customer Name'}), jh('th',{text:'Ship To'}), jh('th',{text:'Shipment'}), jh('th',{text:'Note'}), jh('th',{text:''}))));
   const tb=jh('tbody');
-  r.orders.forEach((o,i)=>{ const note=o.movedFrom?jh('span',{class:'jp-moved',text:'Moved from '+o.movedFrom}):(warnKeys.has(o.key)?jh('span',{class:'jp-warn',text:'See Checks'}):'');
-    tb.appendChild(jh('tr',null, jh('td',{class:'num',text:i+1}), jh('td',{text:o.order||'-'}), jh('td',{text:r.kind==='review'?o.reason:(o.customer||'(not found)')}), jh('td',{text:(JS.ships&&JS.ships.get(String(o.order)))||'-'}), jh('td',{text:o.shipment||'-'}), jh('td',{class:'num',text:o.pages.length}), jh('td',null,note),
+  r.orders.forEach(o=>{ const note=o.movedFrom?jh('span',{class:'jp-moved',text:'Moved from '+o.movedFrom}):(warnKeys.has(o.key)?jh('span',{class:'jp-warn',text:'See Checks'}):'');
+    const cb=jh('input',{type:'checkbox','aria-label':'Print order '+o.order,disabled:!res,onchange:ev=>{ if(ev.target.checked){ JS.exO.delete(o.key); JS.exR.delete(r.name); } else JS.exO.add(o.key); jpAfterSel(); }}); cb.checked=!JS.exO.has(o.key)&&!JS.exR.has(r.name);
+    tb.appendChild(jh('tr',null, jh('td',null,cb), jh('td',{class:'ords',text:o.order||'-'}), jh('td',{text:r.kind==='review'?o.reason:(o.customer||'(not found)')}), jh('td',{text:(JS.ships&&JS.ships.get(String(o.order)))||'-'}), jh('td',{text:o.shipment||'-'}), jh('td',null,note),
       jh('td',null, jh('button',{class:'btn sm',text:'View',onclick:()=>jpViewer((o.order?'Order '+o.order:'Page to check')+(o.customer?'  |  '+o.customer:''),o.pages)})))); });
   table.appendChild(tb); body.appendChild(table);
 }
@@ -4757,16 +4775,16 @@ function jpRouteBody(body,r){
 function jpThumb(img,pg,width){ const src=JS.org.sources[pg.fileIndex];
   JP.ui.thumbs.render(src.doc,pg.pageIndex,width,pg.fileIndex+':'+src.name+':'+pg.pageIndex).then(u=>{ img.src=u; }).catch(()=>{ img.alt='Preview not available'; }); }
 function jpViewer(title,pages){ jpImages(title,pages.map((pg,i)=>{ const src=JS.org.sources[pg.fileIndex]; return {doc:src.doc,index:pg.pageIndex,key:pg.fileIndex+':'+src.name+':'+pg.pageIndex,caption:'Page '+(i+1)+' of '+pages.length+'  |  source '+JP.planner.pageLabel(pg)}; })); }
-function jpImages(title,items){
+function jpImages(title,items,start){
   $('jpViewerTitle').textContent=title; const body=$('jpViewerBody'); body.textContent='';
   items.forEach(it=>{ const img=jh('img',{alt:it.caption}); JP.ui.thumbs.render(it.doc,it.index,480,it.key).then(u=>{ img.src=u; }).catch(()=>{ img.alt='Preview not available'; }); body.appendChild(jh('figure',null,img,jh('figcaption',{text:it.caption}))); });
-  $('jpViewer').showModal();
+  $('jpViewer').showModal(); if(start){ const f=body.children[start]; if(f) setTimeout(()=>f.scrollIntoView({block:'start'}),50); }
 }
 const jpObserver='IntersectionObserver' in window ? new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting&&e.target.__render){ const f=e.target.__render; e.target.__render=null; jpObserver.unobserve(e.target); f(); } }),{rootMargin:'200px'}) : null;
 function jpPageGrid(container,items,title){
   container.textContent='';
   items.forEach((it,i)=>{ const img=jh('img',{alt:it.caption,loading:'lazy'});
-    const fig=jh('figure',{class:it.cover?'cover':'',title:'Click to enlarge',onclick:()=>jpImages(title,items.slice(i).concat(items.slice(0,i)).slice(0,6))}, img, jh('figcaption',{text:it.caption}));
+    const fig=jh('figure',{class:it.cover?'cover':'',title:'Click to enlarge',onclick:()=>jpImages(title,items,i)}, img, jh('figcaption',{text:it.caption}));
     container.appendChild(fig);
     const draw=()=>JP.ui.thumbs.render(it.doc,it.index,200,it.key).then(u=>{ img.src=u; }).catch(()=>{ img.alt='Preview not available'; });
     if(i<8||!jpObserver) draw(); else { fig.__render=draw; jpObserver.observe(fig); } });
@@ -4794,7 +4812,7 @@ function jpExportState(){
     hint.textContent=p.routes.length+' route(s), each with its cover, and '+jfmt(p.routes.reduce((n,r)=>n+r.pageCount,0))+' original pages.'+(warn?' '+warn+' item(s) in Checks.':'')+' You will see the result before printing.'; }
 }
 let jpSeq=0;
-function jpClearResult(){ if(JS.result&&JS.result.doc) JS.result.doc.destroy(); JS.result=null; JS.exR=new Set(); JS.exO=new Set(); if($('jpOutput')){ $('jpOutBody').hidden=true; $('jpOutEmpty').hidden=false; $('jpOutInfo').textContent=''; $('jpChecks').textContent=''; } }
+function jpClearResult(){ if(JS.result&&JS.result.doc) JS.result.doc.destroy(); JS.result=null; JS.exR=new Set(); JS.exO=new Set(); if($('jpOutput')){ $('jpSelBar').hidden=true; $('jpPreviewHead').hidden=true; $('jpOutPages').textContent=''; $('jpOutEmpty').hidden=false; $('jpOutInfo').textContent='In the order of the day\'s plan'; $('jpChecks').textContent=''; } }
 function jpStamp(d){ const p=n=>('0'+n).slice(-2); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes()); }
 async function jpOrganise(){
   const btn=$('jpExport'), prog=$('jpExportProgress'), checks=$('jpChecks'); btn.disabled=true; jpClearResult();
@@ -4825,27 +4843,26 @@ function jpSelPages(){
   return out;
 }
 function jpSelUi(st){
+  if(!JS.result) return;
   const all=$('jpSelAll'); all.checked=st.all; all.indeterminate=!st.all && (st.routes.length>0);
   $('jpSelInfo').textContent=st.routes.length+' of '+JS.result.routes.length+' routes · '+st.orders.size+' orders selected';
   $('jpPrintSel').disabled=!st.routes.length;
 }
 function jpOutput(){
-  const res=JS.result; if(!res) return; $('jpOutBody').hidden=false; $('jpOutEmpty').hidden=true;
-  $('jpOutInfo').textContent=jfmt(res.manifest.length)+' pages, '+res.routes.length+' routes'+(res.ok?', all checks passed.':'. Some checks failed, see step 1.');
+  const res=JS.result; if(!res) return;
+  $('jpOutInfo').textContent=jfmt(res.manifest.length)+' pages, '+res.routes.length+' routes'+(res.ok?', all checks passed.':'. Some checks failed, see step 4.');
   $('jpDownloadAll').textContent=res.ok?'Download all':'Download anyway';
-  const nav=$('jpOutRoutes'); nav.textContent='';
-  const st=jpSelState();
-  res.routes.forEach(r=>{ const on=st.routeOn(r);
-    const cb=jh('input',{type:'checkbox','aria-label':'Print route '+r.name,onchange:ev=>{ if(ev.target.checked){ JS.exR.delete(r.name); jpRouteKeys(r.name).forEach(k=>JS.exO.delete(k)); } else JS.exR.add(r.name); jpOutput(); }}); cb.checked=on;
-    nav.appendChild(jh('div',{class:'jp-rrow'}, cb, jh('button',{class:'jp-rtab '+r.kind+(r.name===JS.outRoute?' on':''),onclick:()=>{ JS.outRoute=r.name; jpOutput(); }}, jh('b',{text:r.name}), jh('span',{text:(r.kind==='review'?r.orders+' to check':r.orders+' orders')+' | '+r.pages.length+' p.'})))); });
-  jpSelUi(st);
-  const route=res.routes.find(r=>r.name===JS.outRoute); if(!route) return;
+  if(!JS.outRoute||!res.routes.some(r=>r.name===JS.outRoute)) JS.outRoute=res.routes.length?res.routes[0].name:null;
+  $('jpSelBar').hidden=false; jpSelUi(jpSelState()); jpRoutes(); jpPreview();
+}
+function jpAfterSel(){ if(!JS.result) return; jpSelUi(jpSelState()); jpRoutes(); }
+// right side: the organised pages of the route that is selected
+function jpPreview(){
+  const res=JS.result; const route=res&&res.routes.find(r=>r.name===JS.outRoute);
+  if(!route){ $('jpPreviewHead').hidden=true; $('jpOutPages').textContent=''; $('jpOutEmpty').hidden=false; return; }
+  $('jpOutEmpty').hidden=true; $('jpPreviewHead').hidden=false;
   const covers=route.pages.filter(i=>res.manifest[i].type==='cover').length;
   $('jpOutTitle').textContent=route.name;
-  { const ol=$('jpOutOrders'); ol.textContent=''; const byKey0=new Map(JS.plan.orders.map(o=>[o.key,o]));
-    jpRouteKeys(route.name).forEach(k=>{ const o=byKey0.get(k); const cb=jh('input',{type:'checkbox',onchange:ev=>{ if(ev.target.checked){ JS.exO.delete(k); JS.exR.delete(route.name); } else JS.exO.add(k); jpOutput(); }}); cb.checked=!JS.exO.has(k)&&!JS.exR.has(route.name);
-      ol.appendChild(jh('label',null,cb,jh('span',{class:'o',text:o?o.order:'—'}),jh('span',{text:(o&&o.customer)||'(customer not found)'}),jh('span',{class:'jp-hint',text:o?o.pages.length+' p.':''}))); });
-    ol.hidden=!ol.children.length; }
   $('jpOutRouteInfo').textContent=covers+' cover page(s) + '+(route.pages.length-covers)+' order page(s). Pages '+(route.pages[0]+1)+' to '+(route.pages[route.pages.length-1]+1)+' of the full PDF.';
   const byKey=new Map(JS.plan.orders.map(o=>[o.key,o])), seen={};
   jpPageGrid($('jpOutPages'), route.pages.map(i=>{ const m=res.manifest[i]; let cap;
@@ -4912,6 +4929,7 @@ function jpWire(){
   $('jpViewer').addEventListener('click',e=>{ if(e.target===$('jpViewer')) $('jpViewer').close(); });
 }
 // for the browser tests
+window.__rpMaps={cMap:()=>cMap, pMap:()=>pMap, pCount:()=>Object.keys(pMarkers).length};
 window.__rpPrint={state:JS, replan:jpReplan, loadPdfLibs, selPages:jpSelPages};
 
 // ---------- boot ----------
@@ -4923,7 +4941,7 @@ if(NOMAP){
   document.querySelectorAll('.maptools,.legend').forEach(x=>x.style.display='none');
 }
 if(!MASTER){ const n=document.createElement('div'); n.className='note warn'; n.id='noMaster'; n.style.margin='8px';
-  n.innerHTML='👥 <b>No customer master loaded.</b> Load <i>MASTER_DEL_DETAILS.xlsx</i> (also from <b>Plan the day → Load day</b>). It is kept in this browser after that. <button class="btn sm" id="noMasterBtn">Load customer master…</button>';
+  n.innerHTML='👥 <b>No customer master loaded.</b> Load <i>MASTER_DEL_DETAILS.xlsx</i> (also from <b>Planning → Load day</b>). It is kept in this browser after that. <button class="btn sm" id="noMasterBtn">Load customer master…</button>';
   $('tab-customers').prepend(n); $('noMasterBtn').onclick=()=>$('uploadBtn').onclick(); }
 initCMap();
 showTab('plan');

@@ -69,8 +69,11 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await enter('Alex');
   ok((await p.textContent('#cBay')).includes('All bays (58)'),'customer master read from MASTER_DATA automatically (58 customers)');
   ok(/Alex\s*Master/.test(await p.textContent('#userBtn')),'header shows user and role');
-  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Plan the day|Resources|Change report|Check Sheet Print|Options|Customers' && await p.evaluate(()=>document.getElementById('tab-plan').classList.contains('on')),'tab order: Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers');
-  await p.click('nav [data-tab=customers]'); await shot('customers');
+  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Planning|Resources|Change report|Check Sheet Print|Options|Customers' && await p.evaluate(()=>document.getElementById('tab-plan').classList.contains('on')),'tab order: Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers');
+  ok((await p.$$eval('nav button.hl',b=>b.map(x=>x.dataset.tab).join()))==='report,print','Change report and Check Sheet Print tabs are highlighted in the header');
+  await p.click('nav [data-tab=customers]'); await p.waitForTimeout(500);
+  ok(await p.evaluate(()=>{ const m=__rpMaps.cMap(); const b=m.getBounds(); return m.getSize().x>200 && b.contains([53.6,-6.65]) && b.contains([53.05,-6.15]) && b.contains([53.347,-6.262]); }),'Customers: the map opens fitted to all the customers (not blank)');
+  await shot('customers');
 
   // the customer master is updated in the folder: the window flags it (same rule as the reports) and loading asks first
   await p.evaluate(()=>{ const t=window.__TREE.MASTER_DATA['FIXED_ROUTES_DIPSDATA.xlsx']; const wb=XLSX.read(t.b64,{type:'base64'}); const n=wb.SheetNames[0]; const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1}); rows.push(['FR04','Driver 24','BAY 05A','TRK-24','..T.T..']); wb.Sheets[n]=XLSX.utils.aoa_to_sheet(rows); t.b64=XLSX.write(wb,{type:'base64',bookType:'xlsx'}); t.mod=Date.now(); });
@@ -99,7 +102,12 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   ok(rep1.includes('Replace what is loaded') && rep1.includes('Fri 13.11') && /−1\s*order/.test(rep1) && /1\s*weight change/.test(rep1),'replacing a day first shows the differences (−1 order, 1 weight change)'); await shot('replace-differences');
   await p.click('#modal [data-act=go]'); await p.waitForTimeout(300);
   await p.selectOption('#pDay','D2026-11-09'); await p.click('#expAll');
-  ok((await p.textContent('#pRoutes')).includes('BAY 07'),'fixed route BAY 07 shown on Monday (from FIXED_ROUTES)'); await shot('plan-monday');
+  ok(!(await p.textContent('#pRoutes')).includes('BAY 07'),'fixed routes are only a reference: BAY 07 is not a route on Monday (no RESOURCES for it)'); await shot('plan-monday');
+  // the map follows the expanded routes: none or all expanded = all; some expanded = only those; “show on map” adds a route
+  { const cnt=()=>p.evaluate(()=>__rpMaps.pCount()); await p.click('#colAll'); const nAll=await cnt(); const ids=await p.$$eval('.route:not(.deferred)',r=>r.map(x=>x.dataset.r));
+    await p.click(`.route[data-r="${ids[0]}"] .rhead`); const nA=await cnt(); await p.click(`.route[data-r="${ids[1]}"] .rhead`); const nAB=await cnt();
+    await p.click(`#pBays .chip[data-r="${ids[2]}"]`); const nABC=await cnt(); await p.click('#expAll'); const nEx=await cnt();
+    ok(nAll>nA && nAB>nA && nABC>nAB && nEx===nAll,`map: all collapsed ${nAll} · bay 1 expanded ${nA} · bays 1+2 ${nAB} · plus bay 3 chosen in “show on map” ${nABC} · all expanded ${nEx}`); }
 
   // 3. MOVE — one drop, then a group
   const routes=await p.$$eval('.route:not(.deferred)',rs=>rs.map(r=>({id:r.dataset.r, name:r.querySelector('.title').textContent.trim(), n:r.querySelectorAll('.drop:not(.dh)').length})));
@@ -140,7 +148,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
 
   // 8. NEW DAY (Mon 16.11, from fixed routes)
   await p.click('#newDayBtn'); await p.click('#ndCal [data-d="2026-11-16"]'); await shot('new-day'); await p.click('#ndOk');
-  ok((await p.textContent('#pDay')).includes('Mon 16.11'),'Mon 16.11 created with its fixed bays'); await p.selectOption('#pDay','D2026-11-09');
+  ok((await p.textContent('#pDay')).includes('Mon 16.11') && (await p.$$eval('#pRoutes .route',x=>x.length))===0,'Mon 16.11 created with no routes (routes come only from RESOURCES)'); await p.selectOption('#pDay','D2026-11-09');
 
   // 9. CUSTOMERS — fix a missing location, add a new customer
   await p.click('nav [data-tab=customers]'); await p.click('#cK3box'); await p.click('.crow >> nth=0'); await p.waitForSelector('#eLat');
@@ -148,7 +156,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('#cK3box');
   await p.click('#newCustBtn'); await p.fill('#eId','91000999'); await p.fill('#eName','DEMO NEW CUSTOMER'); await p.fill('#eAddr','1 New Road, City Centre'); await p.fill('#eLat','53.34'); await p.fill('#eLng','-6.27');
   if(await p.$('#eBay')) await p.fill('#eBay','BAY 01'); for(const id of ['eId','eName','eLat','eBay']) await p.dispatchEvent('#'+id,'input'); await p.click('#modal [data-act=ok]').catch(()=>{});
-  await closeModal(); ok((await p.textContent('#cBay')).includes('All bays (59)'),'new customer added (59)');
+  await p.waitForSelector('#scrim.on',{state:'hidden',timeout:4000}).catch(()=>{}); await closeModal(); await p.waitForFunction(()=>document.getElementById('cBay').textContent.includes('All bays (59)'),null,{timeout:4000}).catch(()=>{}); ok((await p.textContent('#cBay')).includes('All bays (59)'),'new customer added (59)');
 
   // 10. CHANGE REPORT — the deferred group is allocated later: it stays one line in "Deferred orders"
   await p.click('nav [data-tab=report]'); await p.waitForSelector('[data-pa=one]'); await shot('report');
@@ -186,18 +194,18 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const bayCell='#rsGrid td[data-r="0"][data-c="1"]'; await p.click(bayCell); await p.keyboard.type('City Express'); await p.keyboard.press('Enter');
   ok((await p.textContent(bayCell)).trim()==='CITY EXPRESS','Resources: route renamed by typing in the Route / Bay cell');
   await p.click('#rsGrid td[data-r="0"][data-c="10"]'); await p.keyboard.type('Keys at the gate'); await p.keyboard.press('Enter'); await shot('resources');
-  await p.click('nav [data-tab=plan]'); ok((await p.textContent('#pRoutes')).includes('CITY EXPRESS'),'renamed route shown in Plan the day');
+  await p.click('nav [data-tab=plan]'); ok((await p.textContent('#pRoutes')).includes('CITY EXPRESS'),'renamed route shown in Planning');
 
   // 11c. CHECK SHEET PRINT — the day's check-sheet PDF, organised by the plan (with the moves as reallocations)
   await p.click('nav [data-tab=print]'); await p.selectOption('#jpDay','D2026-11-09');
-  ok(await p.evaluate(()=>{ const a=document.getElementById('jpExport').getBoundingClientRect(), b=document.getElementById('jpDrop').getBoundingClientRect(); return b.left<a.left && Math.abs(a.top-b.top)<200; }),'steps in a row: Import PDF first, Organise (step 4) at the end');
+  ok(await p.evaluate(()=>{ const a=document.getElementById('jpExport').getBoundingClientRect(), b=document.getElementById('jpDrop').getBoundingClientRect(), m=document.getElementById('jpOutput').getBoundingClientRect(); return b.top<a.top && a.right<=m.left+1; }),'steps on the left: Import PDF first … Organise (step 4); merged Routes & Organised PDF on the right');
   await p.setInputFiles('#jpFile',path.join(DEMO,'REPORTS','week_46','CheckSheets_Mon.pdf'));
   await p.waitForSelector('#jpExport:not([disabled])',{timeout:60000});
   ok((await p.textContent('#jpRes')).includes('CITY EXPRESS'),'Print: resources come from the Resources tab');
-  { const t=await p.textContent('#jpRea'); console.log('   reallocations: '+t.replace(/\s+/g,' ').slice(0,400)); ok(/Moved in Plan the day|Deferred/.test(t),'Print: reallocations listed from Plan the day'); }
-  await p.click('#jpExport'); await p.waitForSelector('#jpOutBody:not([hidden])',{timeout:90000});
+  { const t=await p.textContent('#jpRea'); console.log('   reallocations: '+t.replace(/\s+/g,' ').slice(0,400)); ok(/Moved in Planning|Deferred/.test(t),'Print: reallocations listed from Planning'); }
+  await p.click('#jpExport'); await p.waitForSelector('#jpSelBar:not([hidden])',{timeout:90000});
   ok(await p.$$eval('#jpChecks li',x=>x.length>0 && x.every(li=>!li.classList.contains('fail'))),'Print: organised PDF passed every integrity check');
-  { const tabs=await p.$$eval('#jpOutRoutes .jp-rtab b',x=>x.map(e=>e.textContent)); console.log('   route tabs: '+tabs.join(' | '));
+  { const tabs=await p.$$eval('#jpRoutes .jp-route .jp-rname',x=>x.map(e=>e.textContent.replace(/^[^]*?(BAY|CITY|DEFERRED|UNASSIGNED)/,'$1').trim())); console.log('   route tabs: '+tabs.join(' | '));
     ok(tabs.includes('CITY EXPRESS') && tabs.indexOf('BAY 02')<tabs.indexOf('BAY 03'),'Print: one cover per route, in the order of the plan, with the Resources name'); }
   await shot('check-sheet-print');
   const [pdl]=await Promise.all([p.waitForEvent('download'), p.click('#jpDownloadAll')]); ok(/^CheckSheets_Mon_09\.11_.*\.pdf$/.test(pdl.suggestedFilename()),'organised PDF downloaded: '+pdl.suggestedFilename());
