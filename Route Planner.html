@@ -2916,11 +2916,14 @@ $('resetBtn').onclick=()=>{
 // v0.10: full reset — browser storage, users file and folder links; the app reopens on the home page
 // v0.10.3: reset clears the planner (plan, days, customer master, fixed routes, customer edits) but keeps the company
 // folder link, the users file and this computer's registration; the app reopens on "Who is planning?"
-async function fullReset(){
-  const keep=[UCFGKEY, UFILEKEY]; const theme=PREFS.theme||'system';
+async function fullReset(all){
+  // all = the Reset of the start window: everything this browser saved goes (also the cached users list and the users file choice);
+  // only the theme, this computer's id (its registration) and the folder link stay
+  const keep=all?[]:[UCFGKEY, UFILEKEY]; const theme=PREFS.theme||'system';
   try{ Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !keep.includes(k)).forEach(k=>localStorage.removeItem(k)); }catch(e){}
   try{ store(PREFKEY,{theme}); }catch(e){}   // the theme choice is not reset
-  try{ ['rp.user','rp.auth','rp.msg','rp.access','rp.datawin'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Planner reset — choose your user'); }catch(e){}
+  try{ if(all) sessionStorage.clear(); else ['rp.user','rp.auth','rp.msg','rp.access','rp.datawin'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg',all?'Browser data cleared':'Planner reset — choose your user'); }catch(e){}
+  try{ if(all && window.caches){ for(const k of await caches.keys()) await caches.delete(k); } }catch(e){}
   location.reload();
 }
 
@@ -3724,9 +3727,9 @@ async function gateHome(msg){
   let h=null; try{ h=await idb.get('folder:root'); }catch(e){ h=null; }
   let access=false; try{ access=sessionStorage.getItem('rp.access')==='1'; }catch(e){}
   // the Reset button of the first windows: the planner's saved data in this browser is cleared (the theme, the folder link and this computer's registration are kept)
-  const resetBtn='<button class="btn" data-act="reset" style="margin-right:auto" title="Clears everything this browser saved for the planner: plan, days, customer master, fixed routes, preferences. The folder link, the users file and the theme are kept.">↺ Reset</button>';
-  const resetNote='<div class="muted small" style="margin-top:8px">↺ <b>Reset</b> clears everything this browser saved for the planner (plan, days, customer master, fixed routes). The folder link, the users file and your theme are kept.</div>';
-  const onReset=btn=>{ if(btn.dataset.sure!=='1'){ btn.dataset.sure='1'; btn.textContent='↺ Click again to reset'; btn.classList.add('warn'); return; } fullReset(); };
+  const resetBtn='<button class="btn" data-act="reset" style="margin-right:auto" title="Clears everything this browser saved for the planner. Only the theme, the registration of this computer and the folder link stay.">↺ Reset</button>';
+  const resetNote='<div class="muted small" style="margin-top:8px">↺ <b>Reset</b> clears <b>everything</b> this browser saved for the planner: plan, days, customer master, fixed routes, users list, preferences. Only your theme, the registration of this computer and the folder link stay. The master data is read again from the folder after you choose your user.</div>';
+  const onReset=btn=>{ if(btn.dataset.sure!=='1'){ btn.dataset.sure='1'; btn.textContent='↺ Click again to reset'; btn.classList.add('warn'); return; } fullReset(true); };
   const acts=(a,el)=>{ if(a==='reset') return onReset(el); if(a==='link'||a==='relink') return linkRoot(); };
   if(!h) return gateModal(`<div class="mh"><h2>Allow access to the company folder</h2><div class="muted small">Once per computer</div></div><div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}<div class="note info">Choose the shared <b>Route_planning</b> folder as it appears on this computer (synced OneDrive / SharePoint). The users file, the reports and the plans are all read from it.</div>${resetNote}</div>
     <div class="mf">${resetBtn}<button class="btn pri" data-act="link">📁 Choose folder…</button></div>`,{onAct:(a,el)=>acts(a,el)});

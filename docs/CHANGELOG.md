@@ -9,7 +9,7 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 ### Features
 - **Printing › Import PDF from the company folder.** **📁 Choose from CHECK_SHEETS › JDE** lists the PDFs like Load day does (week chips, newest first, ✓ loaded / ⚠ changed / not loaded). The **day of a PDF is read from its first 3 pages**, not from its file name; only those pages are parsed and the result is remembered per file. Importing a PDF sets the Printing day from it (also for dropped files).
 - **Organised PDFs are saved** in `CHECK_SHEETS/Organised` as `date_time_user.pdf` (for example `2026-11-10_14.35_Alex.pdf`); Download all uses the same name.
-- **Start window.** The first window always asks for access to the company folder (the remembered one, or "Choose folder…") and has a **↺ Reset** button that clears everything the browser saved for the planner (the folder link, the users file and the theme are kept).
+- **Start window.** The first window always asks for access to the company folder (the remembered one, or "Choose folder…") and has a **↺ Reset** button that clears **everything** the browser saved for the planner: plan, days, customer master, fixed routes, the cached users list and preferences. Only the theme, the computer's registration and the folder link are kept.
 
 ### Edits
 - **Check Sheet Print is now called Printing.**
