@@ -4,6 +4,39 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.2 — 2026-11-10
+
+### Bug fixes
+- **Inserted orders are reallocations.** An order inserted in Planning (late call) and then moved to another bay was missing from Check Sheet Print › Reallocations, so the print wasn't updated. Inserted orders now appear there (with "Inserted, then moved in Planning" when moved) and are printed under their current route.
+- **Customers map** was blank until a customer was clicked. It now fits all the customers when the tab opens.
+
+### Edits
+- **Tab names and header:** Plan the day is now **Planning**. Change report and Check Sheet Print are highlighted in the header.
+- **Check Sheet Print:** steps 1–4 are back on the left (in the current order). **Routes** and **Organised PDF** are merged into one section on the right: search and expand / collapse, then a list with Bay, Driver, Helper, Drops, Orders and Shipments attached; selecting a bay opens its orders (tick box, order number, customer, ship to, shipment, note, view) and previews the organised pages on the right. Click to enlarge now shows **every** page of the route, in order (it was limited to 6).
+- **New day / fixed routes:** fixed routes are only a reference when deferring orders. No routes are created from them: bays come only from the Resources details, and a day with nothing in Resources has no routes planned yet. An order deferred to a bay that the day doesn't have stays **not assigned**, with a warning in Planning.
+- **Planning map:** all routes collapsed or all expanded show every route; some expanded show only those; **Show on map** adds or removes single routes on top of that.
+
+## v0.11.1 — 2026-11-09
+
+### Features
+- **Options tab.** Replaces Customize. **Customize** is a section of it, with a new theme choice **Same as the browser**. **Users** (Master only) moved here from the user menu. **Files loaded** moved here from the change report.
+- **Check Sheet Print layout.** Top to bottom: the four steps side by side (Import PDF, Resources, Reallocations, Organise), the summary, Checks (if any), then Routes and Organised PDF side by side.
+  - Tick the routes and orders to print and click **Print Selected**; **Select all** ticks everything.
+  - A search box on the routes (order, customer name, ship to, loading, bay).
+  - The ship to code of each customer is listed with the orders and reallocations.
+- **P&W balloon** on the change report filters every section to Pink & White orders.
+- **Resources:** drag a column edge to resize it; press a column or row heading and drag to move it; **＋ Row** is below the table and **＋ Column** on its right; **＋ Day** button.
+
+### Edits
+- **Tab order:** Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers.
+- **Donegal** bays and customers show only on the Customers tab. They are left out of Plan the day, Resources, the change report and Check Sheet Print.
+- **Resources:** the ID column is gone. **Drops** and **Kgs** are read-only and follow the plan, so moves and deferrals in Plan the day change them. Resources edits are no longer logged in the change report.
+- **Change report** shows only deferred, reallocated, inserted orders, new routes, docket type changes and customer details changes.
+- **Managers** no longer manage users (Master only).
+
+### Bug fixes
+- A click anywhere in the Options tab acted as a theme click, because the page's own theme attribute matched.
+
 ## v0.11.0 — 2026-11-09
 
 ### Features
