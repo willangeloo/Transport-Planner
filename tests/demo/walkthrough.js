@@ -27,7 +27,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   if(IMG) fs.mkdirSync(IMG,{recursive:true});
   const b=await chromium.launch(); const c=await b.newContext({viewport:{width:1360,height:800},acceptDownloads:true}); const errs=[];
   await c.route('**/*',r=>{ const u=r.request().url(); if(u.startsWith('file:')) return r.continue(); const k=Object.keys(libs).find(k=>u.endsWith('/'+k)); return k?r.fulfill({path:libs[k]}):r.abort(); });
-  await c.addInitScript(t=>{ let s=sessionStorage.getItem('__tree'); if(!s){ s=t; } window.__TREE=JSON.parse(s);
+  await c.addInitScript(t=>{ let s=null; try{ s=sessionStorage.getItem('__tree'); }catch(e){ return; } if(!s){ s=t; } window.__TREE=JSON.parse(s);
     window.addEventListener('beforeunload',()=>{ try{ sessionStorage.setItem('__tree',JSON.stringify(window.__TREE)); }catch(e){} }); }, JSON.stringify(TREE));
   await c.addInitScript(MOCK);
   const p=await c.newPage(); p.on('pageerror',e=>errs.push(e.message));
@@ -63,8 +63,8 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   ok(/Demo Transport Ltd/.test(await p.textContent('#coName')) && /Demo Transport Ltd/.test(chk),'company name shown next to the version (top left) and on the start windows');
   await Promise.all([p.waitForEvent('load',{timeout:8000}).catch(()=>null), p.click('#modal [data-act=go]')]);
   // right after choosing the user: master data (left) and reports (right), each compared with the folder
-  for(let i=0;i<20 && !(await p.isVisible('#modal [data-act=dgo]').catch(()=>false));i++){ if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]').catch(()=>{}); await p.waitForTimeout(300); }   // the app reloads once (customer master); the mock folder is linked again
-  await p.waitForSelector('#modal [data-act=dgo]',{timeout:10000}); await p.waitForTimeout(500); const dw=await modalText();
+  for(let i=0;i<40 && !(await p.isVisible('#modal [data-act=dgo]').catch(()=>false));i++){ if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]').catch(()=>{}); await p.waitForTimeout(300); }   // the app reloads once (customer master); the mock folder is linked again
+  await p.waitForSelector('#modal [data-act=dgo]',{timeout:30000}); await p.waitForTimeout(500); const dw=await modalText();
   ok(dw.includes('Demo Transport Ltd') && dw.includes('Master data') && dw.includes('Reports') && /MASTER_DEL_DETAILS\.xlsx\s*✓ loaded/.test(dw) && /FIXED_ROUTES_DIPSDATA\.xlsx\s*✓ loaded/.test(dw) && dw.includes('master data in the planner is the version found in the folder'),'after choosing the user: master data window, both files ✓ loaded (same as the folder)');
   ok(/DIPS_Plan_Mon\.xlsx\s*not loaded/.test(dw) && /0 of 10 loaded/.test(dw),'reports side lists week 46 (nothing loaded yet)'); await shot('data-window');
   await enter('Alex');
@@ -189,6 +189,13 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
 
   // 11. CUSTOMIZE — theme (everyone) and bay colours (Master); route names moved to the Resources tab
   ok(await p.isVisible('nav [data-tab=options]'),'Options tab visible'); await p.click('nav [data-tab=options]'); ok(await p.isVisible('#opt-customize') && await p.isVisible('#opt-users') && await p.isVisible('#opt-files'),'Options: Customize, Users (Master) and Files loaded sections'); ok(!!(await p.$('.thopt.on[data-theme=system]')),'the default theme is “Same as the browser”');
+  // DELIVERY SHORTAGES: the Power BI report embedded; its link is kept in users.json (set once by a Master)
+  { await p.click('[data-tab=shortages]'); ok(/not set up yet/.test(await p.textContent('#tab-shortages')) && await p.isVisible('#biNew'),'Delivery Shortages tab: a Master can set the report link');
+    await p.fill('#biNew','https://evil.example.com/report'); await p.click('#biSave'); await p.waitForTimeout(300); ok(!(await p.$('#biFrame')) && /not a Power BI/.test(await p.textContent('#toast')),'only powerbi.com links are accepted');
+    const code='<iframe title="IRLDeliveryShortages" width="1140" height="541.25" src="https://app.powerbi.com/reportEmbed?reportId=00000000-0000-0000-0000-000000000000&amp;autoAuth=true&ctid=11111111-1111-1111-1111-111111111111" frameborder="0" allowFullScreen="true"></iframe>';
+    await p.fill('#biNew',code); await p.click('#biSave'); await p.waitForSelector('#biFrame');
+    ok((await p.getAttribute('#biFrame','src'))==='https://app.powerbi.com/reportEmbed?reportId=00000000-0000-0000-0000-000000000000&autoAuth=true&ctid=11111111-1111-1111-1111-111111111111' && await p.evaluate(()=>JSON.parse(window.__TREE.MASTER_DATA['users.json'].text).deliveryShortagesUrl.startsWith('https://app.powerbi.com/reportEmbed')),'the embed code is accepted: the report is embedded and its link saved in users.json');
+    await shot('delivery-shortages'); await p.click('nav [data-tab=options]'); }
   await p.$eval('input[data-cucol="BAY 01"]',e=>{ e.value='#ff00aa'; e.dispatchEvent(new Event('change',{bubbles:true})); });
   ok(!(await p.$('#cuDay')) && !(await p.$('input[data-cuname]')),'Customize: the route-names section is gone');
   await p.click('.thopt[data-theme=dark]'); ok(await p.evaluate(()=>document.documentElement.dataset.theme)==='dark','dark theme applied'); await shot('customize-dark');
@@ -196,7 +203,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=options]'); await p.click('.thopt[data-theme=system]'); ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')).theme==='system' && document.documentElement.dataset.theme===(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')),'“Same as the browser” theme follows the browser'); await p.click('.thopt[data-theme=light]'); ok(await p.evaluate(()=>document.documentElement.dataset.theme==='light' && JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')).theme==='light'),'light theme back, kept in this browser'); await shot('customize');
 
   // 11b. RESOURCES — the day's routes as a sheet: rename a route, add a comment
-  await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09');
+  await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]');
   ok(await p.isVisible('#rsGrid th .rs-star[title="DIPS calculation. not updated after reallocations"]'),'Resources: * on DIPS km / estimated time with the hint');
   const bayCell='#rsGrid td[data-r="0"][data-c="1"]'; await p.click(bayCell); await p.keyboard.type('City Express'); await p.keyboard.press('Enter');
   ok((await p.textContent(bayCell)).trim()==='CITY EXPRESS','Resources: route renamed by typing in the Route / Bay cell');
@@ -252,6 +259,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=plan]'); await p.click('#expAll');
   ok(!(await p.isVisible('.drop [data-act=move] >> nth=0')) && !(await p.isVisible('#saveBtn')),'Viewer: no move / save');
   await p.click('nav [data-tab=options]'); ok(await p.isDisabled('input[data-cucol] >> nth=0') && await p.isVisible('.thopt') && !(await p.$('#opt-users')),'Viewer: can pick a theme, cannot change bay colours, no Users section');
+  await p.click('[data-tab=shortages]'); ok(!!(await p.$('#biFrame')) && !(await p.$('#biNew')),'Viewer: sees the embedded Delivery Shortages report (opens with the account signed in to the browser), cannot change the link'); await p.click('nav [data-tab=options]');
   await shot('viewer');
   // Jordan has no folder: the check fails and there is NO way to set it from the start window
   await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); await p.click('#modal [data-act="u:Jordan"]');

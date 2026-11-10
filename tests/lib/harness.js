@@ -20,7 +20,7 @@ const MOCK=`(()=>{ const b2u=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0));
 async function demoContext(browser, demoDir, opts){
   const c=await browser.newContext(Object.assign({viewport:{width:1360,height:800},acceptDownloads:true},opts||{}));
   await c.route('**/*',r=>{ const u=r.request().url(); if(u.startsWith('file:')) return r.continue(); const k=Object.keys(libs).find(k=>u.endsWith('/'+k)); return k?r.fulfill({path:libs[k]}):r.abort(); });
-  await c.addInitScript(t=>{ let s=sessionStorage.getItem('__tree'); if(!s){ s=t; } window.__TREE=JSON.parse(s);
+  await c.addInitScript(t=>{ let s=null; try{ s=sessionStorage.getItem('__tree'); }catch(e){ return; } if(!s){ s=t; } window.__TREE=JSON.parse(s);
     window.addEventListener('beforeunload',()=>{ try{ sessionStorage.setItem('__tree',JSON.stringify(window.__TREE)); }catch(e){} }); }, JSON.stringify(readTree(demoDir)));
   await c.addInitScript(MOCK);
   return c;

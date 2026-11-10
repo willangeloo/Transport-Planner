@@ -4,6 +4,16 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.4 — 2026-11-11
+
+### Features
+- **Delivery Shortages tab.** The Power BI report is embedded, in a tab of its own colour at the top right; it opens with the account signed in to the browser. A Master pastes the report link (or the embed code) once, in the tab or in **Options › Users**; it is kept in `users.json` (`deliveryShortagesUrl`), not in the repository. Only powerbi.com is accepted.
+- **Resources: weeks and days as buttons** instead of a drop-down list. Days with a plan open are filled, days without are dashed; pressing a day with no plan asks you to confirm before it is opened.
+- **Printing balloons filter the orders.** **Reallocations** and **To check** show only those orders in the routes list (click again to show all).
+
+### Edits
+- **Printing › Import PDF reads the delivery date**, never the order date, from the first pages of the check sheet.
+
 ## v0.11.3 — 2026-11-10
 
 ### Features

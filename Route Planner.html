@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.11.3</title>
+<title>Route Planner BETA v0.11.4</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -190,7 +190,7 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .hbtn{white-space:nowrap}
 header{gap:14px}
 @media (max-width:1500px){ header .hbtn:not(#userBtn) span{display:none} header .hbtn{padding:6px 9px} }
-@media (max-width:1500px){ nav button{padding:0 10px} }
+@media (max-width:1500px){ header{gap:8px} nav{gap:1px} .ufold{display:none} nav button{padding:0 6px;font-size:12.5px} nav button.hl::before{margin-right:5px} .brand .co{max-width:6.5vw} .bitab{padding:6px 9px;font-size:12.5px} }
 @media (max-width:1180px){ #userBtn .rolechip{display:none} }
 ul.checks{list-style:none;margin:0;padding:0;line-height:1.9}
 ul.checks li.ok{color:var(--ok)} ul.checks li.bad{color:var(--danger);font-weight:600} ul.checks li.warn{color:var(--warn)}
@@ -289,9 +289,32 @@ th.sortable:hover{text-decoration:underline}
 }
 /* v0.11.0 — surfaces used by the new tabs and the dark theme */
 :root{ --card:#fff; --soft:#fafbfc; --hover:#f3f5f7; --zebra:#f8fafc; --thbg:#fafbfc; --inputbg:#fff; --selbg:#dbeafe; --selbd:#2563eb; }
+/* the Delivery Shortages tab sits apart, on the right, in its own colour */
+.bitab{white-space:nowrap;border:1px solid #38bdf8;background:#0c4a6e;color:#e0f2fe;font:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:7px 12px;cursor:pointer}
+.bitab:hover{background:#075985}.bitab.on{background:#38bdf8;color:#082f49}
+#tab-shortages{display:none;flex-direction:column;overflow:hidden;background:var(--card)}
+#tab-shortages.on{display:flex}
+.bi-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;border-bottom:3px solid #38bdf8;background:var(--soft)}
+.bi-bar h1{font-size:17px;margin:0}
+#biFrame{flex:1;width:100%;border:0;min-height:480px;background:#fff}
+.bi-empty{max-width:640px;margin:40px auto;padding:0 16px}
 nav button.hl{color:#fcd34d;font-weight:600}
 nav button.hl::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:7px;vertical-align:1px}
 nav button.hl.on{color:#fff}
+@media (max-width:1500px){ nav button.hl::before{margin-right:4px;width:5px;height:5px} }
+@media (max-width:1400px){ #userBtn .rolechip{display:none} }
+/* resources: weeks and days as buttons */
+.rs-daybar{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+.rs-wkrow,.rs-dayrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rs-wk,.rs-nav,.rs-day{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+.rs-nav{padding:6px 10px;font-weight:700}.rs-wk.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.rs-day{min-width:96px;font-weight:600}
+.rs-day.has{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.rs-day.has.on{background:var(--accent);color:#fff}
+.rs-day.none{background:transparent;border-style:dashed;color:var(--muted);font-weight:500}
+.rs-day.none:hover{border-color:var(--accent);color:var(--ink)}
+.rs-day.sm{min-width:0;padding:1px 8px;font-size:11px;cursor:default}
+.rs-legend{display:flex;gap:8px;align-items:center}
 /* resources */
 .rs-body{display:flex;align-items:stretch;gap:8px;padding:0 12px 12px}.rs-main{flex:1;min-width:0}
 .rs-foot{padding:8px 0 0}
@@ -381,6 +404,7 @@ body[data-role=VIEWER] .no-viewer,body[data-role=NONE] .no-viewer{display:none!i
 .jp-tile .v{font-size:22px;font-weight:700}
 .jp-tile .s{font-size:11.5px;color:var(--muted)}
 .jp-tile.warn{border-left-color:var(--warn)} .jp-tile.good{border-left-color:var(--ok)}
+.jp-tile.click{cursor:pointer}.jp-tile.click:hover{background:var(--hover)}.jp-tile.on2{background:var(--accent-soft);border-color:var(--accent)}
 .jp-filters{display:flex;gap:6px;flex-wrap:wrap}
 .jp-issues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:300px;overflow:auto}
 .jp-issues li{display:flex;gap:8px;align-items:baseline;padding:5px 8px;border-radius:6px;font-size:12.5px}
@@ -494,7 +518,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.3</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.4</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="plan" class="on">Planning</button>
     <button data-tab="res">Resources</button>
@@ -504,6 +528,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
     <button data-tab="customers">Customers</button>
   </nav>
   <div class="spacer"></div>
+  <button class="bitab" data-tab="shortages" id="navBI" title="Delivery Shortages report (Power BI)">📊 Delivery Shortages</button>
   <button class="hbtn" id="userBtn" title="User and shared folder">👤</button>
   <button class="hbtn" id="saveBtn" title="Save the plan file (.json) — into PLANS/week_XX when the shared folder is linked">💾 <span>Save</span></button>
   <button class="hbtn" id="shareBtn" title="Save as, snapshots and sharing options">⤓ <span>Save as / share</span></button>
@@ -601,6 +626,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
   <section class="tab" id="tab-res"></section>
   <section class="tab" id="tab-print"></section>
   <section class="tab" id="tab-options"></section>
+  <section class="tab" id="tab-shortages"></section>
 </main>
 
 <div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
@@ -1899,7 +1925,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.11.3';
+const APP_VERSION='0.11.4';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2107,7 +2133,9 @@ function renderOptions(){
     <div class="muted small" style="margin-top:12px">Route names are changed in the <b>Resources</b> tab (Route / Bay column).</div>`;
   const users=can('users')&&UCFG?`<div class="muted small" style="margin:8px 0 10px">Only Master users see this. Add and remove users, change roles and folders, unregister a laptop. Saved into MASTER_DATA › ${esc(UCFG.file)} for everyone.</div>
     <table class="ptbl"><thead><tr><th>Name</th><th>Role</th><th>Folder on their computer</th><th>Computer</th></tr></thead><tbody>${UCFG.users.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${esc(ROLE_TXT[u.role])}</td><td class="muted small">${esc(u.path||'—')}</td><td>${u.device?'💻 registered':'<span class="muted">not yet</span>'}</td></tr>`).join('')}</tbody></table>
-    <div class="row" style="margin-top:10px"><button class="btn pri" data-opt="users">👥 Manage users…</button><span class="muted small">Company name: <b>${esc(companyName()||'—')}</b></span></div>`:'';
+    <div class="row" style="margin-top:10px"><button class="btn pri" data-opt="users">👥 Manage users…</button><span class="muted small">Company name: <b>${esc(companyName()||'—')}</b></span></div>
+    <div style="margin-top:14px"><label>Delivery Shortages report (Power BI)</label><div class="muted small" style="margin:2px 0 6px">Paste the report link, or the whole embed code (&lt;iframe …&gt;). Only powerbi.com is accepted. It is saved in users.json for everyone.</div>
+     <div class="row"><input type="text" id="optBi" value="${esc(UCFG.bi||'')}" placeholder="https://app.powerbi.com/reportEmbed?reportId=…" style="flex:1"><button class="btn" data-opt="bi">Save link</button></div></div>`:'';
   const loaded=S.log.filter(e=>e.type==='load').slice().sort((a,b)=>b.id-a.id);
   const files=`<div class="muted small" style="margin:8px 0 10px">Every file loaded into the planner (information only — these are not planning changes).</div>`+(loaded.length?`<table data-tbl="load"><thead><tr><th>Day</th><th>What</th><th>File</th><th>Details</th><th>Logged</th></tr></thead><tbody>${loaded.map(e=>`<tr><td>${e.day?esc(dayLabel(e.day)):'—'}</td><td><b>${esc({day:'Planning day',res:'RESOURCES',master:'Customer master',fixed:'Fixed routes'}[e.kind]||e.kind)}</b>${e.replaced?'<div class="muted">replaced the loaded version</div>':''}</td><td class="muted">${(e.files||[]).map(esc).join('<br>')}</td><td>${esc(e.summary||'')}</td><td class="muted">${fmtTime(e.ts)}${e.by?`<div><span class="flag dk-off byflag">👤 ${esc(e.by)}</span></div>`:''}</td></tr>`).join('')}</tbody></table>`:'<div class="muted small">No files loaded yet.</div>');
   el.innerHTML=`<div class="rep"><div class="rep-head"><div><div class="muted small">Look, users and files of the planner</div><h1>Options</h1></div></div>
@@ -2120,22 +2148,40 @@ $('tab-options').addEventListener('change',e=>{
 $('tab-options').addEventListener('click',e=>{
   const t=e.target.closest('button[data-theme]'); if(t){ PREFS.theme=t.dataset.theme; savePrefs(); applyTheme(); renderOptions(); return; }
   if(e.target.closest('[data-opt=users]')){ openUsersAdmin(); return; }
+  if(e.target.closest('[data-opt=bi]')){ saveBiLink($('optBi').value); return; }
   const r=e.target.closest('[data-cureset]'); if(!r||!guard('custom','customize')) return; delete S.look.colors[r.dataset.cureset]; lookChanged();
 });
+async function saveBiLink(v){
+  if(!can('users')||!UCFG||!sessionOk(FOLDER.user)) return toast('Only a Master can set the report link');
+  const u=biLink(v); if(String(v||'').trim() && !u) return toast('That is not a Power BI (powerbi.com) link');
+  const keep=UCFG.bi; UCFG.bi=u; try{ await writeUsersFile(); }catch(e){ UCFG.bi=keep; return toast('Could not save the users file: '+(e&&e.message||e)); }
+  BI.src=''; renderOptions(); toast(u?'Report link saved in the users file':'Report link removed');
+}
 function lookChanged(){ save(); indexDays(); if(pInit) renderPlan(); if(cInit) renderCustomers(false); renderOptions(); toast('Customization saved with the plan'); }
 
+// ---------- Delivery Shortages (v0.11.4): the Power BI report, embedded; it opens with the account signed in to the browser ----------
+const BI={src:''};
+function renderShortages(){
+  const el=$('tab-shortages'); const url=UCFG?UCFG.bi:'';
+  if(!url){ BI.src=''; el.innerHTML=`<div class="bi-bar"><h1>📊 Delivery Shortages</h1></div><div class="bi-empty"><div class="note warn">The Delivery Shortages report is not set up yet.${can('users')?'':' Ask a Master to add its link in <b>Options › Users</b>.'}</div>${can('users')?`<div style="margin-top:12px"><label>Power BI report link</label><div class="muted small" style="margin:2px 0 6px">Paste the report link or the whole embed code (&lt;iframe …&gt;). It is saved in users.json for everyone.</div><div class="row"><input type="text" id="biNew" placeholder="https://app.powerbi.com/reportEmbed?reportId=…" style="flex:1"><button class="btn pri" id="biSave">Save link</button></div></div>`:''}</div>`;
+    const b=$('biSave'); if(b) b.onclick=()=>saveBiLink($('biNew').value).then(()=>{ if(curTab==='shortages') renderShortages(); }); return; }
+  if(BI.src===url && $('biFrame')) return;      // keep the loaded report when switching tabs
+  BI.src=url;
+  el.innerHTML=`<div class="bi-bar"><h1>📊 Delivery Shortages</h1><span class="muted small">Power BI · opens with the account signed in to this browser</span><span class="spacer"></span><a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open in a new window</a></div><iframe id="biFrame" title="IRLDeliveryShortages" src="${esc(url)}" frameborder="0" allowfullscreen allow="fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+}
 // ---------- tabs ----------
 let curTab='plan';
-document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+document.querySelectorAll('nav button, .bitab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 function showTab(t){
   curTab=t;
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('nav button, .bitab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
   if(t==='customers'){ initCMap(); if(cMap) setTimeout(()=>{ cMap.invalidateSize(); if(!cFitted){ cFitted=true; renderCustomers(true); } },0); }
   if(t==='plan'){ initPMap(); if(pMap) setTimeout(()=>{pMap.invalidateSize(); if(!pFitted){fitRoutes(); pFitted=true;}},0); }
   if(t==='report') renderReport();
   if(t==='options') renderOptions();
-  if(t==='res'){ RS.day=P.day; renderResources(); }
+  if(t==='shortages') renderShortages();
+  if(t==='res'){ RS.day=P.day; RS.browse=false; renderResources(); }
   if(t==='print'){ JS.day=P.day; renderPrint(); }
 }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2800); }
@@ -3675,9 +3721,15 @@ function checkUsersCfg(j){
   if(!j.users.some(u=>String(u.role).toUpperCase()==='MASTER')) return 'At least one user must be MASTER.';
   return null;
 }
+// the Power BI report of the Delivery Shortages tab: a link (or the pasted <iframe …> code) kept in users.json, only powerbi.com is accepted
+function biLink(v){
+  v=String(v||'').trim(); if(!v) return '';
+  const m=v.match(/src\s*=\s*["']([^"']+)["']/i)||v.match(/https:\/\/[^\s"'<>)\]]+/i); let u=m?(m[1]||m[0]):v; u=u.replace(/&amp;/g,'&').replace(/%22$/,'').trim();
+  try{ const x=new URL(u); if(x.protocol!=='https:' || !/(^|\.)powerbi\.com$/i.test(x.hostname)) return ''; return x.href; }catch(e){ return ''; }
+}
 function setUsersCfg(j, file){
   UCFG = {company:String(j.company||'').trim(), file, at:new Date().toISOString(),
-    shareComputers:!!j.shareComputers,
+    shareComputers:!!j.shareComputers, bi:biLink(j.deliveryShortagesUrl||''),
     users:j.users.map(u=>({name:String(u.name).trim(), role:String(u.role).toUpperCase(), path:String(u.path||'').trim(), device:u.device&&u.device.id?{id:String(u.device.id), since:String(u.device.since||'')}:null}))};
   store(UCFGKEY,UCFG); store(UFILEKEY,file); renderCompany();
 }
@@ -3701,7 +3753,7 @@ const leafOf = p => String(p||'').split(/[\\/]+/).filter(Boolean).pop()||'';
 function renderUserBtn(){
   renderCompany(); const b=$('userBtn'); if(!b) return;
   if(EMB){ b.innerHTML='📸 <span>Snapshot · view only</span>'; return; }
-  b.innerHTML = FOLDER.user ? `👤 <span>${esc(FOLDER.user)}</span><span class="rolechip">${ROLE_TXT[role()]}</span> · 📁 <span>${esc(FOLDER.name)}</span>` : '👤 <span>No user</span>';
+  b.innerHTML = FOLDER.user ? `👤 <span>${esc(FOLDER.user)}</span><span class="rolechip">${ROLE_TXT[role()]}</span><span class="ufold"> · 📁 <span>${esc(FOLDER.name)}</span></span>` : '👤 <span>No user</span>';
   b.title = FOLDER.user ? `${companyName()?companyName()+' · ':''}${FOLDER.user} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}”. Click for your folder, users or to switch user.` : 'Choose your user';
 }
 
@@ -3844,7 +3896,7 @@ async function enterAs(name, quiet){
 // ---- folder paths (Master: anyone; Manager: themselves, Users and Viewers; others: themselves)
 async function writeUsersFile(){
   const md=await subDirIf(FOLDER.handle,['MASTER_DATA']); if(!md) throw new Error('MASTER_DATA not found');
-  const j=Object.assign({company:companyName()}, UCFG.shareComputers?{shareComputers:true}:{}, {users:UCFG.users.map(u=>Object.assign({name:u.name, role:u.role, path:u.path||''}, u.device?{device:u.device}:{}))});
+  const j=Object.assign({company:companyName()}, UCFG.bi?{deliveryShortagesUrl:UCFG.bi}:{}, UCFG.shareComputers?{shareComputers:true}:{}, {users:UCFG.users.map(u=>Object.assign({name:u.name, role:u.role, path:u.path||''}, u.device?{device:u.device}:{}))});
   const fh=await md.getFileHandle(UCFG.file,{create:true}); const w=await fh.createWritable(); await w.write(new Blob([JSON.stringify(j,null,2)],{type:'application/json'})); await w.close();
   store(UCFGKEY,UCFG);
 }
@@ -4259,7 +4311,7 @@ if(!Array.isArray(S.resLayout.cols)) S.resLayout.cols=[];
 if(!S.resLayout.w||typeof S.resLayout.w!=='object') S.resLayout.w={};
 if(!Array.isArray(S.resLayout.order)) S.resLayout.order=[];
 if(!Array.isArray(S.resLayout.hide)) S.resLayout.hide=['area'];
-const RS={day:null, a:null, f:null, edit:null, sessionLogs:new Set(), live:null};   // a = anchor cell, f = focus cell {r,c}
+const RS={day:null, a:null, f:null, edit:null, sessionLogs:new Set(), live:null, wk:'', browse:false};   // a = anchor cell, f = focus cell {r,c}
 function resAllCols(){ const all=RES_STD.concat(S.resLayout.cols.map(c=>({k:'x:'+c.key, t:c.name, w:130, custom:c.key}))); const o=S.resLayout.order||[];
   return all.map((c,i)=>({c,i,p:o.indexOf(c.k)})).sort((a,b)=>(a.p<0?1e6+a.i:a.p)-(b.p<0?1e6+b.i:b.p)).map(x=>x.c); }
 function resCols(){ return resAllCols().filter(c=>!S.resLayout.hide.includes(c.k)).map(c=>Object.assign({},c,{w:(S.resLayout.w&&S.resLayout.w[c.k])||c.w})); }
@@ -4309,10 +4361,26 @@ function resMerge(date, loads){
 
 // ---------- render ----------
 function resDayKey(){ if(RS.day && dayMap[RS.day]) return RS.day; if(P.day && dayMap[P.day]) return P.day; return DATA.days[0]?DATA.days[0].key:null; }
+// weeks and week days as buttons: filled = a plan is open for that day; dashed = no plan yet (opening one asks first)
+const weekStart = date => addDays(date,-dateDow(date));
+function resDaysHtml(dk){
+  const cur=dayMap[dk]; if(!cur) return ''; if(!RS.browse||!RS.wk) RS.wk=weekStart(cur.date);
+  const loadedWeeks=[...new Set(DATA.days.map(d=>weekStart(d.date)))]; const weeks=[...new Set(loadedWeeks.concat(RS.wk))].sort();
+  const wkChips=weeks.map(w=>`<button class="rs-wk ${w===RS.wk?'on':''}" data-rswk="${w}" title="Week of ${esc(dayLbl(w))}">Week ${isoWeek(w)}</button>`).join('');
+  const dates=[0,1,2,3,4,5,6].map(i=>addDays(RS.wk,i)).filter(d=>dateDow(d)<5 || dayKeyForDate(d));
+  const days=dates.map(d=>{ const k=dayKeyForDate(d); return k ? `<button class="rs-day has ${k===dk?'on':''}" data-rsday="${esc(k)}" title="Plan open — show its resources">${esc(dayLbl(d))}</button>`
+    : `<button class="rs-day none" data-rsdate="${d}" title="No plan open for this day yet — click to open one">${esc(dayLbl(d))}</button>`; }).join('');
+  return `<div class="rs-wkrow"><button class="rs-nav" data-rsnav="-1" title="Previous week" aria-label="Previous week">‹</button>${wkChips}<button class="rs-nav" data-rsnav="1" title="Next week" aria-label="Next week">›</button></div><div class="rs-dayrow">${days}</div><div class="muted small rs-legend"><span class="rs-day has sm">plan open</span> <span class="rs-day none sm">no plan yet</span></div>`;
+}
+function resOpenDay(date){
+  if(!guard('edit','open a plan for a day')) return;
+  openModal(`<div class="mh"><h2>Open the plan for ${esc(dayLbl(date))}?</h2><div class="muted small">Week ${isoWeek(date)}</div></div><div class="mb"><div class="note info">No plan is open for <b>${esc(dayLbl(date))}</b> yet. Opening it creates the day with <b>no routes</b>: they come from the day's Resources (load its RESOURCES file or add the bays here).</div></div>
+   <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok">Open ${esc(dayLbl(date))}</button></div>`,
+   {onAct:a=>{ if(a!=='ok') return; if(!S.days.includes(date)) S.days.push(date); save(); closeModal(); afterDataChange(); const k=dayKeyForDate(date); RS.day=k; RS.browse=false; RS.a=RS.f=null; if(pInit) selectDay(k); else P.day=k; renderResources(); toast(`${dayLbl(date)} opened — no routes yet`); }});
+}
 function renderResources(){
   const el=$('tab-res'); const dk=resDayKey(); RS.day=dk;
   const ro=!can('edit');
-  const opts=DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)} · Week ${esc(d.week)}</option>`).join('');
   if(!dk){ el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day</div><h1>Resources</h1></div></div>
     <div class="card"><div class="empty">No planning day yet. Load the day's files or create a day first.<br><br><button class="btn" data-rs="loadday">⤒ Load day</button> <button class="btn" data-rs="newday">＋ Day</button></div></div></div>`; return; }
   const d=dayMap[dk], rows=resTable(dk), stored=!!S.res[d.date], cols=resCols(); RS.live=resComputeLive(dk);
@@ -4322,9 +4390,10 @@ function renderResources(){
   const ids=rows.map(r=>toId(r.id)).filter(Boolean); const dupIds=new Set(ids.filter((x,i)=>ids.indexOf(x)!==i));
   const orphans=d.loads.filter(l=>l.orphan);
   el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day · used by Planning and Printing</div><h1>Resources</h1></div><div class="spacer"></div>
-    <div style="width:210px"><select id="rsDay">${opts}</select></div><button class="btn no-viewer" data-rs="newday" title="Create a new planning day (from the fixed routes)">＋ Day</button>
+    <button class="btn no-viewer" data-rs="newday" title="Create a new planning day">＋ Day</button>
     <label class="btn no-viewer" title="Upload a RESOURCES sheet (.xlsx / .csv) into this day">⤒ Upload sheet<input type="file" id="rsFile" accept=".xlsx,.xls,.xlsm,.csv" hidden></label>
     <button class="btn" data-rs="export" title="Excel file in the same layout as the RESOURCES files">⤓ Export Excel</button></div>
+    <div class="rs-daybar" id="rsDays">${resDaysHtml(dk)}</div>
     <div class="kpis"><div class="kpi"><b>${ids.length}</b><span>routes with a shipment number</span></div><div class="kpi"><b>${kg(sum('drops'))}</b><span>drops</span></div><div class="kpi"><b>${kg(sum('kgs'))}</b><span>kg</span></div><div class="kpi"><b>${kg(sum('pallets'))}</b><span>pallets</span></div></div>
     <div class="card rs-card">
      <div class="rs-tools no-viewer"><button class="btn sm" data-rs="delrows" title="Delete the selected rows">− Delete rows</button>
@@ -4510,7 +4579,6 @@ async function resUpload(file){
 (function(){
   const el=$('tab-res'); let dragging=false;
   el.addEventListener('change',e=>{
-    if(e.target.id==='rsDay'){ RS.day=e.target.value; RS.a=RS.f=null; if(pInit) selectDay(RS.day); else P.day=RS.day; renderResources(); }
     if(e.target.id==='rsFile'){ const f=e.target.files[0]; e.target.value=''; if(f) resUpload(f); }
   });
   // resize a column by dragging its right edge; move a column or a row by pressing its heading and dragging
@@ -4535,6 +4603,10 @@ async function resUpload(file){
     if(!guard('edit','edit resources')) return; const t=resMaterialize(RS.day); const [r]=t.rows.splice(g.from,1); t.rows.splice(g.to,0,r); save(); RS.a=RS.f=null; renderResources(); });
   el.addEventListener('click',e=>{
     if(RS.noClick){ e.stopPropagation(); return; }
+    const dbtn=e.target.closest('[data-rsday]'); if(dbtn){ RS.day=dbtn.dataset.rsday; RS.browse=false; RS.a=RS.f=null; if(pInit) selectDay(RS.day); else P.day=RS.day; renderResources(); return; }
+    const nbtn=e.target.closest('[data-rsdate]'); if(nbtn){ resOpenDay(nbtn.dataset.rsdate); return; }
+    const wnav=e.target.closest('[data-rsnav]'); if(wnav){ RS.wk=addDays(RS.wk,7*(+wnav.dataset.rsnav)); RS.browse=true; renderResources(); return; }
+    const wbtn=e.target.closest('[data-rswk]'); if(wbtn){ RS.wk=wbtn.dataset.rswk; RS.browse=true; const first=DATA.days.find(d=>weekStart(d.date)===RS.wk); if(first){ RS.day=first.key; RS.browse=false; RS.a=RS.f=null; if(pInit) selectDay(RS.day); else P.day=RS.day; } renderResources(); return; }
     const b=e.target.closest('[data-rs]'); if(b){ const a=b.dataset.rs;
       if(a==='export') resExport(); if(a==='addrow') resAddRow(); if(a==='delrows') resDeleteRows(); if(a==='addcol') resAddCol(); if(a==='cols') resColsModal(); if(a==='reset') resReset();
       if(a==='loadday') $('uploadBtn').onclick(); if(a==='newday') openNewDay(); return; }
@@ -4574,7 +4646,7 @@ function loadPdfLibs(){
   return pdfLibsP;
 }
 const JP=window.JDEPrint;
-const JS={exR:new Set(), exO:new Set(), q:'', org:null, plan:null, overrides:{}, issueFilter:'all', open:new Set(), result:null, outRoute:null, reprintKey:null, mode:'organise', day:null, sig:''};
+const JS={tf:'', exR:new Set(), exO:new Set(), q:'', org:null, plan:null, overrides:{}, issueFilter:'all', open:new Set(), result:null, outRoute:null, reprintKey:null, mode:'organise', day:null, sig:''};
 function jh(tag, attrs){
   const el=document.createElement(tag);
   if(attrs) Object.keys(attrs).forEach(k=>{ const v=attrs[k]; if(v==null||v===false) return;
@@ -4704,9 +4776,9 @@ function jpRenderFiles(){
 function jpTiles(){
   const s=JS.plan.stats;
   const tiles=[{k:'Source pages',v:s.sourcePages,s:JS.org.sources.length+' file(s)'},{k:'Orders',v:s.orders,s:s.orderPages+' order pages'},{k:'Shipments',v:s.shipments},{k:'Routes',v:s.routes,s:JS.plan.routes.length?'one cover each':''},
-    {k:'Reallocations',v:s.exceptionsApplied+' / '+s.exceptionsTotal,s:'applied',cls:s.exceptionsApplied<s.exceptionsTotal?'warn':''},{k:'Blank discarded',v:s.discardedPages,s:'signature-only pages',cls:'good'},{k:'To check',v:s.reviewPages,s:'printed in REVIEW',cls:s.reviewPages?'warn':'good'}];
+    {k:'Reallocations',v:s.exceptionsApplied+' / '+s.exceptionsTotal,s:'applied',cls:s.exceptionsApplied<s.exceptionsTotal?'warn':'',f:'rea'},{k:'Blank discarded',v:s.discardedPages,s:'signature-only pages',cls:'good'},{k:'To check',v:s.reviewPages,s:'printed in REVIEW',cls:s.reviewPages?'warn':'good',f:'check'}];
   const el=$('jpTiles'); el.textContent='';
-  tiles.forEach(t=>el.appendChild(jh('div',{class:'jp-tile '+(t.cls||'')}, jh('div',{class:'k',text:t.k}), jh('div',{class:'v',text:typeof t.v==='number'?jfmt(t.v):t.v}), t.s?jh('div',{class:'s',text:t.s}):null)));
+  tiles.forEach(t=>el.appendChild(jh('div',Object.assign({class:'jp-tile '+(t.cls||'')+(t.f?' click':'')+(t.f&&JS.tf===t.f?' on2':'')},t.f?{role:'button',tabindex:'0',title:'Show only these orders in the routes list — click again to show all',onclick:()=>{ JS.tf=JS.tf===t.f?'':t.f; jpTiles(); jpRoutes(); }}:{}), jh('div',{class:'k',text:t.k}), jh('div',{class:'v',text:typeof t.v==='number'?jfmt(t.v):t.v}), t.s?jh('div',{class:'s',text:t.s}):null)));
 }
 function jpIssues(){
   const issues=JS.plan.issues; $('jpIssuesCard').hidden=!issues.length;
@@ -4757,8 +4829,13 @@ function jpRoutes(){
   const list=$('jpRoutes'); list.textContent=''; const q=JS.q||''; const ships=jpShipMap(); JS.ships=ships;
   const res=JS.result, st=res?jpSelState():null, people=(JS.res&&JS.res.people)||{};
   const hit=(r,o)=>!q || [r.name,r.shipments.join(' '),o.order,o.customer,o.shipment,ships.get(String(o.order))].some(x=>x!=null && String(x).toLowerCase().includes(q));
-  const routes=JS.plan.routes.map(r=>{ if(!q) return r; const own=[r.name,r.shipments.join(' '),(people[r.name]||{}).driver,(people[r.name]||{}).helper].some(x=>x&&String(x).toLowerCase().includes(q)); const orders=own?r.orders:r.orders.filter(o=>hit(r,o)); return orders.length?Object.assign({},r,{orders}):null; }).filter(Boolean);
-  if(!routes.length){ list.appendChild(jh('p',{class:'jp-empty',text:q?'Nothing matches the search.':(JS.org.sources.length?'No orders were identified in the PDF.':'Routes will appear here after you import a PDF.')})); return; }
+  // balloons: Reallocations = the orders that were moved / deferred / inserted; To check = pages to check and orders with a warning
+  const reaSet=new Set((JS.rea||[]).map(x=>String(x.order))); const warnK=new Set(JS.plan.issues.filter(i=>i.orderKey&&i.level!=='info').map(i=>i.orderKey));
+  const tfOk=(r,o)=>!JS.tf || (JS.tf==='rea' ? (reaSet.has(String(o.order))||!!o.movedFrom) : (r.kind==='review'||warnK.has(o.key)));
+  const tfRoutes=JS.plan.routes.map(r=>JS.tf?Object.assign({},r,{orders:r.orders.filter(o=>tfOk(r,o))}):r).filter(r=>!JS.tf||r.orders.length);
+  const routes=tfRoutes.map(r=>{ if(!q) return r; const own=[r.name,r.shipments.join(' '),(people[r.name]||{}).driver,(people[r.name]||{}).helper].some(x=>x&&String(x).toLowerCase().includes(q)); const orders=own?r.orders:r.orders.filter(o=>hit(r,o)); return orders.length?Object.assign({},r,{orders}):null; }).filter(Boolean);
+  if(JS.tf) list.appendChild(jh('div',{class:'note info',style:'margin-bottom:8px'}, 'Showing only '+(JS.tf==='rea'?'reallocated orders':'orders to check')+' · ', jh('a',{href:'#',text:'show everything',onclick:ev=>{ ev.preventDefault(); JS.tf=''; jpTiles(); jpRoutes(); }})));
+  if(!routes.length){ list.appendChild(jh('p',{class:'jp-empty',text:(q||JS.tf)?'Nothing matches.':(JS.org.sources.length?'No orders were identified in the PDF.':'Routes will appear here after you import a PDF.')})); return; }
   const kindLabel={bay:'',special:'',exception:'From reallocations',deferred:'Deferred · do not load',unassigned:'Not in Resources',review:'Pages to check'};
   list.appendChild(jh('div',{class:'jp-rhead jp-rcols hd'}, jh('span'), jh('span',{text:'Bay'}), jh('span',{text:'Driver'}), jh('span',{text:'Helper'}), jh('span',{class:'n',text:'Drops'}), jh('span',{class:'n',text:'Orders'}), jh('span',{text:'Shipments attached'}), jh('span')));
   routes.forEach(r=>{
@@ -4773,7 +4850,7 @@ function jpRoutes(){
       jh('span',{class:'n',text:r.kind==='review'?'—':drops}), jh('span',{class:'n',text:r.orders.length}), jh('span',{class:'jp-rships',text:r.shipments.join(', ')||'—'}), jh('span',{class:'jp-caret',text:'›'}));
     if(isOpen) jpRouteBody(body,r);
     box.appendChild(head); box.appendChild(body); list.appendChild(box); });
-  $('jpExpand').textContent=JS.plan.routes.every(r=>JS.open.has(r.name))?'Collapse all':'Expand all';
+  $('jpExpand').textContent=routes.length&&routes.every(r=>JS.open.has(r.name))?'Collapse all':'Expand all';
 }
 function jpRouteBody(body,r){
   const warnKeys=new Set(JS.plan.issues.filter(i=>i.orderKey).map(i=>i.orderKey)); const res=JS.result;
@@ -4807,7 +4884,7 @@ function jpPageGrid(container,items,title){
 // ---- v0.11.3: check sheets in the company folder: CHECK_SHEETS/JDE (to import) and CHECK_SHEETS/Organised (organised PDFs are saved there)
 // The day of a PDF is read from the text of its first 3 pages (never from the file name). Only those pages are parsed, and the answer is
 // remembered per file (name + size + modified time), so each file is read once on this computer.
-const JDEKEY='routePlannerBeta.jdeDates'+NS; let JDE_DATES=load(JDEKEY,{});
+const JDEKEY='routePlannerBeta.jdeDates2'+NS; let JDE_DATES=load(JDEKEY,{});
 const JB={files:[], sel:new Set(), week:'', hash:{}, busy:false, run:0};
 function jdeIso(d,m,y){ d=+d; m=+m; y=+y; if(y<100) y+=2000; if(!(d>=1&&d<=31&&m>=1&&m<=12&&y>=2000&&y<=2099)) return ''; return ymd(y,m,d); }
 async function jdeDetectDate(file){
@@ -4816,7 +4893,10 @@ async function jdeDetectDate(file){
   try{
     await loadPdfLibs(); const doc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()), isEvalSupported:false}).promise; const counts={};
     for(let i=1;i<=Math.min(3,doc.numPages);i++){ const tc=await (await doc.getPage(i)).getTextContent(); const txt=tc.items.map(x=>x.str).join(' ');
-      for(const m of txt.matchAll(/(?:(delivery|ship(?:ment)?|promised|date)[^0-9]{0,24})?\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}|\d{2})\b/gi)){ const d=jdeIso(m[2],m[3],m[4]); if(d) counts[d]=(counts[d]||0)+(m[1]?3:1); } }
+      // the date that follows the label “Delivery Date” counts most; ship / promised dates next; an “Order Date” is never used
+      const re=/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}|\d{2})\b/g; let m;
+      while((m=re.exec(txt))){ const d=jdeIso(m[1],m[2],m[3]); if(!d) continue; const before=txt.slice(Math.max(0,m.index-40),m.index);
+        const w=/deliver\w*[^0-9]*$/i.test(before)?100 : /(promis|ship)\w*[^0-9]*$/i.test(before)?10 : /order\s*(date|dt)[^0-9]*$/i.test(before)?0 : 1; if(w) counts[d]=(counts[d]||0)+w; } }
     doc.destroy(); const best=Object.entries(counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]; iso=best?best[0]:'';
   }catch(e){ iso=''; }
   JDE_DATES[key]=iso; store(JDEKEY,JDE_DATES); return iso;
@@ -5029,6 +5109,7 @@ $('lineage').onclick=showLineage;
 renderUserBtn();
 if(EMB) applyRole(); else gateHome();
 if(EMB){
+  { const nb=$('navBI'); if(nb) nb.hidden=true; }
   const tag=document.querySelector('.brand .tag'); if(tag){ tag.textContent='SNAPSHOT'; tag.style.background='#2dd4bf'; tag.style.cursor='pointer'; tag.title='About this snapshot'; tag.onclick=snapshotInfo; }
   $('resetBtn').querySelector('span').textContent='Restore snapshot';
   toast(`Snapshot saved by ${EMB.savedBy||'(no name)'} on ${fmtTime(EMB.savedAt)}`);

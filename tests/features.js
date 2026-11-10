@@ -15,7 +15,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   await p.click('#fbOk'); await p.waitForSelector('[data-act=add]'); await p.click('[data-act=add]'); await p.waitForTimeout(400);
 
   // ---------- RESOURCES ----------
-  await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09');
+  await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]');
   const cell=(r,c)=>`#rsGrid td[data-r="${r}"][data-c="${c}"]`; const txt=async(r,c)=>(await p.textContent(cell(r,c))).trim();
   const heads=async()=>p.$$eval('#rsGrid thead th[data-col] span:first-child',x=>x.map(e=>e.textContent));
   ok((await heads()).join('|')==='Shipment Number|Route / Bay|Driver|Helper|Truck|Drops|Kgs|Pallets|DIPS Total KM|Estimated Time|Comments','columns as specified (no ID column): '+(await heads()).join(', '));
@@ -73,7 +73,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   ok(pr.includes('BAY 09') && pr.includes('Excel Driver'),'new rows are routes in Planning');
   await p.click('nav [data-tab=report]'); ok(!(await p.$('[data-sec=res]')) && +(await p.textContent('#navCount'))===0,'Resources edits are not logged: no section in the change report, nothing counted');
   // Drops and Kgs follow the plan: moving a drop in Planning changes the Resources table
-  { await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09');
+  { await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]');
     const row=async i=>p.evaluate(i=>{ const t=[...document.querySelectorAll('#rsGrid tbody tr')][i].children; return {id:t[1].textContent.trim(),bay:t[2].textContent.trim(),drops:+t[6].textContent,kgs:+t[7].textContent}; },i);
     let ri=-1; for(let i=0;i<rows0;i++){ const r=await row(i); if(r.drops>=2){ ri=i; break; } } const before=await row(ri);
     await p.click('nav [data-tab=plan]'); await p.selectOption('#pDay','D2026-11-09'); await p.click('#expAll');
@@ -86,20 +86,30 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   const tue=XLSX.utils.sheet_to_json(XLSX.readFile(path.join(DEMO,'REPORTS','week_46','RES_Tue.xlsx')).Sheets.Sheet1,{header:1}).slice(1);
   tue.forEach((r,i)=>up.push([r[0],r[1],i===0?'Uploaded Driver':r[2],r[3],r[4],r[5],r[6],r[8],r[9],'4:00','','07:00']));
   const uw=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(uw,XLSX.utils.aoa_to_sheet(up),'Sheet1'); const uf=path.join(TMP,'RES_Tue 10.11.xlsx'); XLSX.writeFile(uw,uf);
-  await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09'); await p.setInputFiles('#rsFile',uf); await p.waitForSelector('#modal [data-act=other]');
+  await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]'); await p.setInputFiles('#rsFile',uf); await p.waitForSelector('#modal [data-act=other]');
   ok((await p.textContent('#modal')).includes('The file name says Tue 10.11'),'upload: the day in the file name is checked against the open day');
   await p.click('#modal [data-act=other]'); await p.waitForTimeout(400);
-  ok(await p.$eval('#rsDay',s=>s.value)==='D2026-11-10' && (await p.textContent('#rsGrid')).includes('Uploaded Driver') && (await p.textContent('#rsGrid')).includes('07:00'),'upload loaded into Tuesday, own columns matched by name');
+  ok(await p.$eval('#rsDays .rs-day.on',e=>e.dataset.rsday)==='D2026-11-10' && (await p.textContent('#rsGrid')).includes('Uploaded Driver') && (await p.textContent('#rsGrid')).includes('07:00'),'upload loaded into Tuesday, own columns matched by name');
   await p.click('nav [data-tab=plan]'); await p.selectOption('#pDay','D2026-11-10'); ok((await p.textContent('#pRoutes')).includes('Uploaded Driver'),'uploaded resources used by Planning');
   // the table is saved with the plan and survives a reload
   await p.reload(); ok(await enter(p,'Alex'),'back in after a reload');
-  await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09'); ok((await p.textContent('#rsGrid')).includes('Check tyres') && (await heads()).includes('Start time'),'table, comments and own columns kept');
+  await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]'); ok((await p.textContent('#rsGrid')).includes('Check tyres') && (await heads()).includes('Start time'),'table, comments and own columns kept');
 
+  // weeks and days are buttons: filled = a plan is open, dashed = no plan yet (opening one asks first)
+  { await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday="D2026-11-09"]');
+    ok(!(await p.$('#rsDay')) && await p.isVisible('#rsDays .rs-wk.on') && /Week 46/.test(await p.textContent('#rsDays .rs-wk.on')),'the day list is gone: weeks are buttons');
+    const cls=async sel=>p.$eval(sel,e=>e.className);
+    ok(/\bhas\b/.test(await cls('#rsDays [data-rsday="D2026-11-09"]')) && /\bon\b/.test(await cls('#rsDays [data-rsday="D2026-11-09"]')) && /\bhas\b/.test(await cls('#rsDays [data-rsday="D2026-11-10"]')) && /\bnone\b/.test(await cls('#rsDays [data-rsdate="2026-11-12"]')),'week days are buttons: a different colour for days with a plan open and days without');
+    await p.click('#rsDays [data-rsdate="2026-11-12"]'); ok(/Open the plan for Thu 12\.11\?/.test(await p.textContent('#modal')),'pressing a day with no plan asks the user to confirm opening it');
+    await p.click('#modal [data-act=close]'); ok(!(await p.$('#rsDays [data-rsday="D2026-11-12"]')),'cancel: nothing is opened');
+    await p.click('#rsDays [data-rsdate="2026-11-12"]'); await p.click('#modal [data-act=ok]'); await p.waitForTimeout(300);
+    ok(await p.$eval('#rsDays .rs-day.on',e=>e.dataset.rsday)==='D2026-11-12' && (await p.$$eval('#rsGrid tbody tr td.empty',x=>x.length))===1,'confirmed: the day is open (no routes yet) and its button is filled');
+    await p.click('#rsDays [data-rsday="D2026-11-09"]'); }
   // columns: resize by dragging the edge; move a column or a row by pressing its heading and dragging
   { const th=await p.$('#rsGrid thead th[data-k=driver]'); const w0=(await th.boundingBox()).width; const rz=await (await p.$('#rsGrid thead th[data-k=driver] .rs-rz')).boundingBox();
     await p.mouse.move(rz.x+rz.width/2,rz.y+rz.height/2); await p.mouse.down(); await p.mouse.move(rz.x+rz.width/2+70,rz.y+rz.height/2,{steps:6}); await p.mouse.up();
     const w1=(await (await p.$('#rsGrid thead th[data-k=driver]')).boundingBox()).width; ok(w1>w0+50,`a column is resized by dragging its edge (${Math.round(w0)} → ${Math.round(w1)} px)`);
-    await p.reload(); ok(await enter(p,'Alex'),'back in'); await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09');
+    await p.reload(); ok(await enter(p,'Alex'),'back in'); await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]');
     ok((await (await p.$('#rsGrid thead th[data-k=driver]')).boundingBox()).width>w0+50,'the column width is kept (saved with the plan)');
     const a=await (await p.$('#rsGrid thead th[data-k=truck] span')).boundingBox(), t=await (await p.$('#rsGrid thead th[data-k=driver]')).boundingBox();
     await p.mouse.move(a.x+4,a.y+a.height/2); await p.mouse.down(); await p.mouse.move(t.x+12,t.y+t.height/2,{steps:10}); await p.mouse.up();
@@ -135,6 +145,12 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   await p.click('#jpExport'); await p.waitForSelector('#jpSelBar:not([hidden])',{timeout:90000});
   ok(await p.$$eval('#jpChecks li',x=>x.length>0 && x.every(li=>!li.classList.contains('fail'))),'organised PDF passes every integrity check');
   { const names=await p.$$eval('#jpRoutes .jp-route .jp-rname',x=>x.map(e=>e.textContent.replace(/^[^]*?(BAY|CITY|DEFERRED|UNASSIGNED)/,'$1').trim())); ok(names[names.length-1]==='UNASSIGNED' && names[0]==='BAY 01','routes in plan order, UNASSIGNED last: '+names.join(' | ')); }
+  // balloons: Reallocations / To check filter the orders in the routes list
+  { await p.click('#jpExpand'); const all=await p.$$eval('#jpRoutes tbody tr',x=>x.length); const rea=await p.evaluate(()=>__rpPrint.state.rea.map(r=>String(r.order)));
+    await p.click('#jpTiles .jp-tile:has-text("Reallocations")'); const shown=await p.$$eval('#jpRoutes tbody tr td:nth-child(2)',x=>x.map(e=>e.textContent.trim()));
+    ok(shown.length>0 && shown.length<all && shown.every(o=>rea.includes(o)) && /Showing only reallocated orders/.test(await p.textContent('#jpRoutes')),`balloon Reallocations shows only the reallocated orders (${shown.length} of ${all})`);
+    await p.click('#jpTiles .jp-tile:has-text("To check")'); ok(/Showing only orders to check/.test(await p.textContent('#jpRoutes')),'balloon To check filters to the orders to check');
+    await p.click('#jpTiles .jp-tile:has-text("To check")'); ok(await p.$$eval('#jpRoutes tbody tr',x=>x.length)===all && !/Showing only/.test(await p.textContent('#jpRoutes')),'clicking the balloon again shows every order'); await p.click('#jpExpand'); }
   // layout: the four steps on the left; Routes and Organised PDF merged on the right
   ok((await p.$$eval('.jp-setup h2',x=>x.map(e=>e.textContent.replace(/\s+/g,' ').trim().replace(/ (Edit in Resources|Planning)$/,'')))).join('|')==='1Import PDF|2Resources|3Reallocations|4Organise','steps 1–4 on the left: Import PDF, Resources, Reallocations, Organise');
   ok(await p.evaluate(()=>{ const s=document.querySelector('.jp-setup').getBoundingClientRect(), m=document.getElementById('jpOutput'); const mr=m.getBoundingClientRect(); const hs=[...document.querySelectorAll('#tab-print h2')].map(h=>h.textContent.trim());
@@ -176,12 +192,16 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     ok(await p.$$eval('#dBay option',o=>o.some(x=>x.value==='FX-BAY 07')),'deferring to a day without routes offers the fixed bay as a reference'); await p.selectOption('#dBay','FX-BAY 07'); await p.click('#dOk'); await p.waitForTimeout(300);
     await p.selectOption('#pDay','D2026-11-16'); await p.click('#expAll'); const w=await p.textContent('#pRoutes');
     ok(/not assigned · wanted BAY 07/.test(w) && await p.$$eval('#pRoutes .route:not(.deferred)',x=>x.length)===0,'planning that day: no bay BAY 07 → warning “not assigned”');
-    await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-16'); await p.click('[data-rs=addrow]'); await p.click(cell(0,0)); await clip.paste('74699777\tBAY 07'); await p.waitForTimeout(300);
+    await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-16\"]'); await p.click('[data-rs=addrow]'); await p.click(cell(0,0)); await clip.paste('74699777\tBAY 07'); await p.waitForTimeout(300);
     await p.click('nav [data-tab=plan]'); await p.selectOption('#pDay','D2026-11-16'); await p.click('#expAll'); const w2=await p.textContent('#pRoutes');
     ok(!/not assigned/.test(w2) && /BAY 07/.test(w2) && await p.$$eval('#pRoutes .route:not(.deferred)',x=>x.length)===1,'once Resources give the day a BAY 07, the deferred order is on it'); }
+  // the day of a PDF is its DELIVERY date: this one was ordered on Monday 09.11 but is delivered on Tuesday 10.11
+  { const od=path.join(TMP,'order_vs_delivery.pdf'); fs.writeFileSync(od, await checkSheetPdf([{load:'74600002',order:'5688001',name:'ORDER DATE TEST BAR',date:'10/11/2026',orderDate:'09/11/2026'}],{}));
+    await p.click('nav [data-tab=print]'); await p.click('#jpDay'); await p.selectOption('#jpDay','D2026-11-09'); await p.setInputFiles('#jpFile',od); await p.waitForFunction(()=>document.getElementById('jpDay').value==='D2026-11-10',null,{timeout:30000});
+    ok(true,'a PDF ordered on Mon 09.11 and delivered on Tue 10.11 sets the day to Tue 10.11: the delivery date is used, not the order date'); }
   // a Viewer can print but not edit resources
   await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); ok(await enter(p,'Warehouse'),'Warehouse (Viewer) is in');
-  await p.click('nav [data-tab=res]'); await p.selectOption('#rsDay','D2026-11-09'); const before=await txt(0,2);
+  await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]'); const before=await txt(0,2);
   await p.click(cell(0,2)); await p.keyboard.type('Nope'); await p.keyboard.press('Enter');
   ok(await txt(0,2)===before && !(await p.isVisible('[data-rs=addrow]')) && !(await p.isVisible('[data-rs=newday]')),'Viewer: resources are view only');
   ok(await p.isVisible('nav [data-tab=print]'),'Viewer: Check Sheet Print available');
@@ -207,7 +227,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     await q.click('#fbOk'); await q.waitForSelector('[data-act=add]'); await q.click('[data-act=add]'); await q.waitForTimeout(500);
     await q.selectOption('#pDay','D2026-11-09'); await q.click('#expAll'); const planTxt=await q.textContent('#pRoutes');
     ok(!/DONEGAL/i.test(planTxt) && !planTxt.includes('5609001') && !planTxt.includes('Driver 99'),'Donegal bays and customers are left out of Planning');
-    await q.click('nav [data-tab=res]'); await q.selectOption('#rsDay','D2026-11-09'); const resTxt2=await q.textContent('#rsGrid'); ok(!/DONEGAL/i.test(resTxt2) && !resTxt2.includes('Driver 99'),'… and out of Resources');
+    await q.click('nav [data-tab=res]'); await q.click('#rsDays [data-rsday=\"D2026-11-09\"]'); const resTxt2=await q.textContent('#rsGrid'); ok(!/DONEGAL/i.test(resTxt2) && !resTxt2.includes('Driver 99'),'… and out of Resources');
     await q.click('nav [data-tab=customers]'); await q.waitForTimeout(300); ok(/DONEGAL 01/.test(await q.textContent('#cBay')),'… but still on the Customers tab');
     await q.click('nav [data-tab=report]'); ok(!/DONEGAL/i.test(await q.textContent('#rBody')),'… and out of the change report'); ok(!e2.length,'no script errors (Donegal copy)'+(e2.length?': '+e2.join(' | '):'')); await c2.close(); }
   ok(!errs.length,'no script errors'+(errs.length?': '+errs.join(' | '):''));

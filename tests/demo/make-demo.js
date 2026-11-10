@@ -54,7 +54,7 @@ WEEK.forEach(([wd,date],di)=>{
     const L=loads[lk]; L.drops++; const n=1+Math.floor(rnd()*3);
     for(let i=0;i<n;i++){ const w=Math.round(40+rnd()*460); L.kg+=w; const o=order++;
       plan.push([L.id,o,c.id,c.name,c.addr.split(', ')[0],c.addr.split(', ')[1],date,w,'R'+c.bay.slice(4)]);
-      (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, addr:c.addr, date});
+      (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, addr:c.addr, date, orderDate:(()=>{ const [dd,mm,yy]=date.split('/').map(Number); const od=new Date(Date.UTC(yy,mm-1,dd-3)); const z=n=>String(n).padStart(2,'0'); return z(od.getUTCDate())+'/'+z(od.getUTCMonth()+1)+'/'+od.getUTCFullYear(); })()});
       prod.push([o,pick(['KEG50','CS24','EA1']),pick(['Cider keg 50L','Cider case 24x500ml','Point of sale pack']),1+Math.floor(rnd()*8),pick(['KEGS','CS','EA'])]); }
     if(rnd()<.15) upl.push([c.id,c.name,'KEG50',1+Math.floor(rnd()*3),pick(['Empty kegs','Damaged stock'])]);
   });
