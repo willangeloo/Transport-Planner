@@ -5,6 +5,10 @@ const XLSX=require('xlsx'), fs=require('fs'), path=require('path');
 const OUT=path.resolve(process.argv[2]||path.join(__dirname,'..','..','demo','Route_planning'));
 let seed=46; const rnd=()=>{ seed=(seed*1103515245+12345)%2147483648; return seed/2147483648; };   // repeatable "random"
 const pick=a=>a[Math.floor(rnd()*a.length)];
+// a second generator for the check sheets, products, uplifts and POD: it doesn't touch the first one, so the plans and customers stay identical
+let seed2=2046; const rnd2=()=>{ seed2=(seed2*1103515245+12345)%2147483648; return seed2/2147483648; };
+const pick2=a=>a[Math.floor(rnd2()*a.length)];
+const {checkSheetPdf, makeLines, JDE_NAMES}=require('../lib/checksheet');
 const write=(rel,sheet,rows)=>{ const f=path.join(OUT,rel); fs.mkdirSync(path.dirname(f),{recursive:true}); const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(rows); ws['!cols']=rows[0].map(()=>({wch:16})); XLSX.utils.book_append_sheet(wb,ws,sheet); XLSX.writeFile(wb,f); };
 fs.rmSync(path.join(OUT,'MASTER_DATA'),{recursive:true,force:true}); fs.rmSync(path.join(OUT,'REPORTS'),{recursive:true,force:true}); fs.rmSync(path.join(OUT,'CHECK_SHEETS'),{recursive:true,force:true});
 
@@ -54,20 +58,32 @@ WEEK.forEach(([wd,date],di)=>{
     const L=loads[lk]; L.drops++; const n=1+Math.floor(rnd()*3);
     for(let i=0;i<n;i++){ const w=Math.round(40+rnd()*460); L.kg+=w; const o=order++;
       plan.push([L.id,o,c.id,c.name,c.addr.split(', ')[0],c.addr.split(', ')[1],date,w,'R'+c.bay.slice(4)]);
-      (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, addr:c.addr, date, orderDate:(()=>{ const [dd,mm,yy]=date.split('/').map(Number); const od=new Date(Date.UTC(yy,mm-1,dd-3)); const z=n=>String(n).padStart(2,'0'); return z(od.getUTCDate())+'/'+z(od.getUTCMonth()+1)+'/'+od.getUTCFullYear(); })()});
-      prod.push([o,pick(['KEG50','CS24','EA1']),pick(['Cider keg 50L','Cider case 24x500ml','Point of sale pack']),1+Math.floor(rnd()*8),pick(['KEGS','CS','EA'])]); }
-    if(rnd()<.15) upl.push([c.id,c.name,'KEG50',1+Math.floor(rnd()*3),pick(['Empty kegs','Damaged stock'])]);
+      const lines=makeLines(rnd2,w);
+      (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, customerNo:String(c.id), addrLines:[...(rnd2()<.35?[`${pick2(N1).toUpperCase()} ${pick2(['TRADING','HOSPITALITY','HOLDINGS'])} LTD`]:[]), ...c.addr.split(', ').map(a=>a.toUpperCase())], po:rnd2()<.8?String(10600000+Math.floor(rnd2()*99999)):'', empties:rnd2()<.6, lines, date, orderDate:(()=>{ const [dd,mm,yy]=date.split('/').map(Number); const od=new Date(Date.UTC(yy,mm-1,dd-3)); const z=n=>String(n).padStart(2,'0'); return z(od.getUTCDate())+'/'+z(od.getUTCMonth()+1)+'/'+od.getUTCFullYear(); })()});
+      for(let q=0;q<4;q++) rnd();   // the old random products drew 4 numbers here; kept so the plans stay identical
+      lines.forEach(l=>prod.push([o,l.sku,l.desc,l.qty,l.uom])); }
+    if(rnd()<.15) upl.push([c.id,c.name,'KEG501',1+Math.floor(rnd()*3),pick(['Empty kegs','Damaged stock'])]);
   });
   Object.values(loads).forEach((L,i)=>res.push([L.id,L.bay,`Driver ${String(i+1+di*10).padStart(2,'0')}`,i%2?`Helper ${String(i+1+di*10).padStart(2,'0')}`:'',`TRK-${String(i+1).padStart(2,'0')}`,Math.ceil(L.kg/400),Math.round(30+rnd()*120),L.area,L.drops,L.kg]));
   write(`REPORTS/week_46/DIPS_Plan_${wd}.xlsx`,'Sheet1',plan); write(`REPORTS/week_46/RES_${wd}.xlsx`,'Sheet1',res);
-  write(`REPORTS/week_46/PROD_${wd}.xlsx`,'Sheet1',prod); if(upl.length>1) write(`REPORTS/week_46/UPLIFTS_${wd}.xlsx`,'Sheet1',upl);
+  // every day has at least one uplift (a pick-up of empty kegs or damaged stock), so the Uplifts report can be shown on any day
+  if(upl.length<2){ const c=pick2(customers.filter(x=>x.days.includes(di))); upl.push([c.id,c.name,'KEG501',1+Math.floor(rnd2()*3),pick2(['Empty kegs','Damaged stock'])]); }
+  // proof of delivery: one row per order, as the drivers hand them back (a few short or refused, to show exceptions)
+  const pod=[['Order Number','Ship To','Customer Name','Delivery Date','Delivered At','Received By','Status','Notes']];
+  SHEETS[wd].forEach(x=>{ const r=rnd2(), t=450+Math.floor(rnd2()*540), z=n=>String(n).padStart(2,'0');
+    pod.push([x.order,x.customerNo,x.name,date,`${z(Math.floor(t/60))}:${z(t%60)}`,pick2(['J. Murphy','A. Byrne','K. Walsh','M. Doyle','Manager on duty']),r<.04?'Refused':r<.12?'Delivered short':'Delivered',r<.04?'Customer closed':r<.12?'2 cases not on the truck':'']); });
+  write(`REPORTS/week_46/PROD_${wd}.xlsx`,'Sheet1',prod); write(`REPORTS/week_46/UPLIFTS_${wd}.xlsx`,'Sheet1',upl); write(`REPORTS/week_46/POD_${wd}.xlsx`,'Sheet1',pod);
 });
 console.log(`Demo data written to ${OUT}: ${customers.length} customers, ${order-5600001} orders, ${load-74600001} loads over 5 days`);
 // ---- fake check-sheet PDFs (JDE Offloading Sheet layout), one per day, in CHECK_SHEETS/JDE/week_46 (the Printing tab imports them).
 // The file names do NOT say the day: the app reads the day from the first pages of each PDF.
 // Pages come in load order, as JDE prints them; one signature-only page is added to show the blank-page check.
-(async()=>{ const {checkSheetPdf, JDE_NAMES}=require('../lib/checksheet');
+(async()=>{
   for(const wd of Object.keys(SHEETS)){ const list=SHEETS[wd].slice().sort((a,b)=>a.load.localeCompare(b.load)||a.order.localeCompare(b.order));
-    const f=path.join(OUT,'CHECK_SHEETS','JDE','week_46',JDE_NAMES[wd]); fs.mkdirSync(path.dirname(f),{recursive:true}); fs.writeFileSync(f, await checkSheetPdf(list,{blankAfter:[2]})); }
+    const f=path.join(OUT,'CHECK_SHEETS','JDE','week_46',JDE_NAMES[wd]); fs.mkdirSync(path.dirname(f),{recursive:true}); let opt={blankAfter:[2]};
+    if(wd==='Thu'){   // Thursday shows the Printing edge cases: a load that is not in Resources (UNASSIGNED) and a page nobody can read (REVIEW)
+      list.splice(4,0,{load:'74699999', order:'5699999', name:'LATE CALL BISTRO', customerNo:'91009999', addrLines:['1 NEW ROAD','CITY CENTRE'], po:'', empties:false, date:SHEETS.Thu[0].date, orderDate:SHEETS.Thu[0].orderDate, lines:makeLines(rnd2,180)});
+      opt={blankAfter:[2],reviewAfter:[6]}; }
+    fs.writeFileSync(f, await checkSheetPdf(list,opt)); }
   console.log('Check-sheet PDFs written: '+Object.keys(SHEETS).map(w=>'CHECK_SHEETS/JDE/week_46/'+JDE_NAMES[w]).join(', '));
 })();
