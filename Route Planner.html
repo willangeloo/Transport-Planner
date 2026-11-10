@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.11.2</title>
+<title>Route Planner BETA v0.11.3</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -494,12 +494,12 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.2</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.3</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="plan" class="on">Planning</button>
     <button data-tab="res">Resources</button>
     <button data-tab="report" class="hl">Change report <span class="n" id="navCount">0</span></button>
-    <button data-tab="print" class="hl">Check Sheet Print</button>
+    <button data-tab="print" class="hl">Printing</button>
     <button data-tab="options">Options</button>
     <button data-tab="customers">Customers</button>
   </nav>
@@ -1899,7 +1899,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.11.2';
+const APP_VERSION='0.11.3';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1935,7 +1935,7 @@ if(!Array.isArray(S.log)) S.log=[]; if(!Array.isArray(S.added)) S.added=[]; if(!
 function save(){ store(KEY,S); }
 let UPLOADS = load(UPKEY, EMB?clone0(EMB.uploads):[]); if(!Array.isArray(UPLOADS)) UPLOADS=[];   // one entry per uploaded day
 function saveUploads(){ return store(UPKEY,UPLOADS); }
-let PREFS = Object.assign({hideSample:false, name:'', lineage:null}, EMB?{hideSample:!!(EMB.prefs&&EMB.prefs.hideSample), lineage:{label:'Snapshot', current:EMB.fileName||'', history:EMB.history||[]}}:{}, load(PREFKEY,{}));
+let PREFS = Object.assign({hideSample:false, name:'', lineage:null, theme:'system'}, EMB?{hideSample:!!(EMB.prefs&&EMB.prefs.hideSample), lineage:{label:'Snapshot', current:EMB.fileName||'', history:EMB.history||[]}}:{}, load(PREFKEY,{}));
 function savePrefs(){ store(PREFKEY,PREFS); }
 // v0.11.0: light or dark theme, per browser (not saved with the plan)
 const darkMQ=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
@@ -2096,7 +2096,7 @@ function dayView(dayKey){
 function bayShown(b){ const c=colorOfBay(b); if(c!=='#888') return c; for(const d of DATA.days) for(const l of d.loads) if(bayBase(l.bay)===b && routeColor[d.key+'|'+l.id]) return routeColor[d.key+'|'+l.id]; return '#888888'; }
 function allBays(){ return [...new Set(masterBays.concat(DATA.days.flatMap(d=>d.loads.map(l=>l.bay))).filter(Boolean).map(bayBase))].sort(); }
 function renderOptions(){
-  const el=$('tab-options'); const th=PREFS.theme==='dark'||PREFS.theme==='system'?PREFS.theme:'light';
+  const el=$('tab-options'); const th=PREFS.theme==='dark'||PREFS.theme==='light'?PREFS.theme:'system';
   const bays=allBays();
   const sec=(id,ic,t,body)=>`<div class="card" id="opt-${id}" style="margin-bottom:14px"><h2 style="margin:0 0 6px">${ic} ${t}</h2><div style="padding:0 16px 14px">${body}</div></div>`;
   const thBtn=(v,t)=>`<button class="thopt ${th===v?'on':''}" data-theme="${v}"><span class="pv ${v==='dark'?'d':'l'}"><i></i><b></b></span><b>${t}</b></button>`;
@@ -2305,10 +2305,12 @@ function renderBayChips(){
 // v0.11.2: which routes are on the map. None or all expanded = all; some expanded = only those; "show on map" adds or removes single routes.
 function mapVisible(r){ const id=r.id, n=view.routes.length, o=P.open.size; const base=(o===0||o>=n)?true:P.open.has(id); return (base && !P.hidden.has(id)) || P.show.has(id); }
 function refreshMap(){ renderBayChips(); renderPlanMap(); }
+// opening or closing routes in Routes & orders sets the map (it replaces earlier “show on map” choices) and fits it; “show on map” alone never refits
+function routesChanged(){ P.hidden.clear(); P.show.clear(); refreshMap(); fitRoutes(); }
 $('pBays').addEventListener('click',e=>{const b=e.target.closest('.chip'); if(!b) return; const id=b.dataset.r; const r=view.routes.find(x=>String(x.id)===id); if(!r) return;
   if(mapVisible(r)){ P.hidden.add(id); P.show.delete(id); } else { P.show.add(id); P.hidden.delete(id); } refreshMap(); });
-$('expAll').onclick=()=>{ view.routes.forEach(r=>P.open.add(r.id)); renderRoutes(); refreshMap(); };
-$('colAll').onclick=()=>{ P.open.clear(); renderRoutes(); refreshMap(); };
+$('expAll').onclick=()=>{ view.routes.forEach(r=>P.open.add(r.id)); renderRoutes(); routesChanged(); };
+$('colAll').onclick=()=>{ P.open.clear(); renderRoutes(); routesChanged(); };
 $('bayAll').onclick=()=>{P.hidden.clear(); view.routes.forEach(r=>P.show.add(r.id)); refreshMap();};
 $('bayNone').onclick=()=>{P.show.clear(); view.routes.forEach(r=>P.hidden.add(r.id)); refreshMap();};
 $('insBtn').onclick=()=>openInsert();
@@ -2380,7 +2382,7 @@ $('pSearchN').addEventListener('click',e=>{ const b=e.target.closest('[data-goda
 $('pRoutes').addEventListener('click',e=>{
   const actEl=e.target.closest('[data-act]'); if(!actEl) return;
   const act=actEl.dataset.act;
-  if(act==='toggle'){ const r=actEl.closest('.route').dataset.r; P.open.has(r)?P.open.delete(r):P.open.add(r); actEl.closest('.route').classList.toggle('open'); refreshMap(); return; }
+  if(act==='toggle'){ const r=actEl.closest('.route').dataset.r; P.open.has(r)?P.open.delete(r):P.open.add(r); actEl.closest('.route').classList.toggle('open'); routesChanged(); return; }
   const k=actEl.closest('.drop')?.dataset.k; if(!k) return;
   if(act==='tick'){ actEl.checked?P.sel.add(k):P.sel.delete(k); actEl.closest('.drop').classList.toggle('sel',actEl.checked); renderPlanMap(); renderSelBar(); }
   if(act==='locate') locate(k);
@@ -2915,9 +2917,10 @@ $('resetBtn').onclick=()=>{
 // v0.10.3: reset clears the planner (plan, days, customer master, fixed routes, customer edits) but keeps the company
 // folder link, the users file and this computer's registration; the app reopens on "Who is planning?"
 async function fullReset(){
-  const keep=[UCFGKEY, UFILEKEY];
+  const keep=[UCFGKEY, UFILEKEY]; const theme=PREFS.theme||'system';
   try{ Object.keys(localStorage).filter(k=>k.startsWith('routePlannerBeta') && !keep.includes(k)).forEach(k=>localStorage.removeItem(k)); }catch(e){}
-  try{ ['rp.user','rp.auth','rp.msg'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Planner reset — choose your user'); }catch(e){}
+  try{ store(PREFKEY,{theme}); }catch(e){}   // the theme choice is not reset
+  try{ ['rp.user','rp.auth','rp.msg','rp.access','rp.datawin'].forEach(k=>sessionStorage.removeItem(k)); sessionStorage.setItem('rp.msg','Planner reset — choose your user'); }catch(e){}
   location.reload();
 }
 
@@ -3719,19 +3722,26 @@ async function gateHome(msg){
   setGate(true); FOLDER.user=''; renderUserBtn();
   if(!fsSupported()) return gateModal(`<div class="mh"><h2>Open the Route Planner in Chrome or Edge</h2></div><div class="mb"><div class="note warn">This browser can't open the company folder from a web page. Open <b>Route Planner.html</b> from your computer in <b>Google Chrome</b> or <b>Microsoft Edge</b>.</div></div>`);
   let h=null; try{ h=await idb.get('folder:root'); }catch(e){ h=null; }
-  if(!h) return gateModal(`<div class="mh"><h2>Link the company folder</h2><div class="muted small">Once per computer</div></div><div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}<div class="note info">Choose the shared <b>Route_planning</b> folder as it appears on this computer (synced OneDrive / SharePoint). The users file, the reports and the plans are all read from it.</div></div>
-    <div class="mf"><button class="btn pri" data-act="link">📁 Choose folder…</button></div>`,{onAct:a=>{ if(a==='link') linkRoot(); }});
+  let access=false; try{ access=sessionStorage.getItem('rp.access')==='1'; }catch(e){}
+  // the Reset button of the first windows: the planner's saved data in this browser is cleared (the theme, the folder link and this computer's registration are kept)
+  const resetBtn='<button class="btn" data-act="reset" style="margin-right:auto" title="Clears everything this browser saved for the planner: plan, days, customer master, fixed routes, preferences. The folder link, the users file and the theme are kept.">↺ Reset</button>';
+  const resetNote='<div class="muted small" style="margin-top:8px">↺ <b>Reset</b> clears everything this browser saved for the planner (plan, days, customer master, fixed routes). The folder link, the users file and your theme are kept.</div>';
+  const onReset=btn=>{ if(btn.dataset.sure!=='1'){ btn.dataset.sure='1'; btn.textContent='↺ Click again to reset'; btn.classList.add('warn'); return; } fullReset(); };
+  const acts=(a,el)=>{ if(a==='reset') return onReset(el); if(a==='link'||a==='relink') return linkRoot(); };
+  if(!h) return gateModal(`<div class="mh"><h2>Allow access to the company folder</h2><div class="muted small">Once per computer</div></div><div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}<div class="note info">Choose the shared <b>Route_planning</b> folder as it appears on this computer (synced OneDrive / SharePoint). The users file, the reports and the plans are all read from it.</div>${resetNote}</div>
+    <div class="mf">${resetBtn}<button class="btn pri" data-act="link">📁 Choose folder…</button></div>`,{onAct:(a,el)=>acts(a,el)});
   const st=await folderCheck(h,false);
-  if(st==='prompt') return gateModal(`<div class="mh"><h2>Allow access to “${esc(h.name)}”</h2></div><div class="mb"><div class="note info">The browser needs your OK to read and save files in the company folder.</div></div>
-    <div class="mf"><button class="btn" data-act="relink" style="margin-right:auto">Choose another folder…</button><button class="btn pri" data-act="allow">Allow access</button></div>`,
-    {onAct:async a=>{ if(a==='relink') return linkRoot(); if(a==='allow'){ const r=await folderCheck(h,true); if(r==='ok') gateHome(); else gateHome(`Access to “${esc(h.name)}” wasn't allowed or the folder isn't on this computer.`); } }});
-  if(st!=='ok') return gateModal(`<div class="mh"><h2>Company folder not found</h2></div><div class="mb"><div class="note warn">“${esc(h.name)}” isn't available on this computer any more (moved, renamed or not synced).</div></div>
-    <div class="mf"><button class="btn pri" data-act="relink">📁 Choose folder…</button></div>`,{onAct:a=>{ if(a==='relink') linkRoot(); }});
+  if(st==='prompt' || (st==='ok' && !access)) return gateModal(`<div class="mh"><h2>Allow access to “${esc(h.name)}”</h2><div class="muted small">The company folder from last time</div></div><div class="mb">${msg?`<div class="note warn">${msg}</div>`:''}<div class="note info">The Route Planner reads the reports and the users file from this folder and saves plans into it. The browser needs your OK to read and save files there.</div>${resetNote}</div>
+    <div class="mf">${resetBtn}<button class="btn" data-act="relink">Choose another folder…</button><button class="btn pri" data-act="allow">Allow access</button></div>`,
+    {onAct:async (a,el)=>{ if(a==='reset'||a==='relink') return acts(a,el); if(a==='allow'){ const r=await folderCheck(h,true); if(r==='ok'){ try{ sessionStorage.setItem('rp.access','1'); }catch(e){} gateHome(); } else gateHome(`Access to “${esc(h.name)}” wasn't allowed or the folder isn't on this computer.`); } }});
+  if(st!=='ok') return gateModal(`<div class="mh"><h2>Company folder not found</h2></div><div class="mb"><div class="note warn">“${esc(h.name)}” isn't available on this computer any more (moved, renamed or not synced).</div>${resetNote}</div>
+    <div class="mf">${resetBtn}<button class="btn pri" data-act="relink">📁 Choose folder…</button></div>`,{onAct:(a,el)=>acts(a,el)});
   FOLDER.handle=h; FOLDER.name=h.name;
   return gateUsersFile(msg);
 }
+window.__rpGate={setRoot:h=>{ ROOT_MEM=h; }, home:()=>gateHome()};
 async function linkRoot(){
-  try{ const h=await window.showDirectoryPicker({id:'routeplanner', mode:'readwrite'}); try{ await idb.set('folder:root',h); }catch(e){ ROOT_MEM=h; } FOLDER.handle=h; FOLDER.name=h.name; gateUsersFile(); }
+  try{ const h=await window.showDirectoryPicker({id:'routeplanner', mode:'readwrite'}); try{ await idb.set('folder:root',h); }catch(e){ ROOT_MEM=h; } try{ sessionStorage.setItem('rp.access','1'); }catch(e){} FOLDER.handle=h; FOLDER.name=h.name; gateUsersFile(); }
   catch(e){ if(!(e&&e.name==='AbortError')) toast('Could not link the folder: '+(e&&e.message||e)); }
 }
 let ROOT_MEM=null;   // when the browser can't remember the folder (e.g. some test set-ups), keep it for this session
@@ -4308,7 +4318,7 @@ function renderResources(){
   const sum=k=>rows.reduce((s,r)=>s+(toNum(resGet(r,k))||0),0);
   const ids=rows.map(r=>toId(r.id)).filter(Boolean); const dupIds=new Set(ids.filter((x,i)=>ids.indexOf(x)!==i));
   const orphans=d.loads.filter(l=>l.orphan);
-  el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day · used by Planning and Check Sheet Print</div><h1>Resources</h1></div><div class="spacer"></div>
+  el.innerHTML=`<div class="rep rs"><div class="rep-head"><div><div class="muted small">Routes, crews and trucks of a planning day · used by Planning and Printing</div><h1>Resources</h1></div><div class="spacer"></div>
     <div style="width:210px"><select id="rsDay">${opts}</select></div><button class="btn no-viewer" data-rs="newday" title="Create a new planning day (from the fixed routes)">＋ Day</button>
     <label class="btn no-viewer" title="Upload a RESOURCES sheet (.xlsx / .csv) into this day">⤒ Upload sheet<input type="file" id="rsFile" accept=".xlsx,.xls,.xlsm,.csv" hidden></label>
     <button class="btn" data-rs="export" title="Excel file in the same layout as the RESOURCES files">⤓ Export Excel</button></div>
@@ -4619,16 +4629,17 @@ function renderPrint(){
   const sig=jpSig(); if(sig!==JS.sig){ JS.sig=sig; jpReplan(); } else jpRender();
 }
 function jpSkeleton(){
-  return `<div class="jp"><div class="rep-head jp-top"><div><div class="muted small">Check sheets (JDE Offloading Sheet / Delivery Docket PDF) organised by the day's plan</div><h1>Check Sheet Print</h1></div><div class="spacer"></div>
+  return `<div class="jp"><div class="rep-head jp-top"><div><div class="muted small">Check sheets (JDE Offloading Sheet / Delivery Docket PDF) organised by the day's plan</div><h1>Printing</h1></div><div class="spacer"></div>
    <div style="width:210px"><select id="jpDay"></select></div>
    <div class="jp-modes" role="tablist"><button class="on" data-jpmode="organise">Organise</button><button data-jpmode="reprint">Reprint an order</button></div></div>
   <div class="jp-layout" id="jpOrganise">
    <aside class="jp-setup">
     <section class="jp-card"><h2><span class="jp-step">1</span>Import PDF</h2>
-     <label class="jp-drop" id="jpDrop" tabindex="0"><input type="file" id="jpFile" accept="application/pdf,.pdf" multiple hidden><strong>Drop the check-sheet PDF here</strong><span>or click to choose. More than one file is accepted.</span></label>
+     <button class="btn jp-big" id="jpJde" title="Choose the check-sheet PDFs from CHECK_SHEETS › JDE in the company folder">📁 Choose from CHECK_SHEETS › JDE</button>
+     <label class="jp-drop" id="jpDrop" tabindex="0"><input type="file" id="jpFile" accept="application/pdf,.pdf" multiple hidden><strong>Drop the check-sheet PDF here</strong><span>or click to choose a file from elsewhere. More than one file is accepted.</span></label>
      <div class="jp-progress" id="jpReadProgress" hidden><div class="bar"></div><span class="label"></span></div>
      <ul class="jp-files" id="jpFiles"></ul>
-     <p class="jp-hint" style="margin-top:8px">The PDF is read in this browser only. It is not saved with the plan.</p></section>
+     <p class="jp-hint" style="margin-top:8px">The PDF is read in this browser only. It is not saved with the plan. The day of a PDF is read from its first pages, not from its file name.</p></section>
     <section class="jp-card"><h2><span class="jp-step">2</span>Resources <span class="spacer"></span><button class="btn sm" data-jpgo="res">Edit in Resources</button></h2><div id="jpRes"></div></section>
     <section class="jp-card"><h2><span class="jp-step">3</span>Reallocations <span class="spacer"></span><button class="btn sm" data-jpgo="plan">Planning</button></h2><p class="jp-hint">Changes made in Planning (moves, deferrals and inserted orders). Check them before you organise.</p><div id="jpRea"></div></section>
     <section class="jp-card"><h2><span class="jp-step">4</span>Organise</h2>
@@ -4789,6 +4800,65 @@ function jpPageGrid(container,items,title){
     const draw=()=>JP.ui.thumbs.render(it.doc,it.index,200,it.key).then(u=>{ img.src=u; }).catch(()=>{ img.alt='Preview not available'; });
     if(i<8||!jpObserver) draw(); else { fig.__render=draw; jpObserver.observe(fig); } });
 }
+
+// ---- v0.11.3: check sheets in the company folder: CHECK_SHEETS/JDE (to import) and CHECK_SHEETS/Organised (organised PDFs are saved there)
+// The day of a PDF is read from the text of its first 3 pages (never from the file name). Only those pages are parsed, and the answer is
+// remembered per file (name + size + modified time), so each file is read once on this computer.
+const JDEKEY='routePlannerBeta.jdeDates'+NS; let JDE_DATES=load(JDEKEY,{});
+const JB={files:[], sel:new Set(), week:'', hash:{}, busy:false, run:0};
+function jdeIso(d,m,y){ d=+d; m=+m; y=+y; if(y<100) y+=2000; if(!(d>=1&&d<=31&&m>=1&&m<=12&&y>=2000&&y<=2099)) return ''; return ymd(y,m,d); }
+async function jdeDetectDate(file){
+  const key=file.name+'|'+file.size+'|'+file.lastModified; if(JDE_DATES[key]!=null) return JDE_DATES[key];
+  let iso='';
+  try{
+    await loadPdfLibs(); const doc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()), isEvalSupported:false}).promise; const counts={};
+    for(let i=1;i<=Math.min(3,doc.numPages);i++){ const tc=await (await doc.getPage(i)).getTextContent(); const txt=tc.items.map(x=>x.str).join(' ');
+      for(const m of txt.matchAll(/(?:(delivery|ship(?:ment)?|promised|date)[^0-9]{0,24})?\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}|\d{2})\b/gi)){ const d=jdeIso(m[2],m[3],m[4]); if(d) counts[d]=(counts[d]||0)+(m[1]?3:1); } }
+    doc.destroy(); const best=Object.entries(counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]; iso=best?best[0]:'';
+  }catch(e){ iso=''; }
+  JDE_DATES[key]=iso; store(JDEKEY,JDE_DATES); return iso;
+}
+async function scanJde(){
+  const out=[]; if(!FOLDER.handle) return out;
+  const cs=await subDirIf(FOLDER.handle,['CHECK_SHEETS']); if(!cs) return out; const jde=await subDirIf(cs,['JDE']); if(!jde) return out;
+  const walk=async(dir,prefix,depth)=>{ for await (const [name,h] of dir.entries()){ if(h.kind==='directory'){ if(depth<2) await walk(h,prefix+name+'/',depth+1); continue; }
+    if(!/\.pdf$/i.test(name)) continue; const f=await h.getFile(); const path='CHECK_SHEETS/JDE/'+prefix+name; try{ f.rpPath=path; }catch(e){}
+    out.push({name, path, dir:prefix.replace(/\/$/,''), fweek:weekOfPath(path), mod:f.lastModified, size:f.size, file:f}); } };
+  await walk(jde,'',0); return out.sort((a,b)=>b.mod-a.mod);
+}
+const jdeDateOf = f => JDE_DATES[f.name+'|'+f.size+'|'+f.mod];
+const jdeWeek = f => { const d=jdeDateOf(f); return d?isoWeek(d):f.fweek; };
+function jdeStatus(f){ const h=JB.hash[f.path]; const L=(JS.org?JS.org.sources:[]); if(h && L.some(x=>x.hash===h)) return 'loaded'; if(L.some(x=>x.path&&x.path===f.path)) return 'changed'; return 'new'; }
+const JDE_FLAG={loaded:'<span class="flag ad" title="This exact file is imported">✓ loaded</span>', changed:'<span class="flag dup" title="A file with this name was imported, but its content is different now">⚠ changed since loaded</span>', new:'<span class="flag" style="background:#eef1f4;color:#4b5563">not loaded</span>'};
+async function openJdeBrowser(){
+  if(FOLDER.status!=='ok' || !FOLDER.handle){ toast('Choose your user first'); return; }
+  openModal(`<div class="mh"><h2>📁 CHECK_SHEETS › JDE</h2><div class="muted small">Reading the folder…</div></div><div class="mb"></div>`); $('modal').classList.add('wide');
+  let files=[]; try{ files=await scanJde(); }catch(e){ return manualAlert('Folder not available','Could not read CHECK_SHEETS › JDE: '+esc(e&&e.message||e)); }
+  JB.files=files; JB.sel.clear(); const run=++JB.run; renderJde();
+  JB.busy=true;
+  for(const f of files){ if(run!==JB.run) return; if(JDE_DATES[f.name+'|'+f.size+'|'+f.mod]==null || !JB.hash[f.path]){ await jdeDetectDate(f.file); try{ JB.hash[f.path]=await fileHash(f.file); }catch(e){} }
+    const el=$('modal').querySelector(`[data-jd="${CSS.escape(f.path)}"]`); if(el){ el.innerHTML=jdeDayHtml(f); const st=$('modal').querySelector(`[data-js="${CSS.escape(f.path)}"]`); if(st) st.innerHTML=JDE_FLAG[jdeStatus(f)]; } }
+  JB.busy=false; if(run===JB.run && $('modal').querySelector('[data-jdewk]')) renderJde();
+}
+function jdeDayHtml(f){ const d=jdeDateOf(f); return d?`<span class="flag">${esc(dayLbl(d))}</span>`:(d===''?'<span class="flag dup" title="No date found in the first 3 pages">date not found</span>':'<span class="muted small">reading…</span>'); }
+function renderJde(){
+  const files=JB.files; const wks=[...new Set(files.map(jdeWeek).filter(Boolean))].sort((a,b)=>b-a);
+  const jd=P.day&&dayMap[jpDayKey()]?dayMap[jpDayKey()].date:''; const want=jd?isoWeek(jd):null;
+  if(JB.week===''||(JB.week!=='all'&&JB.week!=='other'&&!wks.includes(+JB.week))) JB.week=want&&wks.includes(want)?String(want):(wks[0]?String(wks[0]):'all');
+  const inView=f=>JB.week==='all' || (JB.week==='other'?!jdeWeek(f):jdeWeek(f)===+JB.week);
+  const fmtD=ms=>{ const d=new Date(ms); return d.toLocaleDateString('en-IE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}); };
+  const shown=files.filter(inView);
+  const chips=(wks.length||files.some(f=>!jdeWeek(f)))?`<div class="chips" data-jdewk="1">${wks.map(w=>`<button class="chip ${String(w)===JB.week?'on':''}" data-act="w:${w}">Week ${w}</button>`).join('')}${files.some(f=>!jdeWeek(f))?`<button class="chip ${JB.week==='other'?'on':''}" data-act="w:other">No date yet</button>`:''}<button class="chip ${JB.week==='all'?'on':''}" data-act="w:all">All</button></div>`:'';
+  const rows=shown.length?shown.map(f=>`<label class="fbrow"><input type="checkbox" name="jde" value="${esc(f.path)}" ${JB.sel.has(f.path)?'checked':''}><span class="fn">${esc(f.name)} <span data-jd="${esc(f.path)}">${jdeDayHtml(f)}</span> <span data-js="${esc(f.path)}">${JDE_FLAG[jdeStatus(f)]}</span> <span class="muted small">${esc(f.dir)}</span></span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`).join(''):`<div class="muted small" style="padding:8px">${files.length?'None in this week.':'No PDF found in CHECK_SHEETS › JDE (week folders such as week_46 are fine).'}</div>`;
+  openModal(`<div class="mh"><h2>📁 CHECK_SHEETS › JDE</h2><div class="muted small">The day of each PDF is read from its first 3 pages, not from the file name · newest first · <b>✓ loaded</b> = this exact file is imported</div></div>
+   <div class="mb">${chips}<div class="mlist fblist" style="max-height:340px">${rows}</div>${JB.busy?'<div class="muted small">Reading the first pages of each PDF to find its day…</div>':''}</div>
+   <div class="mf"><button class="btn" data-act="refresh" style="margin-right:auto">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="jdeOk" ${JB.sel.size?'':'disabled'}>Import selected</button></div>`,
+   {onAct:a=>{ if(a.startsWith('w:')){ JB.week=a.slice(2); JB.sel.clear(); renderJde(); return; } if(a==='refresh') return openJdeBrowser();
+     if(a==='import'){ const fs_=JB.files.filter(f=>JB.sel.has(f.path)).map(f=>f.file); if(!fs_.length) return; JB.run++; closeModal(); jpAddFiles(fs_); } }});
+  $('modal').classList.add('wide');
+  $('modal').querySelectorAll('input[name=jde]').forEach(i=>i.addEventListener('change',()=>{ i.checked?JB.sel.add(i.value):JB.sel.delete(i.value); $('jdeOk').disabled=!JB.sel.size; }));
+}
+function jpSetDay(dk){ JS.day=dk; JS.overrides={}; if(pInit) selectDay(dk); else P.day=dk; JS.sig=jpSig(); }
 // ---------- import ----------
 async function jpAddFiles(fileList){
   const files=Array.from(fileList).filter(f=>/\.pdf$/i.test(f.name)||f.type==='application/pdf'); if(!files.length) return;
@@ -4796,8 +4866,12 @@ async function jpAddFiles(fileList){
   try{ jpProgress(prog,0,'Loading the PDF reader…'); await loadPdfLibs(); }catch(e){ prog.hidden=true; toast(e.message); return; }
   if(!JS.org) JS.org=new JP.Organiser();
   for(const f of files){ jpProgress(prog,0,'Reading '+f.name);
-    try{ const bytes=new Uint8Array(await f.arrayBuffer()); await JS.org.addFile({name:f.name,bytes},(d,t)=>jpProgress(prog,d/t,'Reading '+f.name+': page '+d+' of '+t)); }
+    try{ const bytes=new Uint8Array(await f.arrayBuffer()); const src=await JS.org.addFile({name:f.name,bytes},(d,t)=>jpProgress(prog,d/t,'Reading '+f.name+': page '+d+' of '+t)); try{ src.hash=await fileHash(f); }catch(e){} src.path=f.rpPath||''; }
     catch(e){ toast('Could not read “'+f.name+'”: '+(e&&e.message||e)); } }
+  // the day of the PDF comes from its own first pages: the Printing day follows it
+  try{ jpProgress(prog,1,'Finding the day of the PDF…'); const ds=[...new Set((await Promise.all(files.map(f=>jdeDetectDate(f)))).filter(Boolean))];
+    if(ds.length===1){ const dk=dayKeyForDate(ds[0]); if(dk && dk!==jpDayKey()){ jpSetDay(dk); toast(`Day set to ${dayLbl(ds[0])}, the day found in the PDF`); } else if(!dk) toast(`The PDF is for ${dayLbl(ds[0])}, which is not loaded in the planner`); }
+    else if(ds.length>1) toast('The PDFs are for several days: '+ds.map(dayLbl).join(', ')); }catch(e){}
   prog.hidden=true; jpFilesChanged();
 }
 function jpFilesChanged(){ JS.overrides={}; JP.ui.thumbs.clear(); JS.reprintKey=null; if(JS.org&&!JS.org.sources.length){ JS.plan=null; jpClearResult(); jpRender(); return; } JS.sig=jpSig(); jpReplan(); }
@@ -4821,7 +4895,8 @@ async function jpOrganise(){
     const all=JS.plan.integrity.checks.concat(res.integrity.checks);
     all.forEach(c=>checks.appendChild(jh('li',{class:c.ok?'':'fail'}, c.name, c.detail?jh('span',{class:'d',text:c.detail}):null)));
     res.ok=all.every(c=>c.ok); res.id=++jpSeq;
-    const d=dayMap[JS.day]; res.name='CheckSheets_'+(d?d.label.replace(/[^A-Za-z0-9.]+/g,'_')+'_':'')+jpStamp(res.generatedAt)+'.pdf';
+    const g=res.generatedAt, z=n=>String(n).padStart(2,'0'); res.name=safeName(`${g.getFullYear()}-${z(g.getMonth()+1)}-${z(g.getDate())}_${z(g.getHours())}.${z(g.getMinutes())}${FOLDER.user?'_'+FOLDER.user:''}`)+'.pdf';
+    if(FOLDER.status==='ok' && FOLDER.handle && can('edit')){ try{ const cs=await subDir(FOLDER.handle,'CHECK_SHEETS'), od=await subDir(cs,'Organised'); const nm=await saveToFolder(od,res.name.replace(/\.pdf$/i,''),'.pdf',res.bytes,'application/pdf'); res.savedAs='CHECK_SHEETS/Organised/'+nm+'.pdf'; res.name=nm+'.pdf'; }catch(e){ res.saveErr=String(e&&e.message||e); } }
     res.doc=await pdfjsLib.getDocument({data:res.bytes.slice(),isEvalSupported:false}).promise;
     res.routes=[]; res.manifest.forEach((m,i)=>{ let r=res.routes[res.routes.length-1]; if(!r||r.name!==m.route){ r={name:m.route,pages:[]}; res.routes.push(r); } r.pages.push(i); });
     res.routes.forEach(r=>{ const pr=JS.plan.routes.find(x=>x.name===r.name); r.kind=pr?pr.kind:'special'; r.orders=pr?pr.orders.length:0; });
@@ -4850,7 +4925,7 @@ function jpSelUi(st){
 }
 function jpOutput(){
   const res=JS.result; if(!res) return;
-  $('jpOutInfo').textContent=jfmt(res.manifest.length)+' pages, '+res.routes.length+' routes'+(res.ok?', all checks passed.':'. Some checks failed, see step 4.');
+  $('jpOutInfo').textContent=jfmt(res.manifest.length)+' pages, '+res.routes.length+' routes'+(res.ok?', all checks passed.':'. Some checks failed, see step 4.')+(res.savedAs?' Saved: '+res.savedAs:(res.saveErr?' Not saved to the folder: '+res.saveErr:''));
   $('jpDownloadAll').textContent=res.ok?'Download all':'Download anyway';
   if(!JS.outRoute||!res.routes.some(r=>r.name===JS.outRoute)) JS.outRoute=res.routes.length?res.routes[0].name:null;
   $('jpSelBar').hidden=false; jpSelUi(jpSelState()); jpRoutes(); jpPreview();
@@ -4908,7 +4983,8 @@ function jpWire(){
   dz.addEventListener('dragover',e=>{ e.preventDefault(); dz.classList.add('over'); });
   dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
   dz.addEventListener('drop',e=>{ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer&&e.dataTransfer.files.length) jpAddFiles(e.dataTransfer.files); });
-  $('jpDay').addEventListener('change',e=>{ JS.day=e.target.value; JS.overrides={}; if(pInit) selectDay(JS.day); else P.day=JS.day; JS.sig=jpSig(); jpReplan(); });
+  $('jpDay').addEventListener('change',e=>{ jpSetDay(e.target.value); jpReplan(); });
+  $('jpJde').addEventListener('click',openJdeBrowser);
   document.querySelectorAll('[data-jpmode]').forEach(b=>b.addEventListener('click',()=>jpMode(b.dataset.jpmode)));
   $('tab-print').addEventListener('click',e=>{ const g=e.target.closest('[data-jpgo]'); if(g) showTab(g.dataset.jpgo); });
   $('jpExport').addEventListener('click',jpOrganise);
@@ -4929,7 +5005,7 @@ function jpWire(){
   $('jpViewer').addEventListener('click',e=>{ if(e.target===$('jpViewer')) $('jpViewer').close(); });
 }
 // for the browser tests
-window.__rpMaps={cMap:()=>cMap, pMap:()=>pMap, pCount:()=>Object.keys(pMarkers).length};
+window.__rpMaps={cMap:()=>cMap, pMap:()=>pMap, pCount:()=>Object.keys(pMarkers).length, pPoints:()=>Object.values(pMarkers).map(m=>m.getLatLng())};
 window.__rpPrint={state:JS, replan:jpReplan, loadPdfLibs, selPages:jpSelPages};
 
 // ---------- boot ----------

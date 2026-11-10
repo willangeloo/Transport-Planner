@@ -185,6 +185,17 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   await p.click(cell(0,2)); await p.keyboard.type('Nope'); await p.keyboard.press('Enter');
   ok(await txt(0,2)===before && !(await p.isVisible('[data-rs=addrow]')) && !(await p.isVisible('[data-rs=newday]')),'Viewer: resources are view only');
   ok(await p.isVisible('nav [data-tab=print]'),'Viewer: Check Sheet Print available');
+  // ---------- START: the first window asks for access to the company folder, with a Reset button ----------
+  { const c3=await demoContext(b,DEMO); const q=await c3.newPage(); await q.goto('file://'+APP); await q.waitForSelector('#modal [data-act=link]');
+    ok(/Allow access to the company folder/.test(await q.textContent('#modal')) && await q.isVisible('#modal [data-act=reset]'),'first start without a folder: access window with a Reset button');
+    await q.evaluate(()=>{ localStorage.setItem('routePlannerBeta.old','x'); localStorage.setItem('routePlannerBeta.v082.prefs',JSON.stringify({theme:'dark',name:'Someone'})); }); await q.reload(); await q.waitForSelector('#modal [data-act=link]');
+    await q.evaluate(async()=>{ __rpGate.setRoot(await window.showDirectoryPicker()); __rpGate.home(); });
+    await q.waitForSelector('#modal [data-act=allow]'); ok(/Allow access to “Route_planning”/.test(await q.textContent('#modal')) && await q.isVisible('#modal [data-act=reset]'),'a remembered folder is the first window too: “Allow access to Route_planning”, with Reset');
+    await q.click('#modal [data-act=reset]'); ok(/Click again/.test(await q.textContent('#modal [data-act=reset]')),'Reset asks for a second click');
+    await Promise.all([q.waitForEvent('load'),q.click('#modal [data-act=reset]')]); await q.waitForSelector('#modal [data-act=link]');
+    ok(await q.evaluate(()=>localStorage.getItem('routePlannerBeta.old')===null && JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')||'{}').theme==='dark' && !JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')||'{}').name),'Reset at start clears the browser\'s saved data and keeps the theme');
+    await q.evaluate(async()=>{ __rpGate.setRoot(await window.showDirectoryPicker()); __rpGate.home(); }); await q.waitForSelector('#modal [data-act=allow]'); await q.click('#modal [data-act=allow]'); await q.waitForSelector('[data-act="u:Alex"]');
+    ok(true,'Allow access goes on to “Who is planning?”'); await c3.close(); }
   // ---------- DONEGAL is only on the Customers tab ----------
   { const D2=path.join(TMP,'donegal'); fs.cpSync(DEMO,D2,{recursive:true});
     const edit=(rel,fn)=>{ const f=path.join(D2,rel); const wb=XLSX.readFile(f); const n=wb.SheetNames[0]; const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1}); fn(rows); wb.Sheets[n]=XLSX.utils.aoa_to_sheet(rows); XLSX.writeFile(wb,f); };

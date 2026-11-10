@@ -20,4 +20,6 @@ async function checkSheetPdf(orders, opts){
   });
   return await doc.save();
 }
-module.exports={checkSheetPdf};
+// the demo's file names say nothing about the day (the app reads the day from the first pages)
+const JDE_NAMES={Mon:'Offloading_Sheet_Report_2.pdf',Tue:'Offloading_Sheet_Report_4.pdf',Wed:'Offloading_Sheet_Report_1.pdf',Thu:'Offloading_Sheet_Report_5.pdf',Fri:'Offloading_Sheet_Report_3.pdf'};
+module.exports={checkSheetPdf, JDE_NAMES};

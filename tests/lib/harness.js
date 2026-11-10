@@ -31,6 +31,7 @@ async function enter(p, name){
   const settled=async()=>{ if(!(await done())) return false; if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) return false; await p.waitForTimeout(1200); if(await p.waitForSelector('#modal [data-act=dgo]',{timeout:5000}).then(()=>true).catch(()=>false)) return false; return await done(); };
   for(let i=0;i<40 && !(await settled());i++){
     if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) await p.click('#modal [data-act=dgo]').catch(()=>{});   // master data & reports window
+    else if(await p.isVisible('#modal [data-act=allow]').catch(()=>false)) await p.click('#modal [data-act=allow]').catch(()=>{});   // access to the remembered company folder   // master data & reports window
     else if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=link]').catch(()=>{})]);
     else if(await p.isVisible(`#modal [data-act="u:${name}"]`).catch(()=>false)) await p.click(`#modal [data-act="u:${name}"]`).catch(()=>{});
     else if(await p.isVisible('#modal [data-act=go]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=go]').catch(()=>{})]);

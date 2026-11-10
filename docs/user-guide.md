@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.11.2). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.11.3). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
@@ -18,7 +18,7 @@ How to do each task in the Route Planner (v0.11.2). The screenshots come from th
 12. [Change report and exporting changes](#12-change-report-and-exporting-changes)
 13. [Save and share](#13-save-and-share)
 14. [Resources (routes, crews and trucks)](#14-resources-routes-crews-and-trucks)
-15. [Check Sheet Print](#15-check-sheet-print)
+15. [Printing](#15-printing)
 16. [Options: customize, users and files loaded](#16-options-customize-users-and-files-loaded)
 17. [Roles: who can do what](#17-roles-who-can-do-what)
 
@@ -63,7 +63,7 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 
 | A registered laptop shows only its owner | Your user on another laptop | No folder set: blocked |
 |---|---|---|
-| ![Laptop registered](img/34-laptop-registered.png) | ![Other laptop](img/35-other-laptop.png) | ![No folder](img/31-folder-check-failed.png) |
+| ![Laptop registered](img/35-laptop-registered.png) | ![Other laptop](img/36-other-laptop.png) | ![No folder](img/32-folder-check-failed.png) |
 
 **Folders and laptops are managed only from inside the planner**: 👤 → **My folder…** for your own, **Options › Users** (Master only) for everyone's. Changes are saved into `MASTER_DATA/users.json`.
 
@@ -72,7 +72,7 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 | **Set a folder** | anyone | their own, Users and Viewers | their own |
 | **Unregister a laptop** (e.g. a replacement laptop) | anyone else | Users and Viewers | — |
 
-![A Master sets a folder](img/33-master-sets-folder.png)
+![A Master sets a folder](img/34-master-sets-folder.png)
 
 > A browser can't read a folder's full path or the Windows user. That's why the laptop registration is what ties a laptop to a person. Use **one browser** (Chrome or Edge) on your laptop: a different browser counts as a different computer.
 
@@ -244,7 +244,7 @@ The company folder link and the users file are **kept**, and the laptop stays re
 
 ## 14. Resources (routes, crews and trucks)
 
-The **Resources** tab shows the routes of a planning day as a sheet: **Shipment Number, Route / Bay, Driver, Helper, Truck, Drops, Kgs, Pallets, DIPS Total KM, Estimated Time, Comments** (the row numbers are on the left; there is no ID column). Donegal bays are not listed. Planning and Check Sheet Print use what is in this table.
+The **Resources** tab shows the routes of a planning day as a sheet: **Shipment Number, Route / Bay, Driver, Helper, Truck, Drops, Kgs, Pallets, DIPS Total KM, Estimated Time, Comments** (the row numbers are on the left; there is no ID column). Donegal bays are not listed. Planning and Printing use what is in this table.
 
 - Until you change something, the table shows the day's RESOURCES file (and fixed bays). The first edit stores the table **with the plan**; **↺ Back to files** throws the edits away.
 - **DIPS Total KM \*** and **Estimated Time \*** come from DIPS. Hover the star: *DIPS calculation. not updated after reallocations*.
@@ -260,22 +260,24 @@ The **Resources** tab shows the routes of a planning day as a sheet: **Shipment 
 
 ![Resources](img/28-resources.png)
 
-## 15. Check Sheet Print
+## 15. Printing
 
 Organises the JDE check-sheet PDF (Offloading Sheet Report or Delivery Docket) by the day's plan: one cover per route, then that route's check sheets, ready to print.
 
 1. Open the Route Planner, choose your user and open the last plan (**⤒ Open plan**) or plan the day.
-2. Open **Check Sheet Print** and pick the day.
-3. **Import PDF** (step 1): drop the check-sheet PDF (more than one file is fine). It is read in your browser only and **not** saved with the plan. The PDF reader needs an internet connection the first time.
+2. Open **Printing** and pick the day.
+3. **Import PDF** (step 1): click **📁 Choose from CHECK_SHEETS › JDE** and tick the PDFs, or drop a PDF on the box (more than one file is fine). The window works like Load day: one chip per week, newest first, and **✓ loaded** / **⚠ changed since loaded** / **not loaded** on every file. **The day of a PDF is read from its first 3 pages, never from its file name**, so nobody has to rename files. Only those 3 pages are read, once per file on this computer. When you import, the Printing day follows the PDF. The PDF is read in your browser only and **not** saved with the plan. The PDF reader needs an internet connection the first time.
 4. Check **Resources** (step 2: shipment → route, from the Resources tab) and **Reallocations** (step 3: orders moved or deferred in Planning, and **inserted orders**, with the customer's ship to code; an inserted order that you then move shows under the route it was moved to). Rows not found in the PDF are highlighted.
 5. Click **Organise PDFs** (step 4). Routes come in the order of the plan; reallocated orders go to their new route ("Moved from …" on the cover), deferred orders go to **DEFERRED**, loads not in Resources to **UNASSIGNED**, unclear pages to **REVIEW**, and signature-only pages are left out.
-6. Look through the result in **Organised PDF**, then **Print all**, **Print this route** or **Download**. To print only part of it, tick the routes (and the orders inside a route) you want and click **Print Selected**. **Select all** ticks everything: untick a route, or just one order, to leave it out. Every page is checked against the original before you print.
+6. Look through the result in **Organised PDF**, then **Print all**, **Print this route** or **Download**. The organised PDF is also saved in **CHECK_SHEETS › Organised** as `date_time_user.pdf` (e.g. `2026-11-10_14.35_Alex.pdf`). To print only part of it, tick the routes (and the orders inside a route) you want and click **Print Selected**. **Select all** ticks everything: untick a route, or just one order, to leave it out. Every page is checked against the original before you print.
 
 The tab has the four steps on the left. On the right are the summary, **Checks** (when there are any) and one merged section, **Routes & Organised PDF**: the routes list (**Bay, Driver, Helper, Drops, Orders, Shipments attached**) with a search box and **Expand all**, and the preview of the organised PDF beside it. Click a bay to open its orders (tick box, order number, customer, ship to, shipment, note, **View**) and to preview its pages; click a page to enlarge it, and every page of the route is shown, in order. The search box finds an order number, customer name, ship to, loading number or bay.
 
 **Reprint an order** (top right) finds one order by number or customer and prints only its original pages, without a cover.
 
-![Check Sheet Print](img/29-check-sheet-print.png)
+| Choose from CHECK_SHEETS › JDE | Printing |
+|---|---|
+| ![JDE folder](img/29-jde-browser.png) | ![Printing](img/30-check-sheet-print.png) |
 
 ## 16. Options: customize, users and files loaded
 
@@ -283,7 +285,7 @@ The **Options** tab has three sections.
 
 **Customize**
 
-- **Theme:** **Light**, **Dark** or **Same as the browser** (follows the light / dark setting of the browser or computer), for everyone. It's kept in your browser (not in the plan). Printing always uses the light theme.
+- **Theme:** **Light**, **Dark** or **Same as the browser** (the default; follows the light / dark setting of the browser or computer), for everyone. **Reset** does not change it. It's kept in your browser (not in the plan). Printing always uses the light theme.
 - **Bay colours** (Master only, saved with the plan): pick a colour for each bay, used on both maps and the route list. **Default** goes back to the automatic colour.
 - Route names are changed in the **Resources** tab.
 
@@ -293,7 +295,7 @@ The **Options** tab has three sections.
 
 | Options | Dark theme |
 |---|---|
-| ![Options](img/32-options.png) | ![Dark theme](img/26-plan-dark.png) |
+| ![Options](img/33-options.png) | ![Dark theme](img/26-plan-dark.png) |
 
 ## 17. Roles: who can do what
 
@@ -307,7 +309,7 @@ The **Options** tab has three sections.
 | Unregister someone's laptop | anyone else | Users and Viewers | — | — |
 | Add or remove users | ✅ | — | — | — |
 | Edit Resources | ✅ | ✅ | ✅ | — |
-| Check Sheet Print | ✅ | ✅ | ✅ | ✅ |
+| Printing | ✅ | ✅ | ✅ | ✅ |
 | Options: theme | ✅ | ✅ | ✅ | ✅ |
 | Options: bay colours | ✅ | — | — | — |
 | Options: Files loaded | ✅ | ✅ | ✅ | ✅ |
@@ -316,4 +318,4 @@ A **Viewer** sees the planner like a snapshot, with no editing buttons. Roles ar
 
 | Viewer | Options (Master) |
 |---|---|
-| ![Viewer](img/30-viewer.png) | ![Options](img/32-options.png) |
+| ![Viewer](img/31-viewer.png) | ![Options](img/33-options.png) |
