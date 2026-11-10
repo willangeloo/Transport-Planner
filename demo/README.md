@@ -9,10 +9,22 @@ demo/Route_planning/
 │   ├── FIXED_ROUTES_DIPSDATA.xlsx   BAY 07 Mon/Wed/Fri, BAY 06 Tue/Thu, BAY 01 every day (only a reference when deferring orders; no routes are built from it)
 │   └── users.json                   Alex (Master), Sam (Manager), Jordan + Casey (User), Warehouse (Viewer)
 ├── REPORTS/week_46/                 Mon 09.11 – Fri 13.11.2026
-│   └── DIPS_Plan_<wd>.xlsx  RES_<wd>.xlsx  PROD_<wd>.xlsx  UPLIFTS_<wd>.xlsx
-├── CHECK_SHEETS/JDE/week_46/        five fake check-sheet PDFs (Offloading Sheet layout); the file names don't say the day, the app reads it from the pages
+│   └── DIPS_Plan_<wd>.xlsx  RES_<wd>.xlsx  PROD_<wd>.xlsx  UPLIFTS_<wd>.xlsx  POD_<wd>.xlsx
+├── CHECK_SHEETS/JDE/week_46/        five fake check-sheet PDFs, one per day, in the JDE Offloading Sheet Report layout; the file names don't say the day, the app reads it from the pages
 └── PLANS/week_46/                   five plans (one per day, each based on the previous one) + one snapshot
 ```
+
+## What the demo files hold
+
+| File | Content |
+|---|---|
+| `DIPS_Plan_<wd>`, `RES_<wd>` | The planning and the routes, crews and trucks of each day |
+| `CHECK_SHEETS/JDE/week_46/*.pdf` | One page per order, in the layout of the JDE Offloading Sheet Report: load, customer PO (some empty), order and delivery date, customer number and address, products (cases **CS** and kegs **EA**) with weights, empties, totals. Every order's weight adds up to the weight in the planning file. Everything is invented: no real customer, product, brand or logo. Upload one in **Printing** to try it |
+| `PROD_<wd>` | The same products, one row per order line (Products can't be imported yet) |
+| `UPLIFTS_<wd>` | Pick-ups of empty kegs or damaged stock; every day has at least one |
+| `POD_<wd>` | Proof of delivery: one row per order with time and receiver; a few are short or refused |
+
+Products, Uplifts and POD are listed in **Load day** but can't be imported yet. The **Delivery Shortages** link isn't set in the demo's `users.json`: a Master pastes it during the demo (the walkthrough does this with a placeholder link).
 
 ## Use it
 
@@ -46,7 +58,7 @@ Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how role
    - sort, filter, export and print.
 7. **Customize:** dark / light theme and a bay colour.
 8. **Resources:** rename a route (Route / Bay), add a comment, copy and paste a block, export to Excel.
-9. **Printing:** choose the Monday PDF from **CHECK_SHEETS › JDE** (the window shows the day it read from each PDF) and click **Organise PDFs**: a cover per route in plan order, moved orders on their new route, deferred orders apart.
+9. **Printing:** choose the Monday PDF from **CHECK_SHEETS › JDE** (the window shows the day it read from each PDF) and click **Organise PDFs**: a cover per route in plan order, moved orders on their new route, deferred orders apart. Then import **Thursday's** PDF to show the exceptions: a load that is not in Resources (**UNASSIGNED**), a page nobody can read (**REVIEW**) and a signature-only page that is left out.
 10. **Save** (into `PLANS/week_46`), then **Open plan**, then a snapshot.
 11. Switch to **Warehouse**: view-only.
 
