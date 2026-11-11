@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.11.6</title>
+<title>Route Planner BETA v0.11.7</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,6 +36,12 @@ nav button .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;
 .hbtn{background:#1f3344;border:1px solid #2c4659;color:#dbe5ee;border-radius:6px;padding:6px 10px;cursor:pointer}
 .hbtn:hover{background:#294257}
 main{height:calc(100% - 54px)}
+body.hassub main{height:calc(100% - 54px - 38px)}
+.subnav{height:38px;display:flex;align-items:flex-end;gap:6px;padding:0 18px;background:#1b3042;border-bottom:1px solid #0e1a24}
+.subnav[hidden]{display:none}
+.subnav-t{align-self:center;color:#7f93a4;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-right:8px}
+.subnav button{background:none;border:0;border-bottom:3px solid transparent;color:#b9c6d2;padding:0 14px;height:100%;cursor:pointer;font-weight:500;font-size:13px}
+.subnav button:hover{color:#fff}.subnav button.on{color:#fff;border-bottom-color:var(--accent-2,#2dd4bf)}
 .tab{display:none;height:100%}
 .tab.on{display:grid}
 #tab-customers,#tab-plan{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
@@ -267,7 +273,7 @@ th.sortable:hover{text-decoration:underline}
 @media print{
   @page{size:A4 landscape;margin:12mm}
   body{background:#fff;font-size:10.5px}
-  header,#tab-customers,#tab-plan,.no-print,.scrim,.toast{display:none!important}
+  header,.subnav,#tab-customers,#tab-plan,.no-print,.scrim,.toast{display:none!important}
   main{height:auto}
   #tab-report{display:block!important;overflow:visible}
   .rep{padding:0;max-width:none}
@@ -304,6 +310,9 @@ nav button.hl.on{color:#fff}
 @media (max-width:1500px){ nav button.hl::before{margin-right:4px;width:5px;height:5px} }
 @media (max-width:1400px){ #userBtn .rolechip{display:none} }
 /* start window */
+.fbmain{display:flex;gap:8px;margin-bottom:12px}
+.fbtab{flex:1;font:inherit;font-size:14px;font-weight:700;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer}
+.fbtab:hover{border-color:var(--accent)}.fbtab.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .sr-only{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 .rs-day.all{min-width:0}
 .startcard{display:flex;flex-direction:column;gap:8px;text-align:left;padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
@@ -529,23 +538,23 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.6</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.7</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="plan" class="on">Planning</button>
     <button data-tab="res">Resources</button>
     <button data-tab="report" class="hl">Change report <span class="n" id="navCount">0</span></button>
     <button data-tab="print" class="hl">Printing</button>
     <button data-tab="options">Options</button>
-    <button data-tab="customers">Customers</button>
   </nav>
   <div class="spacer"></div>
   <button class="bitab" data-tab="shortages" id="navBI" title="Delivery Shortages report (Power BI)">📊 Delivery Shortages</button>
   <button class="hbtn" id="userBtn" title="User and shared folder">👤</button>
-  <button class="hbtn" id="saveBtn" title="Save the plan file (.json) — into PLANS/week_XX when the shared folder is linked">💾 <span>Save</span></button>
-  <button class="hbtn" id="shareBtn" title="Save as, snapshots and sharing options">⤓ <span>Save as / share</span></button>
+  <button class="hbtn" id="saveBtn" title="Save the plan: into PLANS/week_XX, save as…, or a snapshot to share">💾 <span>Save</span></button>
+  <button class="hbtn" id="reportsBtn" title="Reports: master data, planning data and saved plans in the company folder">📁 <span>Reports</span></button>
   <button class="hbtn" id="openBtn" title="Open a plan file (.json) or snapshot (.html) saved by someone">⤒ <span>Open plan</span></button>
   <button class="hbtn" id="resetBtn" title="Reset the whole application: plan, customer master, fixed routes, users file and folder links">↺ <span>Reset</span></button>
 </header>
+<div class="subnav" id="subnav" hidden><span class="subnav-t">Resources</span><button data-tab="res">Resources sheet</button><button data-tab="customers">Customers</button></div>
 <main>
   <!-- CUSTOMERS -->
   <section class="tab" id="tab-customers">
@@ -1938,7 +1947,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.11.6';
+const APP_VERSION='0.11.7';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2218,11 +2227,12 @@ document.addEventListener('click',e=>{
   if(b.dataset.dbwk){ st.wk=b.dataset.dbwk; st.browse=true; const first=DATA.days.find(d=>weekStart(d.date)===st.wk); if(first){ st.browse=false; dbPick(sc,first.key); } else renderDayBar(sc); }
 });
 // ---------- tabs ----------
-let curTab='plan';
-document.querySelectorAll('nav button, .bitab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+let curTab='plan'; const SUBTAB={customers:'res'};   // sub heading: Customers belongs to Resources
+document.querySelectorAll('nav button, .bitab, .subnav button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 function showTab(t){
   curTab=t;
-  document.querySelectorAll('nav button, .bitab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('nav button, .bitab, .subnav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t || (b.closest('nav') && b.dataset.tab===(SUBTAB[t]||''))));
+  { const sub=(t==='res'||t==='customers'); $('subnav').hidden=!sub; document.body.classList.toggle('hassub',sub); }
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
   if(t==='customers'){ initCMap(); if(cMap) setTimeout(()=>{ cMap.invalidateSize(); if(!cFitted){ cFitted=true; renderCustomers(true); } },0); }
   if(t==='plan'){ initPMap(); if(pMap) setTimeout(()=>{pMap.invalidateSize(); if(!pFitted){fitRoutes(); pFitted=true;}},0); }
@@ -3803,7 +3813,7 @@ const leafOf = p => String(p||'').split(/[\\/]+/).filter(Boolean).pop()||'';
 function renderUserBtn(){
   renderCompany(); const b=$('userBtn'); if(!b) return;
   if(EMB){ b.innerHTML='📸 <span>Snapshot · view only</span>'; return; }
-  b.innerHTML = FOLDER.user ? `👤 <span>${esc(FOLDER.user)}</span><span class="rolechip">${ROLE_TXT[role()]}</span><span class="ufold"> · 📁 <span>${esc(FOLDER.name)}</span></span>` : '👤 <span>No user</span>';
+  b.innerHTML = FOLDER.user ? `👤 <span>${esc(FOLDER.user)}</span>` : '👤 <span>No user</span>';
   b.title = FOLDER.user ? `${companyName()?companyName()+' · ':''}${FOLDER.user} · ${ROLE_TXT[role()]} · folder “${FOLDER.name}”. Click for your folder, users or to switch user.` : 'Choose your user';
 }
 
@@ -4006,8 +4016,8 @@ $('userBtn').onclick=()=>{
   const u=cfgUser(FOLDER.user);
   openModal(`<div class="mh"><h2>${esc(FOLDER.user)} · ${ROLE_TXT[role()]}</h2><div class="muted small">${companyName()?esc(companyName())+' · ':''}${esc(UCFG.file)}</div></div><div class="mb">
     <div class="note info">📁 Company folder: <b>${esc(FOLDER.name)}</b><br>Your folder: <code>${esc(u.path||'—')}</code></div></div>
-    <div class="mf"><button class="btn" data-act="switch" style="margin-right:auto">Switch user</button><button class="btn" data-act="mypath">My folder…</button><button class="btn" data-act="data">Master data &amp; reports…</button><button class="btn pri" data-act="browse">Open shared folder</button></div>`,
-    {onAct:a=>{ if(a==='switch') return gatePicker(); if(a==='mypath') return openPathEdit(FOLDER.user); if(a==='data') return openDataWindow(); if(a==='browse') return openFolderBrowser('data'); }});
+    <div class="mf"><button class="btn" data-act="switch" style="margin-right:auto">Switch user</button><button class="btn pri" data-act="mypath">My folder…</button></div>`,
+    {onAct:a=>{ if(a==='switch') return gatePicker(); if(a==='mypath') return openPathEdit(FOLDER.user); }});
 };
 function manualAlert(title, text){ openModal(`<div class="mh"><h2>⚠ ${title}</h2></div><div class="mb"><div class="note warn">${text}</div></div><div class="mf"><button class="btn pri" data-act="close">OK</button></div>`); }
 // v0.10: the customer master and fixed routes are read from MASTER_DATA automatically when the folder
@@ -4155,37 +4165,43 @@ async function openFolderBrowser(mode, opts){
 }
 // weeks that have files for the current mode; the week with the newest file first
 function fbWeeks(){
-  const want=FB.mode==='plan'?['plan','snap']:['planning','res','prod','upl','pod']; const last={};
+  const want=FB.mode==='master'?[]:FB.mode==='plan'?['plan','snap']:['planning','res','prod','upl','pod']; const last={};
   FB.files.forEach(f=>{ if(want.includes(f.kind)&&f.week) last[f.week]=Math.max(last[f.week]||0,f.mod); });
   return Object.keys(last).map(Number).sort((a,b)=>last[b]-last[a]);
 }
+// the Reports window: three main groups on top — Master Data, Planning Data (by week) and Saved Plans (by week)
+const FB_GROUPS={
+  master:[['cust','👥 Customer Master'],['fixed','🗓 Fixed Routes']],
+  data:[['planning','📋 DIPS Plan'],['res','🚚 Resources'],['prod','📦 Products — not used yet'],['upl','↩ Uplifts — not used yet'],['pod','✍ POD — not used yet']],
+  plan:[['plan','📄 Saved plans (.json) — to keep working'],['snap','📸 Snapshots (.html) — read-only copies']]};
+const FB_TITLE={master:'Master Data',data:'Planning Data',plan:'Saved Plans'};
 function renderFolderBrowser(){
-  const plan=FB.mode==='plan';
-  const groups = plan
-    ? [['plan','📄 Saved plans (.json) — to keep working'],['snap','📸 Snapshots (.html) — read-only copies']]
-    : [['planning','📋 DIPS Plan'],['res','🚚 Resources'],['prod','📦 Products — not used yet'],['upl','↩ Uplifts — not used yet'],['pod','✍ POD — not used yet'],['cust','👥 Customer master'],['fixed','🗓 Fixed routes']];
-  const off=g=>['prod','upl','pod'].includes(g);
-  const weekly=g=>!['cust','fixed'].includes(g);
+  if(!FB_GROUPS[FB.mode]) FB.mode='data';
+  const mode=FB.mode, plan=mode==='plan', master=mode==='master';
+  const groups=FB_GROUPS[mode];
+  const off=g=>['prod','upl','pod'].includes(g);                 // not used yet: listed, but blocked
+  const weekly=!master;
   const weeks=fbWeeks();
-  const inView=f=>!weekly(f.kind) || !FB.week || (FB.week==='other' ? !f.week : f.week===+FB.week);
+  const inView=f=>!weekly || !FB.week || (FB.week==='other' ? !f.week : f.week===+FB.week);
   const fmtD=ms=>{ const d=new Date(ms); return d.toLocaleDateString('en-IE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}); };
   const rows=g=>{ const fs=FB.files.filter(f=>f.kind===g && inView(f)); if(!fs.length) return '<div class="muted small" style="padding:4px 8px">None here.</div>';
     return fs.map(f=>{ const nd=nameDate(f.name,f.week); const ld=nd&&nd.date&&dayKeyForDate(nd.date); const cur=lineage().current===f.name.replace(/\.(json|html?)$/i,'');
-      const when=!plan&&weekly(g)&&nd&&nd.date?`<span class="flag">${esc(dayLbl(nd.date))}</span> `:'';
+      const when=!plan&&!master&&nd&&nd.date?`<span class="flag">${esc(dayLbl(nd.date))}</span> `:'';
       return `<label class="fbrow ${off(g)?'dis':''}"><input type="${plan?'radio':'checkbox'}" name="fb" value="${esc(f.path)}" ${off(g)?'disabled':''} ${FB.sel.has(f.path)?'checked':''}>
         <span class="fn">${when}${esc(f.name)} ${['planning','res','cust','fixed'].includes(g)?STATUS_FLAG[fileStatus(f)]+(fileStatus(f)==='new'&&ld?' <span class="flag mv" title="This day is in the planner from another file">day loaded</span>':''):''}${cur?' <span class="flag ad">working on</span>':''} <span class="muted small">${esc(f.dir)}</span></span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`; }).join(''); };
-  const shown=groups.filter(([g])=>!off(g) || FB.files.some(f=>f.kind===g && inView(f)));
-  const hasOther=FB.files.some(f=>(plan?['plan','snap']:['planning','res']).includes(f.kind) && !f.week);
+  const hasOther=weekly && FB.files.some(f=>(plan?['plan','snap']:['planning','res','prod','upl','pod']).includes(f.kind) && !f.week);
   const weekChips = (weeks.length||hasOther) ? `<div class="chips">${weeks.map(w=>`<button class="chip ${String(w)===FB.week?'on':''}" data-act="w:${w}">Week ${w}</button>`).join('')}${hasOther?`<button class="chip ${FB.week==='other'?'on':''}" data-act="w:other">Main folder</button>`:''}<button class="chip ${FB.week===''?'on':''}" data-act="w:">All</button></div>` : '';
-  openModal(`<div class="mh"><h2>📁 ${esc(FOLDER.name)}</h2><div class="muted small">${plan?'Plans and snapshots in PLANS/week_XX':'Files in REPORTS/week_XX and MASTER_DATA — tick what to import'} · newest first · <b>✓ loaded</b> = this exact file is in the planner, <b>⚠ changed</b> = it was changed in the folder after loading</div></div>
-   <div class="mb"><div class="chips"><button class="chip ${FB.mode==='data'?'on':''}" data-act="m:data">Planning data</button><button class="chip ${FB.mode==='plan'?'on':''}" data-act="m:plan">Saved plans</button></div>
+  const desc={master:'Customer master and fixed routes in MASTER_DATA',data:'Reports in REPORTS/week_XX — tick what to import',plan:'Plans and snapshots in PLANS/week_XX'}[mode];
+  openModal(`<div class="mh"><h2>📁 ${esc(FOLDER.name)} · Reports</h2><div class="muted small">${desc} · newest first · <b>✓ loaded</b> = this exact file is in the planner, <b>⚠ changed</b> = it was changed in the folder after loading</div></div>
+   <div class="mb"><div class="fbmain">${['master','data','plan'].map(m=>`<button class="fbtab ${mode===m?'on':''}" data-act="m:${m}">${FB_TITLE[m]}</button>`).join('')}</div>
     ${weekChips}
-    ${shown.map(([g,t])=>`<div><label>${t}</label><div class="mlist fblist" style="max-height:${off(g)?120:220}px">${rows(g)}</div></div>`).join('')}</div>
-   <div class="mf">${plan?'':'<button class="btn" data-act="days" style="margin-right:auto">Days in the planner…</button>'}<button class="btn" data-act="refresh">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="fbOk" ${FB.sel.size?'':'disabled'}>${plan?'Open plan':'Import selected'}</button></div>`,
+    ${groups.map(([g,t])=>`<div><label>${t}</label><div class="mlist fblist" style="max-height:${off(g)?110:220}px">${rows(g)}</div>${off(g)?'<div class="muted small">Not used yet — blocked: it can\'t be uploaded.</div>':''}</div>`).join('')}</div>
+   <div class="mf">${plan?'':master?'<button class="btn" data-act="dmaster" style="margin-right:auto" title="Compare MASTER_DATA with what is loaded and load what is new or changed">Check master data…</button>':'<button class="btn" data-act="days" style="margin-right:auto">Days in the planner…</button>'}<button class="btn" data-act="refresh">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="fbOk" ${FB.sel.size&&(plan||can('edit'))?'':'disabled'} title="${plan||can('edit')?'':'View only for your role'}">${plan?'Open plan':'Import selected'}</button></div>`,
    {onAct:a=>{
-     if(a.startsWith('m:')){ FB.mode=a.slice(2); FB.sel.clear(); const ws=fbWeeks(); FB.week=ws.length?String(ws[0]):''; renderFolderBrowser(); return; }
+     if(a.startsWith('m:')){ const nm=a.slice(2); if(nm==='plan'||FB.mode==='plan') FB.sel.clear(); FB.mode=nm; const ws=fbWeeks(); FB.week=ws.length?String(ws[0]):''; renderFolderBrowser(); return; }   // ticks in Master Data and Planning Data are kept, so both can be imported together
      if(a.startsWith('w:')){ FB.week=a.slice(2); FB.sel.clear(); renderFolderBrowser(); return; }
      if(a==='refresh') return openFolderBrowser(FB.mode);
+     if(a==='dmaster'){ try{ sessionStorage.removeItem('rp.skip.cust'); sessionStorage.removeItem('rp.skip.fixed'); }catch(e){} closeModal(); return autoRef(true,false); }
      if(a==='days'){ UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); return; }
      if(a==='import'){ const fs=FB.files.filter(f=>FB.sel.has(f.path)).map(f=>f.file); if(!fs.length) return;
        if(FB.mode==='plan') handlePlanFile(fs[0]); else { UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); takeFiles(fs); } }
@@ -4193,7 +4209,7 @@ function renderFolderBrowser(){
   $('modal').classList.add('wide');
   $('modal').querySelectorAll('input[name=fb]').forEach(i=>i.addEventListener('change',()=>{
     if(plan) FB.sel=new Set([i.value]); else i.checked?FB.sel.add(i.value):FB.sel.delete(i.value);
-    $('fbOk').disabled=!FB.sel.size; }));
+    $('fbOk').disabled=!FB.sel.size || (!plan && !can('edit')); }));
 }
 // a subfolder, matched without case ("PLANS" / "Plans", "week_45" / "Week_45"); created if missing
 async function subDir(dir, name, alts){
@@ -4306,8 +4322,10 @@ async function saveSnapshot(saveAs){
   if(!r){ toast('Save cancelled'); return; }
   toast(r.folder ? `Snapshot saved to 📁 ${r.path}: “${r.name}.html”` : r.picked ? `Snapshot saved “${r.name}.html”` : `“${r.name}.html” saved to your Downloads folder — move it to the SharePoint folder`);
 }
-$('saveBtn').onclick=()=>savePlanFile(false);
-$('shareBtn').onclick=()=>{
+$('reportsBtn').onclick=()=>openFolderBrowser('data');
+// one button: the window offers Save (into PLANS/week_XX), Save as… and a snapshot
+$('saveBtn').onclick=()=>{
+  if(!guard('edit','save')) return;
   const sm=planSummary(S,UPLOADS);
   openModal(`<div class="mh"><h2>Save / share this plan</h2><div class="muted small">Your work is only stored in this browser. Save it to a file in the SharePoint folder so others can open it.</div></div>
    <div class="mb">

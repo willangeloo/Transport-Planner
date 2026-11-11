@@ -4,6 +4,16 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.7 — 2026-11-12
+
+### Features
+- **📁 Reports button.** The old "Open shared folder" window, with three main groups on top: **Master Data** (Customer Master, Fixed Routes), **Planning Data** by week (DIPS Plan, Resources, Products, Uplifts, POD; Uplifts, POD and Products are blocked, not used yet) and **Saved Plans** by week (Saved plans, Snapshots).
+- **Sub heading.** A second heading row under the header; **Customers** moved there, under its parent **Resources** (next to **Resources sheet**).
+
+### Edits
+- **One Save button** (💾 Save) replaces Save and Save as / share; it opens the save window (Save, Save as…, snapshot).
+- **The user button** shows just the name; its menu keeps only **Switch user** and **My folder…** (the role and folder are in its tooltip).
+
 ## v0.11.6 — 2026-11-12
 
 ### Bug fixes

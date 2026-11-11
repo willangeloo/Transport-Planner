@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.11.6). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.11.7). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
@@ -50,7 +50,7 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
    - **Right, Reports:** the DIPS Plan and RES files of the newest week in `REPORTS`.
    - Every file has the same tag as in **Load day**: **✓ loaded** (this exact file is in the planner), **⚠ the folder has a different version**, or **not loaded**. A line under Master data says whether the planner has the version found in the folder.
    - **Load master data** loads what is new or changed; **📁 Load reports…** opens Load day; **Continue** goes to the planner.
-   - Open it again any time from 👤 → **Master data & reports…**.
+   - Open it again any time from **📁 Reports › Master Data › Check master data…**.
 7. **Start window: load a plan or start a new week.** After **Continue**, choose how to start:
    - **📂 Load a saved plan:** the window of saved plans (`PLANS › week_XX`) opens.
    - **🗓 New week:** pick the week with ‹ › (it starts on the week after the last one in the planner), then **Create week**. The five days are added to the planner (with no routes: they come from each day's Resources) and the **reports window** opens on that week, so you can check and select the reports to import.
@@ -70,7 +70,15 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 
 | A registered laptop shows only its owner | Your user on another laptop | No folder set: blocked |
 |---|---|---|
-| ![Laptop registered](img/37-laptop-registered.png) | ![Other laptop](img/38-other-laptop.png) | ![No folder](img/34-folder-check-failed.png) |
+| ![Laptop registered](img/38-laptop-registered.png) | ![Other laptop](img/39-other-laptop.png) | ![No folder](img/35-folder-check-failed.png) |
+
+**The header.** Left to right: the tabs (Planning, Resources, Change report, Printing, Options), **📊 Delivery Shortages**, then **👤 your name** (click it for **Switch user** and **My folder…**), **💾 Save**, **📁 Reports**, **⤒ Open plan** and **↺ Reset**. Under **Resources** there is a sub heading with **Resources sheet** and **Customers**.
+
+**📁 Reports** opens the files of the company folder, with three groups on top:
+- **Master Data:** Customer Master and Fixed Routes (**Check master data…** compares them with what is loaded).
+- **Planning Data:** by week; DIPS Plan, Resources, Products, Uplifts, POD. Uplifts, POD and Products are shown but blocked (not used yet), so they can't be uploaded.
+- **Saved Plans:** by week; Saved plans and Snapshots.
+Every file shows **✓ loaded**, **⚠ changed since loaded** or **not loaded**. Ticks in Master Data and Planning Data are kept when you switch group, so both can be imported together.
 
 **Folders and laptops are managed only from inside the planner**: 👤 → **My folder…** for your own, **Options › Users** (Master only) for everyone's. Changes are saved into `MASTER_DATA/users.json`.
 
@@ -79,7 +87,7 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 | **Set a folder** | anyone | their own, Users and Viewers | their own |
 | **Unregister a laptop** (e.g. a replacement laptop) | anyone else | Users and Viewers | — |
 
-![A Master sets a folder](img/36-master-sets-folder.png)
+![A Master sets a folder](img/37-master-sets-folder.png)
 
 > A browser can't read a folder's full path or the Windows user. That's why the laptop registration is what ties a laptop to a person. Use **one browser** (Chrome or Edge) on your laptop: a different browser counts as a different computer.
 
@@ -104,11 +112,11 @@ Every file type has its own folder, and only files in those folders are listed. 
 
 | Choose files | Preview |
 |---|---|
-| ![Load day](img/08-load-day.png) | ![Preview](img/09-load-preview.png) |
+| ![Load day](img/09-load-day.png) | ![Preview](img/10-load-preview.png) |
 
 | A file changed in the folder | Differences before replacing |
 |---|---|
-| ![Changed since loaded](img/10-file-changed.png) | ![Replace differences](img/11-replace-differences.png) |
+| ![Changed since loaded](img/11-file-changed.png) | ![Replace differences](img/12-replace-differences.png) |
 
 Every file loaded is listed in **Options › Files loaded**: day, file, what changed, who and when. It's information only, so it isn't a change in the change report.
 
@@ -137,7 +145,7 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 
 | One drop | Group selected |
 |---|---|
-| ![Move one](img/13-move-one.png) | ![Select a group](img/14-select-group.png) |
+| ![Move one](img/14-move-one.png) | ![Select a group](img/15-select-group.png) |
 
 ## 5. Defer orders
 
@@ -151,11 +159,11 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 
 | One drop, onto a bay | Group, no bay yet |
 |---|---|
-| ![Defer one](img/15-defer-one.png) | ![Defer a group](img/16-defer-group.png) |
+| ![Defer one](img/16-defer-one.png) | ![Defer a group](img/17-defer-group.png) |
 
 **Later:** drops deferred without a bay wait in the change report under **Deferred — not on a bay yet**. Tick them and click **Allocate**. The original line in **Deferred orders** is then updated with the day and bay they ended up on. It doesn't appear again as a reallocation.
 
-![Allocate deferred drops](img/24-allocate.png)
+![Allocate deferred drops](img/25-allocate.png)
 
 ## 6. Split a customer's orders
 
@@ -164,7 +172,7 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 3. Choose the **docket for each line** (**P&W** or **Check Sheet**, for the new line and the remaining line), then click **Split**.
 4. Each line can now be moved or deferred on its own. **Merge** puts them back together.
 
-![Split](img/17-split.png)
+![Split](img/18-split.png)
 
 ## 7. Insert an order
 
@@ -173,7 +181,7 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 3. Choose the bay and, if you like, the weight, address and note.
 4. Choose the **docket** (required): **P&W** or **Check Sheet**. The chosen button turns solid. Then click **Insert order**.
 
-![Insert order](img/18-insert-order.png)
+![Insert order](img/19-insert-order.png)
 
 ## 8. Create a route
 
@@ -181,7 +189,7 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 2. Fill in bay, loading number, driver, helper and truck (required), plus pallets, km, area and note (optional).
 3. Click **Add route**. It appears on the day and in the change report under **New routes**.
 
-![New route](img/19-new-route.png)
+![New route](img/20-new-route.png)
 
 ## 9. Create a new day
 
@@ -189,7 +197,7 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 2. Pick the date. The new day has **no routes planned yet**: routes come only from the day's **Resources** (load its RESOURCES file, or add the bays in the Resources tab). The fixed routes are only a reference when deferring orders.
 3. Click **Create day**. When its DIPS Plan and Resources files arrive, load them and they fill in the same day.
 
-![New day](img/20-new-day.png)
+![New day](img/21-new-day.png)
 
 ## 10. Edit or add customer details
 
@@ -199,7 +207,7 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 
 Customer changes are listed in the change report. The master file isn't changed, so the edits are what staff copy into the other systems.
 
-![Edit customer](img/21-edit-customer.png)
+![Edit customer](img/22-edit-customer.png)
 
 ## 11. Docket type (P&W / Check Sheet)
 
@@ -232,13 +240,12 @@ The **Change report** tab lists every change, with the order numbers staff need 
 
 | Report | P&W filter | After allocating and sorting |
 |---|---|---|
-| ![Report](img/22-report.png) | ![P&W](img/23-report-pw.png) | ![Report after](img/25-report-after.png) |
+| ![Report](img/23-report.png) | ![P&W](img/24-report-pw.png) | ![Report after](img/26-report-after.png) |
 
 ## 13. Save and share
 
-- **💾 Save** (top right) saves the plan file straight into `PLANS/week_XX`, using the week of the day you're planning. The name is `version_date_time_user`, e.g. `v0.10.0_2026-11-06_16.05_Alex.json`.
-- **⤓ Save as / share** gives two options:
-  - **Plan file (.json):** for planners who'll keep working on it. **Save**, or **Save as…** to choose another **folder**. The file name is always `version_date_time_user` and can't be changed, and "saved by" is the user who is in.
+- **💾 Save** (top right) is one button. It opens the save window, with two options:
+  - **Plan file (.json):** for planners who'll keep working on it. **Save** puts it straight into `PLANS/week_XX`, using the week of the day you're planning (the name is `version_date_time_user`, e.g. `v0.10.0_2026-11-06_16.05_Alex.json`), or **Save as…** to choose another **folder**. The file name is always `version_date_time_user` and can't be changed, and "saved by" is the user who is in.
   - **Snapshot (.html):** a view-only copy anyone can open with a double-click.
 - The line under the app name shows the file you're working on. Click it to see the history (each file remembers the one it was based on).
 
@@ -265,7 +272,7 @@ The **Resources** tab shows the routes of a planning day as a sheet. The day is 
 - **⤓ Export Excel:** the table in the layout of the RESOURCES files (`Shipment, Bay, Driver, Helper, Vehicle, Number of Pallets, DIPS Total KM, General Area, Drops, Kgs`, then Estimated Time, Comments and your columns), named e.g. `RES_Mon 09.11.xlsx`.
 - Resources edits are saved with the plan but are not logged in the change report.
 
-![Resources](img/30-resources.png)
+![Resources](img/31-resources.png)
 
 ## 15. Printing
 
@@ -292,7 +299,7 @@ The tab has the four steps on the left. On the right are the summary, **Checks**
 
 | Choose from CHECK_SHEETS › JDE | Printing |
 |---|---|
-| ![JDE folder](img/31-jde-browser.png) | ![Printing](img/32-check-sheet-print.png) |
+| ![JDE folder](img/32-jde-browser.png) | ![Printing](img/33-check-sheet-print.png) |
 
 ## 16. Options: customize, users and files loaded
 
@@ -310,7 +317,7 @@ The **Options** tab has these sections. **Theme is always the last one**: any se
 
 | Options | Dark theme |
 |---|---|
-| ![Options](img/35-options.png) | ![Dark theme](img/28-plan-dark.png) |
+| ![Options](img/36-options.png) | ![Dark theme](img/29-plan-dark.png) |
 
 ## 17. Roles: who can do what
 
@@ -333,7 +340,7 @@ A **Viewer** sees the planner like a snapshot, with no editing buttons. Roles ar
 
 | Viewer | Options (Master) |
 |---|---|
-| ![Viewer](img/33-viewer.png) | ![Options](img/35-options.png) |
+| ![Viewer](img/34-viewer.png) | ![Options](img/36-options.png) |
 
 ## 18. Delivery Shortages
 
@@ -341,4 +348,4 @@ The **📊 Delivery Shortages** tab (top right, in its own colour) shows the Pow
 
 The link is **not** built into the app (this repository is public). A **Master** sets it once: paste the report link, or the whole `<iframe …>` embed code, in the tab itself or in **Options › Users**. Only `powerbi.com` links are accepted. It is saved in `users.json` (field `deliveryShortagesUrl`), so everyone gets it the next time they open the app.
 
-![Delivery Shortages](img/26-delivery-shortages.png)
+![Delivery Shortages](img/27-delivery-shortages.png)

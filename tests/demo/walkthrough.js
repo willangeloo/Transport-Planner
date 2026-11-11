@@ -71,19 +71,29 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('#modal [data-act=dgo]'); await p.waitForSelector('#modal [data-act=sskip]'); { const sw=await modalText(); ok(/Load a saved plan/.test(sw) && /New week/.test(sw),'after the master data window: a window to load a saved plan or start a new week'); } await shot('start-window');
   await enter('Alex');
   ok((await p.textContent('#cBay')).includes('All bays (58)'),'customer master read from MASTER_DATA automatically (58 customers)');
-  ok(/Alex\s*Master/.test(await p.textContent('#userBtn')),'header shows user and role');
-  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Planning|Resources|Change report|Printing|Options|Customers' && await p.evaluate(()=>document.getElementById('tab-plan').classList.contains('on')),'tab order: Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers');
+  ok((await p.textContent('#userBtn')).replace(/\s+/g,'')==='👤Alex' && /Master/.test(await p.getAttribute('#userBtn','title')),'the user button shows just the name (role and folder are in its tooltip)');
+  ok(!(await p.$('#shareBtn')) && /Save/.test(await p.textContent('#saveBtn')) && /💾/.test(await p.textContent('#saveBtn')) && await p.isVisible('#reportsBtn'),'header: one Save button (with an emoji) and a Reports button');
+  await p.click('#userBtn'); ok((await p.$$eval('#modal .mf button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Switch user|My folder…','user menu: only Switch user and My folder'); await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Planning|Resources|Change report|Printing|Options' && await p.evaluate(()=>document.getElementById('tab-plan').classList.contains('on') && document.getElementById('subnav').hidden),'tab order: Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers');
   ok((await p.$$eval('nav button.hl',b=>b.map(x=>x.dataset.tab).join()))==='report,print','Change report and Printing tabs are highlighted in the header');
-  await p.click('nav [data-tab=customers]'); await p.waitForTimeout(500);
+  await p.click('nav [data-tab=res]'); ok(await p.isVisible('#subnav') && (await p.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Resources sheet|Customers' && await p.$eval('nav [data-tab=res]',e=>e.classList.contains('on')),'sub heading under Resources: Resources sheet | Customers');
+  await p.click('.subnav [data-tab=customers]'); ok(await p.$eval('nav [data-tab=res]',e=>e.classList.contains('on')) && await p.$eval('.subnav [data-tab=customers]',e=>e.classList.contains('on')),'Customers is a sub heading of Resources (the parent stays highlighted)'); await p.waitForTimeout(500);
   ok(await p.evaluate(()=>{ const m=__rpMaps.cMap(); const b=m.getBounds(); return m.getSize().x>200 && b.contains([53.6,-6.65]) && b.contains([53.05,-6.15]) && b.contains([53.347,-6.262]); }),'Customers: the map opens fitted to all the customers (not blank)');
   await shot('customers');
 
   // the customer master is updated in the folder: the window flags it (same rule as the reports) and loading asks first
   await p.evaluate(()=>{ const t=window.__TREE.MASTER_DATA['FIXED_ROUTES_DIPSDATA.xlsx']; const wb=XLSX.read(t.b64,{type:'base64'}); const n=wb.SheetNames[0]; const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1}); rows.push(['FR04','Driver 24','BAY 05A','TRK-24','..T.T..']); wb.Sheets[n]=XLSX.utils.aoa_to_sheet(rows); t.b64=XLSX.write(wb,{type:'base64',bookType:'xlsx'}); t.mod=Date.now(); });
-  await p.click('#userBtn'); await p.click('#modal [data-act=data]'); await p.waitForSelector('#modal [data-act=dmaster]'); const dw2=await modalText();
-  ok(/FIXED_ROUTES_DIPSDATA\.xlsx\s*⚠ the folder has a different version/.test(dw2) && /MASTER_DEL_DETAILS\.xlsx\s*✓ loaded/.test(dw2),'master data changed in the folder → “⚠ the folder has a different version”'); await shot('data-window-changed');
+  await p.click('#reportsBtn'); await p.waitForSelector('.fbmain'); await p.click('#modal [data-act="m:master"]'); await p.waitForSelector('#modal [data-act=dmaster]'); const dw2=await modalText();
+  ok(/FIXED_ROUTES_DIPSDATA\.xlsx\s*⚠ changed since loaded/.test(dw2) && /MASTER_DEL_DETAILS\.xlsx\s*✓ loaded/.test(dw2),'Reports › Master Data: a file changed in the folder is tagged “⚠ changed since loaded”'); await shot('data-window-changed');
   await p.click('#modal [data-act=dmaster]'); await p.waitForSelector('#modal [data-act=load]'); await p.click('#modal [data-act=load]'); await p.waitForSelector('#modal [data-act=dgo]');
   ok(/FIXED_ROUTES_DIPSDATA\.xlsx\s*✓ loaded/.test(await modalText()),'after loading the new fixed routes the window shows ✓ loaded'); await p.click('#modal [data-act=dgo]');
+
+  // the Reports window: Master Data | Planning Data (by week) | Saved Plans (by week)
+  { await p.click('#reportsBtn'); await p.waitForSelector('.fbmain'); const labels=async()=>p.$$eval('#modal .mb > div > label',x=>x.map(e=>e.textContent.replace(/\s+/g,' ').trim()));
+    ok((await p.$$eval('.fbmain .fbtab',x=>x.map(e=>e.textContent.trim()))).join('|')==='Master Data|Planning Data|Saved Plans','Reports: three main groups on top (Master Data, Planning Data, Saved Plans)');
+    ok(/Week 46/.test(await p.textContent('#modal .chips')) && (await labels()).join('|')==='📋 DIPS Plan|🚚 Resources|📦 Products — not used yet|↩ Uplifts — not used yet|✍ POD — not used yet' && await p.$$eval('#modal .fbrow.dis input',x=>x.length>0 && x.every(i=>i.disabled)),'Planning Data: grouped by weeks; sections DIPS Plan, Resources, Products, Uplifts, POD — the ones not used yet are blocked');
+    await p.click('#modal [data-act="m:master"]'); ok((await labels()).join('|')==='👥 Customer Master|🗓 Fixed Routes' && !(await p.$('#modal .chips')),'Master Data: sections Customer Master and Fixed Routes');
+    await p.click('#modal [data-act="m:plan"]'); ok((await labels()).join('|')==='📄 Saved plans (.json) — to keep working|📸 Snapshots (.html) — read-only copies','Saved Plans: sections Saved plans and Snapshots'); await shot('reports'); await p.click('#modal [data-act=close]'); }
 
   // 2. LOAD THE WEEK from REPORTS/week_46
   await p.click('nav [data-tab=plan]'); await p.click('#uploadBtn'); await p.waitForSelector('input[name=fb]');
@@ -160,7 +170,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   ok((await p.textContent('#pDay')).includes('Mon 16.11') && (await p.$$eval('#pRoutes .route',x=>x.length))===0,'Mon 16.11 created with no routes (routes come only from RESOURCES)'); await p.selectOption('#pDay','D2026-11-09');
 
   // 9. CUSTOMERS — fix a missing location, add a new customer
-  await p.click('nav [data-tab=customers]'); await p.click('#cK3box'); await p.click('.crow >> nth=0'); await p.waitForSelector('#eLat');
+  await p.click('nav [data-tab=res]'); await p.click('.subnav [data-tab=customers]'); await p.click('#cK3box'); await p.click('.crow >> nth=0'); await p.waitForSelector('#eLat');
   await p.fill('#eLat','53.3501'); await p.fill('#eLng','-6.2605'); await p.fill('#eTw','09:00-13:00'); await p.dispatchEvent('#eLat','input'); await shot('edit-customer'); await p.click('#modal [data-act=ok]');
   await p.click('#cK3box');
   await p.click('#newCustBtn'); await p.fill('#eId','91000999'); await p.fill('#eName','DEMO NEW CUSTOMER'); await p.fill('#eAddr','1 New Road, City Centre'); await p.fill('#eLat','53.34'); await p.fill('#eLng','-6.27');
@@ -238,21 +248,22 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   // 12. SAVE — straight into PLANS/week_46; then one plan per day of the week
   // each day's plan is saved the afternoon before (the browser clock is set for the save only)
   const at=async t=>{ await p.clock.setFixedTime(new Date(t)); };
-  await at('2026-11-06T16:05:00'); await p.click('#saveBtn'); await p.waitForTimeout(500);
+  const saveNow=async()=>{ await p.click('#saveBtn'); await p.click('#modal [data-act=json]'); await p.waitForTimeout(500); await closeModal(); };
+  await at('2026-11-06T16:05:00'); await saveNow();
   let saved=await p.evaluate(()=>Object.keys((window.__TREE.PLANS||{}).week_46||{}));
   ok(saved.some(f=>/^v\d+\.\d+\.\d+_.*_Alex\.json$/.test(f)),'Save wrote the plan into PLANS/week_46: '+saved.join(', '));
   ok(/Saved: "v\d+\.\d+\.\d+_/.test(await p.textContent('#lineage')) && !(await p.textContent('#lineage')).includes('Previous'),'header shows only the current file');
-  await at('2026-11-06T16:07:00'); await p.click('#shareBtn');
+  await at('2026-11-06T16:07:00'); await p.click('#saveBtn');
   ok(!(await p.isVisible('#shName')) && (await modalText()).includes('👤 Alex'),'Save as / share: “saved by” is the user who is in, not editable');
   await p.click('[data-act=snap]'); await p.waitForTimeout(500); await closeModal();
   // Save as: only the folder is chosen (here the company folder itself); the name stays version_date_time_user
-  await p.click('#shareBtn'); await p.click('[data-act=jsonas]'); await p.waitForTimeout(500); await closeModal();
+  await p.click('#saveBtn'); await p.click('[data-act=jsonas]'); await p.waitForTimeout(500); await closeModal();
   ok(await p.evaluate(()=>Object.keys(window.__TREE).some(f=>/^v\d+\.\d+\.\d+_2026-11-06_16\.07_Alex\.json$/.test(f))),'Save as: the file name stays version_date_time_user (only the folder is chosen)');
   for(const [dk,t] of [['D2026-11-10','2026-11-09T15:40:00'],['D2026-11-11','2026-11-10T15:35:00'],['D2026-11-12','2026-11-11T15:50:00'],['D2026-11-13','2026-11-12T15:45:00']]){
     await p.selectOption('#pDay',dk); await p.click('#expAll');
     const rs=await p.$$eval('.route:not(.deferred)',x=>x.map(r=>({id:r.dataset.r,n:r.querySelectorAll('.drop:not(.dh)').length}))); const src=rs.find(r=>r.n>=2);
     const k=(await dropsOf(src.id))[0].k; await p.click(`.drop[data-k="${k}"] [data-act=move]`); await p.selectOption('#mTo',await p.$eval('#mTo',s=>[...s.options].find(o=>o.value&&!o.disabled).value)); await p.click('#mOk');
-    await at(t); await p.click('#saveBtn'); await p.waitForTimeout(400);
+    await at(t); await saveNow();
   }
   saved=await p.evaluate(()=>Object.keys(window.__TREE.PLANS.week_46)); ok(saved.filter(f=>f.endsWith('.json')).length===5 && saved.some(f=>f.endsWith('.html')),`5 plan files + 1 snapshot in PLANS/week_46`);
 
