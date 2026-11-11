@@ -36,10 +36,11 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const modalText=async()=>(await p.textContent('#modal')).replace(/\s+/g,' ');
   const closeModal=async()=>{ if(await p.isVisible('#scrim.on')) await p.evaluate(()=>{ const x=document.querySelector('#modal [data-act=close]'); if(x) x.click(); }); };
   // the start window: link the company folder (when the browser asks), pick the user, pass the computer / path / files check
-  const enter=async name=>{ const done=()=>p.evaluate(n=>{ const b=document.getElementById('userBtn'); return !!b && b.textContent.includes(n) && !document.body.classList.contains('gated'); },name).catch(()=>false);
-    const settled=async()=>{ if(!(await done())) return false; if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) return false; await p.waitForTimeout(1200); if(await p.waitForSelector('#modal [data-act=dgo]',{timeout:5000}).then(()=>true).catch(()=>false)) return false; return await done(); };   // the app may reload itself once (new customer master)
+  const enter=async (name,opts)=>{ const keep=!!(opts&&opts.keepStart); const done=()=>p.evaluate(n=>{ const b=document.getElementById('userBtn'); return !!b && b.textContent.includes(n) && !document.body.classList.contains('gated'); },name).catch(()=>false);
+    const settled=async()=>{ if(!(await done())) return false; if(keep && await p.isVisible('#modal [data-act=sskip]').catch(()=>false)) return true; if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false) || await p.isVisible('#modal [data-act=sskip]').catch(()=>false)) return false; await p.waitForTimeout(1200); if(await p.waitForSelector('#modal [data-act=dgo], #modal [data-act=sskip]',{timeout:5000}).then(()=>true).catch(()=>false)) return keep && await p.isVisible('#modal [data-act=sskip]').catch(()=>false); return await done(); };   // the app may reload itself once (new customer master)
     for(let i=0;i<40 && !(await settled());i++){
-      if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) await p.click('#modal [data-act=dgo]').catch(()=>{});
+      if(await p.isVisible('#modal [data-act=sskip]').catch(()=>false)) await p.click('#modal [data-act=sskip]').catch(()=>{});   // start window: load a plan / new week
+      else if(await p.isVisible('#modal [data-act=dgo]').catch(()=>false)) await p.click('#modal [data-act=dgo]').catch(()=>{});
       else if(await p.isVisible('#modal [data-act=allow]').catch(()=>false)) await p.click('#modal [data-act=allow]').catch(()=>{});
       else if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await Promise.all([p.waitForEvent('load',{timeout:4000}).catch(()=>null), p.click('#modal [data-act=link]').catch(()=>{})]);
       else if(await p.isVisible(`#modal [data-act="u:${name}"]`).catch(()=>false)) await p.click(`#modal [data-act="u:${name}"]`).catch(()=>{});
@@ -67,6 +68,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.waitForSelector('#modal [data-act=dgo]',{timeout:30000}); await p.waitForTimeout(500); const dw=await modalText();
   ok(dw.includes('Demo Transport Ltd') && dw.includes('Master data') && dw.includes('Reports') && /MASTER_DEL_DETAILS\.xlsx\s*✓ loaded/.test(dw) && /FIXED_ROUTES_DIPSDATA\.xlsx\s*✓ loaded/.test(dw) && dw.includes('master data in the planner is the version found in the folder'),'after choosing the user: master data window, both files ✓ loaded (same as the folder)');
   ok(/DIPS_Plan_Mon\.xlsx\s*not loaded/.test(dw) && /0 of 10 loaded/.test(dw),'reports side lists week 46 (nothing loaded yet)'); await shot('data-window');
+  await p.click('#modal [data-act=dgo]'); await p.waitForSelector('#modal [data-act=sskip]'); { const sw=await modalText(); ok(/Load a saved plan/.test(sw) && /New week/.test(sw),'after the master data window: a window to load a saved plan or start a new week'); } await shot('start-window');
   await enter('Alex');
   ok((await p.textContent('#cBay')).includes('All bays (58)'),'customer master read from MASTER_DATA automatically (58 customers)');
   ok(/Alex\s*Master/.test(await p.textContent('#userBtn')),'header shows user and role');
@@ -188,7 +190,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const [dl]=await Promise.all([p.waitForEvent('download'), p.click('#xlsBtn')]); ok(/Route changes .*\.xlsx$/.test(dl.suggestedFilename()),'full report exported to Excel: '+dl.suggestedFilename());
 
   // 11. CUSTOMIZE — theme (everyone) and bay colours (Master); route names moved to the Resources tab
-  ok(await p.isVisible('nav [data-tab=options]'),'Options tab visible'); await p.click('nav [data-tab=options]'); ok(await p.isVisible('#opt-customize') && await p.isVisible('#opt-users') && await p.isVisible('#opt-files'),'Options: Customize, Users (Master) and Files loaded sections'); ok(!!(await p.$('.thopt.on[data-theme=system]')),'the default theme is “Same as the browser”');
+  ok(await p.isVisible('nav [data-tab=options]'),'Options tab visible'); await p.click('nav [data-tab=options]'); ok(await p.isVisible('#opt-customize') && await p.isVisible('#opt-users') && await p.isVisible('#opt-files'),'Options: Customize, Users (Master) and Files loaded sections'); ok(!!(await p.$('.thopt.on[data-theme=system]')),'the default theme is “Same as the browser”'); ok((await p.$$eval('#tab-options .card',x=>x.map(e=>e.id))).slice(-1)[0]==='opt-theme' && await p.$eval('#opt-theme',e=>!!e.querySelector('.thopt')),'Options: the Theme section is the last one');
   // DELIVERY SHORTAGES: the Power BI report embedded; its link is kept in users.json (set once by a Master)
   { await p.click('[data-tab=shortages]'); ok(/not set up yet/.test(await p.textContent('#tab-shortages')) && await p.isVisible('#biNew'),'Delivery Shortages tab: a Master can set the report link');
     await p.fill('#biNew','https://evil.example.com/report'); await p.click('#biSave'); await p.waitForTimeout(300); ok(!(await p.$('#biFrame')) && /not a Power BI/.test(await p.textContent('#toast')),'only powerbi.com links are accepted');
@@ -223,7 +225,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
     await p.check(`input[value="CHECK_SHEETS/JDE/week_46/${nm.Mon}"]`); await p.click('#jdeOk'); await p.waitForSelector('#jpExport:not([disabled])',{timeout:60000});
     await p.click('#jpJde'); await p.waitForSelector('input[name=jde]'); await p.waitForTimeout(800); ok(/✓ loaded/.test(await p.textContent(`#modal .fbrow:has-text("${nm.Mon}")`)),'the imported PDF is tagged “✓ loaded” in the folder window'); await p.click('#modal [data-act=close]'); }
   ok((await p.textContent('#jpRes')).includes('CITY EXPRESS'),'Print: resources come from the Resources tab');
-  { const t=await p.textContent('#jpRea'); console.log('   reallocations: '+t.replace(/\s+/g,' ').slice(0,400)); ok(/Moved in Planning|Deferred/.test(t),'Print: reallocations listed from Planning'); }
+  { const t=await p.textContent('#jpRea'); console.log('   reallocations: '+t.replace(/\s+/g,' ').slice(0,400)); ok(/DEFERRED|BAY/.test(t) && !/Moved in Planning|Deferred in from/.test(t),'Print: reallocations listed from Planning (order, customer / ship to, from, to only)'); }
   await p.click('#jpExport'); await p.waitForSelector('#jpSelBar:not([hidden])',{timeout:90000});
   ok(await p.$$eval('#jpChecks li',x=>x.length>0 && x.every(li=>!li.classList.contains('fail'))),'Print: organised PDF passed every integrity check');
   { const tabs=await p.$$eval('#jpRoutes .jp-route .jp-rname',x=>x.map(e=>e.textContent.replace(/^[^]*?(BAY|CITY|DEFERRED|UNASSIGNED)/,'$1').trim())); console.log('   route tabs: '+tabs.join(' | '));
@@ -295,7 +297,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
     const txt=async pg=>(await pg.textContent('#modal')).replace(/\s+/g,' ');
     const A=await laptop(tree);   // Alex's laptop
     await A.pg.click('[data-act="u:Alex"]'); await A.pg.waitForSelector('#modal [data-act=go]'); ok((await txt(A.pg)).includes('will be registered to Alex'),"first time on a laptop: it will be registered to its owner"); await A.pg.click('#modal [data-act=go]');
-    await A.pg.waitForFunction(()=>!document.body.classList.contains('gated')); await A.pg.click('#modal [data-act=dgo]').catch(()=>{}); const reg=JSON.parse(await A.pg.evaluate(()=>window.__TREE.MASTER_DATA['users.json'].text));
+    await A.pg.waitForFunction(()=>!document.body.classList.contains('gated')); await A.pg.click('#modal [data-act=dgo]').catch(()=>{}); await A.pg.click('#modal [data-act=sskip]').catch(()=>{}); const reg=JSON.parse(await A.pg.evaluate(()=>window.__TREE.MASTER_DATA['users.json'].text));
     ok(!!reg.users.find(u=>u.name==='Alex').device,"Alex's laptop registered in users.json");
     await A.pg.click('#userBtn'); await A.pg.click('#modal [data-act=switch]'); const only=await txt(A.pg);
     ok(only.includes('registered to Alex') && only.includes('Sam') && await A.pg.isDisabled('#modal button:has-text("Sam")') && !(await A.pg.isDisabled('[data-act="u:Alex"]')),"on Alex's laptop everyone is listed, but only Alex can be chosen"); await shot2(A.pg,'laptop-registered');

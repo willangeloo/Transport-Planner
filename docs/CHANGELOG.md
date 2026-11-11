@@ -4,6 +4,18 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.5 — 2026-11-11
+
+### Features
+- **Start window after the master data window:** **Load a saved plan** (the saved plans window) or **New week** (pick the week, its five days are added, then the reports window opens on that week for you to check and select reports). **Skip — start empty** goes straight to Planning.
+- **Printing, several PDFs:** a day uses only its own PDF, so the shipments of another day's PDF are no longer shown as unassigned or as warnings. The same PDF, or a second PDF of an already imported day, is blocked.
+- **Reprint an order** lists the **loadings grouped by the day they were loaded** (click one to list its orders) and searches the orders of every imported PDF.
+
+### Edits
+- **Reallocations** (Printing, step 3) show only Order, Customer · Ship To, From, To.
+- The Printing left side bar is 10% wider, so no list needs a sideways scroll.
+- **Options:** Theme is now its own section and always the last one; new sections go above it.
+
 ## v0.11.4 — 2026-11-11
 
 ### Features
