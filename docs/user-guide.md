@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.11.5). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.11.6). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
 
 **Contents**
 
@@ -185,7 +185,7 @@ Every file loaded is listed in **Options › Files loaded**: day, file, what cha
 
 ## 9. Create a new day
 
-1. Click **＋ Day** next to the day list.
+1. Click **＋ Day** next to the day buttons.
 2. Pick the date. The new day has **no routes planned yet**: routes come only from the day's **Resources** (load its RESOURCES file, or add the bays in the Resources tab). The fixed routes are only a reference when deferring orders.
 3. Click **Create day**. When its DIPS Plan and Resources files arrive, load them and they fill in the same day.
 
@@ -272,7 +272,7 @@ The **Resources** tab shows the routes of a planning day as a sheet. The day is 
 Organises the JDE check-sheet PDF (Offloading Sheet Report or Delivery Docket) by the day's plan: one cover per route, then that route's check sheets, ready to print.
 
 1. Open the Route Planner, choose your user and open the last plan (**⤒ Open plan**) or plan the day.
-2. Open **Printing** and pick the day.
+2. Open **Printing** and pick the day with the day buttons (the same weeks and week days as in Resources).
 3. **Import PDF** (step 1): click **📁 Choose from CHECK_SHEETS › JDE** and tick the PDFs, or drop a PDF on the box (more than one file is fine). The window works like Load day: one chip per week, newest first, and **✓ loaded** / **⚠ changed since loaded** / **not loaded** on every file. **The day of a PDF is read from its first 3 pages, never from its file name**, so nobody has to rename files. Only those 3 pages are read, once per file on this computer. When you import, the Printing day follows the PDF. The PDF is read in your browser only and **not** saved with the plan. The PDF reader needs an internet connection the first time. The day is the **delivery date** printed on the check sheet (an order date on the page is ignored).
 4. Check **Resources** (step 2: shipment → route, from the Resources tab) and **Reallocations** (step 3: orders moved or deferred in Planning, and **inserted orders**, with the customer's ship to code; an inserted order that you then move shows under the route it was moved to). Rows not found in the PDF are highlighted.
 5. Click **Organise PDFs** (step 4). Routes come in the order of the plan; reallocated orders go to their new route ("Moved from …" on the cover), deferred orders go to **DEFERRED**, loads not in Resources to **UNASSIGNED**, unclear pages to **REVIEW**, and signature-only pages are left out.
@@ -280,9 +280,13 @@ Organises the JDE check-sheet PDF (Offloading Sheet Report or Delivery Docket) b
 
 The tab has the four steps on the left. On the right are the summary, **Checks** (when there are any) and one merged section, **Routes & Organised PDF**: the routes list (**Bay, Driver, Helper, Drops, Orders, Shipments attached**) with a search box and **Expand all**, and the preview of the organised PDF beside it. Click a bay to open its orders (tick box, order number, customer, ship to, shipment, note, **View**) and to preview its pages; click a page to enlarge it, and every page of the route is shown, in order. The search box finds an order number, customer name, ship to, loading number or bay.
 
+**Choosing the day.** Planning, Change report, Printing and Resources all pick the day the same way: a button per week (‹ › for other weeks) and one per week day. A **filled** day has a plan open; a **dashed** day has none, and pressing it asks you to confirm before it is opened. The Change report also has **All days**.
+
+**Orders deferred from another day.** An order deferred from day 1 to day 2 has its check sheet in the PDF of day 1. When you organise day 2, the app looks for it in the PDF of its original day, so import the PDFs of both days. It is only flagged (as a warning) when **no** imported PDF has it.
+
 **Several PDFs, several days.** Each PDF belongs to one day (its delivery date). A day uses only its own PDF: the shipments of another day's PDF are not shown as unassigned, and the PDF of another day is marked *Another day — not used for the selected day*. The same PDF, or a second PDF of a day that already has one, cannot be imported: the app says so and you remove the first one if you want to replace it.
 
-**Reallocations** (step 3) list only what you need: **Order, Customer · Ship To, From, To**.
+**Reallocations** (step 3) list only what you need: **Order, Customer · Ship To, From, To**. Order, From and To never wrap (the customer may); the left bar is wide enough for them.
 
 **Reprint an order** (top right) finds one order, from any imported PDF, by number or customer and prints only its original pages, without a cover. The **Loadings** list on that screen shows the loadings (shipments) of the imported PDFs grouped by the day they were loaded, with their route when the day's Resources are loaded: click one to list its orders.
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.11.5</title>
+<title>Route Planner BETA v0.11.6</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -304,6 +304,8 @@ nav button.hl.on{color:#fff}
 @media (max-width:1500px){ nav button.hl::before{margin-right:4px;width:5px;height:5px} }
 @media (max-width:1400px){ #userBtn .rolechip{display:none} }
 /* start window */
+.sr-only{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.rs-day.all{min-width:0}
 .startcard{display:flex;flex-direction:column;gap:8px;text-align:left;padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
 .startcard b{font-size:15px}.startcard:hover{border-color:var(--accent);background:var(--hover)}.startcard.off{opacity:.5;cursor:default}.startcard.off:hover{border-color:var(--line);background:var(--card)}
 /* resources: weeks and days as buttons */
@@ -361,7 +363,7 @@ body[data-role=VIEWER] .no-viewer,body[data-role=NONE] .no-viewer{display:none!i
 .jp-modes{display:flex;gap:4px;background:var(--accent-soft);padding:4px;border-radius:9px}
 .jp-modes button{border:0;background:none;padding:6px 14px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--accent)}
 .jp-modes button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.jp-layout{display:grid;grid-template-columns:374px minmax(0,1fr);gap:18px;align-items:start}
+.jp-layout{display:grid;grid-template-columns:430px minmax(0,1fr);gap:18px;align-items:start}
 @media (max-width:1050px){ .jp-layout{grid-template-columns:1fr} }
 .jp-mgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
 @media (max-width:1250px){ .jp-mgrid{grid-template-columns:1fr} }
@@ -394,8 +396,10 @@ body[data-role=VIEWER] .no-viewer,body[data-role=NONE] .no-viewer{display:none!i
 .jp-progress{position:relative;margin-top:10px;height:22px;border-radius:6px;background:var(--accent-soft);overflow:hidden}
 .jp-progress .bar{position:absolute;inset:0 auto 0 0;width:0;background:#9fd3cf;transition:width .15s}
 .jp-progress .label{position:relative;display:block;padding:0 8px;font-size:12px;line-height:22px}
-.jp-tbl{max-height:260px;overflow-y:auto;overflow-x:hidden;border:1px solid var(--line);border-radius:8px;margin-top:6px}
-.jp-tbl table{width:100%;table-layout:auto}.jp-tbl td,.jp-tbl th{overflow-wrap:anywhere}
+.jp-tbl{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:6px}
+.jp-tbl table{width:100%;table-layout:auto}
+/* Reallocations: Order, From and To stay on one line; only the customer wraps */
+#jpRea th,#jpRea td{white-space:nowrap}#jpRea td:nth-child(2),#jpRea th:nth-child(2){white-space:normal;min-width:110px}
 .jp table{border-collapse:collapse;width:100%;font-size:12px}
 .jp th{text-align:left;background:var(--thbg);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding:6px 8px;border-bottom:1px solid var(--line);position:sticky;top:0}
 .jp td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -525,7 +529,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.5</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.6</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="plan" class="on">Planning</button>
     <button data-tab="res">Resources</button>
@@ -576,7 +580,8 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
       <div class="sec side-top">
         <div>
           <h3>Planning day</h3>
-          <div class="row"><select id="pDay"></select><button class="btn" id="uploadBtn" title="Load planning + RESOURCES files for one or more days" style="white-space:nowrap">⤒ Load day</button><button class="btn" id="newDayBtn" title="Create a planning day with its fixed bays, before any files arrive" style="white-space:nowrap">＋ Day</button></div>
+          <div class="rs-daybar" id="dbPlan"></div>
+          <div class="row"><select id="pDay" class="sr-only" tabindex="-1" aria-hidden="true"></select><button class="btn" id="uploadBtn" title="Load planning + RESOURCES files for one or more days" style="white-space:nowrap">⤒ Load day</button><button class="btn" id="newDayBtn" title="Create a planning day with its fixed bays, before any files arrive" style="white-space:nowrap">＋ Day</button></div>
           <div class="muted small" id="pSrc" style="margin-top:6px"></div>
         </div>
         <div class="kpis">
@@ -622,8 +627,9 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
           <div class="print-only small" id="printMeta"></div>
         </div>
         <div class="spacer"></div>
-        <div class="no-print" style="width:250px"><input type="search" id="rSearch" placeholder="Search order, customer, bay, driver, truck…"></div><div class="no-print" style="width:170px"><select id="rDay"></select></div><button class="btn no-print" id="xlsBtn">⤓ Export Excel</button><button class="btn pri no-print" id="printBtn">Print / Save as PDF</button>
+        <div class="no-print" style="width:250px"><input type="search" id="rSearch" placeholder="Search order, customer, bay, driver, truck…"></div><select id="rDay" class="sr-only" tabindex="-1" aria-hidden="true"></select><button class="btn no-print" id="xlsBtn">⤓ Export Excel</button><button class="btn pri no-print" id="printBtn">Print / Save as PDF</button>
       </div>
+      <div class="rs-daybar no-print" id="dbRep"></div>
       <div class="kpis" id="rKpis"></div>
       <div class="card no-print" id="dkTool" style="padding:10px 14px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>🧾 Docket type</b><span class="muted small">Find any order and change its docket (planning-file orders are Check Sheet). In the tables below, click an order's tag to change it.</span><span class="spacer"></span><input type="search" id="dkFind" placeholder="Order number…" style="width:170px"><button class="btn sm" id="dkGo">Change…</button></div>
       <div id="rBody"></div>
@@ -1150,7 +1156,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
       var candidates = byOrderNo.get(row.order) || [];
       var match = candidates.find(function (o) { return o.shipment === row.shipment; }) || (row.anyShipment && candidates.length === 1 ? candidates[0] : null);
       if (!candidates.length) {
-        issue(row.optional ? 'info' : 'error', 'EXCEPTION_NOT_FOUND', rowLabel(row) + ': order ' + row.order + ' (shipment ' + row.shipment + ') is not in the PDF. Not applied.' + (row.optional ? ' Print it from the check sheets of its original day.' : ''), { source: 'exceptions', line: row.line });
+        issue(row.optional ? 'info' : (row.warn ? 'warning' : 'error'), 'EXCEPTION_NOT_FOUND', rowLabel(row) + ': order ' + row.order + ' (shipment ' + row.shipment + ') is not in ' + (row.warn ? 'any imported PDF (also not in the PDF of its original day)' : 'the PDF') + '. Not applied.' + (row.optional ? ' Print it from the check sheets of its original day.' : ''), { source: 'exceptions', line: row.line });
         return;
       }
       if (!match) {
@@ -1932,7 +1938,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.11.5';
+const APP_VERSION='0.11.6';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2177,6 +2183,40 @@ function renderShortages(){
   BI.src=url;
   el.innerHTML=`<div class="bi-bar"><h1>📊 Delivery Shortages</h1><span class="muted small">Power BI · opens with the account signed in to this browser</span><span class="spacer"></span><a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open in a new window</a></div><iframe id="biFrame" title="IRLDeliveryShortages" src="${esc(url)}" frameborder="0" allowfullscreen allow="fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
 }
+// ---------- the day selector (weeks + week days as buttons) of Planning, Change report and Printing — same layout as Resources ----------
+const DAYBAR={plan:{wk:'',browse:false},rep:{wk:'',browse:false},print:{wk:'',browse:false}}, DB_ID={plan:'dbPlan',rep:'dbRep',print:'dbPrint'};
+const dayBarCur = sc => sc==='plan'?P.day : sc==='rep'?R.day : jpDayKey();
+function dayBarHtml(sc){
+  if(!DATA.days.length) return ''; const cur=dayBarCur(sc), cd=cur&&dayMap[cur], st=DAYBAR[sc];
+  const ref=cd?cd.date:DATA.days[DATA.days.length-1].date; if(!st.browse||!st.wk) st.wk=weekStart(ref);
+  const weeks=[...new Set(DATA.days.map(d=>weekStart(d.date)).concat(st.wk))].sort();
+  const wk=weeks.map(w=>`<button class="rs-wk ${w===st.wk?'on':''}" data-dbs="${sc}" data-dbwk="${w}" title="Week of ${esc(dayLbl(w))}">Week ${isoWeek(w)}</button>`).join('');
+  const dates=[0,1,2,3,4,5,6].map(i=>addDays(st.wk,i)).filter(d=>dateDow(d)<5 || dayKeyForDate(d));
+  const days=dates.map(d=>{ const k=dayKeyForDate(d); return k?`<button class="rs-day has ${k===cur?'on':''}" data-dbs="${sc}" data-dbday="${esc(k)}" title="Plan open">${esc(dayLbl(d))}</button>`:`<button class="rs-day none" data-dbs="${sc}" data-dbdate="${d}" title="No plan open for this day yet — click to open one">${esc(dayLbl(d))}</button>`; }).join('');
+  const all=sc==='rep'?`<button class="rs-day has all ${!cur?'on':''}" data-dbs="rep" data-dball="1">All days</button>`:'';
+  return `<div class="rs-wkrow"><button class="rs-nav" data-dbs="${sc}" data-dbnav="-1" title="Previous week" aria-label="Previous week">‹</button>${wk}<button class="rs-nav" data-dbs="${sc}" data-dbnav="1" title="Next week" aria-label="Next week">›</button></div><div class="rs-dayrow">${all}${days}</div><div class="muted small rs-legend"><span class="rs-day has sm">plan open</span> <span class="rs-day none sm">no plan yet</span></div>`;
+}
+function renderDayBar(sc){ const el=$(DB_ID[sc]); if(el) el.innerHTML=dayBarHtml(sc); }
+function openDayPlan(date, after){
+  if(!guard('edit','open a plan for a day')) return;
+  openModal(`<div class="mh"><h2>Open the plan for ${esc(dayLbl(date))}?</h2><div class="muted small">Week ${isoWeek(date)}</div></div><div class="mb"><div class="note info">No plan is open for <b>${esc(dayLbl(date))}</b> yet. Opening it creates the day with <b>no routes</b>: they come from the day's Resources (load its RESOURCES file or add the bays in the Resources tab).</div></div>
+   <div class="mf"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok">Open ${esc(dayLbl(date))}</button></div>`,
+   {onAct:a=>{ if(a!=='ok') return; if(!S.days.includes(date)) S.days.push(date); save(); closeModal(); afterDataChange(); const k=dayKeyForDate(date); toast(`${dayLbl(date)} opened — no routes yet`); after(k); }});
+}
+function dbPick(sc,k){
+  if(sc==='plan') selectDay(k);
+  else if(sc==='rep'){ R.day=k; $('rDay').value=k; renderReport(); }
+  else { jpSetDay(k); jpReplan(); }
+  renderDayBar(sc);
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-dbs]'); if(!b) return; const sc=b.dataset.dbs, st=DAYBAR[sc];
+  if(b.dataset.dbday!=null){ st.browse=false; return dbPick(sc,b.dataset.dbday); }
+  if(b.dataset.dball){ st.browse=false; return dbPick('rep',''); }
+  if(b.dataset.dbdate) return openDayPlan(b.dataset.dbdate,k=>{ st.browse=false; dbPick(sc,k); });
+  if(b.dataset.dbnav){ st.wk=addDays(st.wk,7*(+b.dataset.dbnav)); st.browse=true; return renderDayBar(sc); }
+  if(b.dataset.dbwk){ st.wk=b.dataset.dbwk; st.browse=true; const first=DATA.days.find(d=>weekStart(d.date)===st.wk); if(first){ st.browse=false; dbPick(sc,first.key); } else renderDayBar(sc); }
+});
 // ---------- tabs ----------
 let curTab='plan';
 document.querySelectorAll('nav button, .bitab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
@@ -2337,7 +2377,7 @@ function initPMap(){
   renderPlan();
 }
 function renderPlan(){
-  view = dayView(P.day);
+  view = dayView(P.day); renderDayBar('plan');
   renderRoutes(); renderBayChips(); renderPlanMap(); renderBanner(); renderSelBar(); updateNav(); renderSrc();
   const all = view.routes.flatMap(r=>r.drops);
   $('pK1').textContent = dayMap[P.day] ? view.routes.filter(r=>!r.deferred).length : '–';
@@ -3189,9 +3229,9 @@ function parseDays(planFiles, resFiles, cm){
   Object.values(byDate).sort((a,b)=>a.date.localeCompare(b.date)).forEach(g=>{
     const dow=dateDow(g.date), dm=fmtDM(g.date), lbl=dayLbl(g.date);
     let r=resSheets.find(x=>x.dm===dm) || resSheets.find(x=>!x.dm && x.dow===dow);
-    if(!r && resSheets.length===1 && Object.keys(byDate).length===1){ r=resSheets[0]; issues.push({lvl:'warn',t:`${lbl}: RESOURCES sheet “${r.sheet}” has a different date in its name — used it anyway.`}); }
+    if(!r && resSheets.length===1 && Object.keys(byDate).length===1 && !resSheets[0].dm && resSheets[0].dow==null){ r=resSheets[0]; issues.push({lvl:'warn',t:`${lbl}: RESOURCES sheet “${r.sheet}” has no date in its name — used it for this day.`}); }   // only a sheet with no date at all; a sheet of another day feeds that day's Resources only
     let loads={}; let resName=null;
-    if(!r) issues.push({lvl:'warn',t:`${lbl}: no matching RESOURCES file — routes keep the details already in the planner, or show the route code.`});
+    if(!r){ const other=resSheets.filter(x=>x.dm&&x.dm!==dm); issues.push({lvl:'warn',t:`${lbl}: no RESOURCES file for this day${other.length?' (the RESOURCES sheet “'+other[0].sheet+'” is for '+other[0].dm+' and only feeds that day)':''} — routes keep the details already in the planner, or show the route code.`}); }
     else { r.used=true; resName=r.file; loads=resLoads(r); }
     const noMaster=new Set(), noRes=new Set();
     g.orders.forEach(o=>{
@@ -3432,8 +3472,10 @@ const TYPE_LBL={load:'File loaded',dock:'Docket type',defer:'Deferred',move:'Rea
 function logDays(e){ return [e.day, e.toDay].filter(Boolean); }
 function buildReportDaySel(){
   const ks=[...new Set(S.log.filter(e=>e.type!=='cust').flatMap(logDays))].sort((a,b)=>(dateOfKey(a)||'').localeCompare(dateOfKey(b)||''));
-  if(R.day && !ks.includes(R.day)) R.day='';
-  $('rDay').innerHTML=`<option value="">All days</option>`+ks.map(k=>`<option value="${esc(k)}" ${k===R.day?'selected':''}>${esc(dayLabel(k))}</option>`).join('');
+  const all=[...new Set(ks.concat(DATA.days.map(d=>d.key)))].sort((a,b)=>(dateOfKey(a)||'').localeCompare(dateOfKey(b)||''));
+  if(R.day && !dayMap[R.day] && !ks.includes(R.day)) R.day='';
+  $('rDay').innerHTML=`<option value="">All days</option>`+all.map(k=>`<option value="${esc(k)}" ${k===R.day?'selected':''}>${esc(dayLabel(k))}</option>`).join('');
+  renderDayBar('rep');
 }
 $('rDay').addEventListener('change',()=>{ R.day=$('rDay').value; renderReport(); });
 $('rSearch').addEventListener('input',()=>{ R.q=$('rSearch').value.trim().toLowerCase(); renderReport(); });
@@ -4726,7 +4768,15 @@ function jpReplan(){
   const res=dk?jpResources(dk):{rows:[],order:[],info:{}}, rea=dk?jpReallocations(dk):[];
   const mapping={rows:res.rows, errors:[]}, exceptions={rows:rea, errors:[]};
   const dd=dk&&dayMap[dk]?dayMap[dk].date:''; const srcDate=pg=>(JS.org.sources[pg.fileIndex]||{}).date||'';
-  const pages=JS.org.pages.filter(pg=>!dd||!srcDate(pg)||srcDate(pg)===dd); JS.pages=pages;      // a PDF of another day is left out: its shipments belong to that day
+  let pages=JS.org.pages.filter(pg=>!dd||!srcDate(pg)||srcDate(pg)===dd);      // a PDF of another day is left out: its shipments belong to that day
+  // … except the check sheets of orders reallocated INTO this day (deferred from another day): they are in the PDF of their original day
+  { const byOrder=new Map(); jpAllOrders().forEach(o=>{ if(!byOrder.has(o.order)) byOrder.set(o.order,o); });
+    const inDay=new Set(pages.filter(pg=>pg.parsed&&pg.parsed.status==='ok').map(pg=>String(pg.parsed.order))); const extra=[];
+    rea.forEach(r=>{ if(!r.optional || inDay.has(String(r.order))) return; const o=byOrder.get(String(r.order));
+      if(o){ o.pages.forEach(pg=>{ if(!pages.includes(pg)&&!extra.includes(pg)) extra.push(pg); }); r.optional=false; r.warn=false; r.fromOther=true; }
+      else { r.optional=false; r.warn=true; } });          // only flagged (as a warning) when no imported PDF has it
+    if(extra.length) pages=pages.concat(extra).sort((a,b)=>a.seq-b.seq); }
+  JS.pages=pages;
   const plan=JP.planner.buildPlan({pages, mapping, exceptions, overrides:JS.overrides, routeOrder:res.order, routeInfo:res.info});
   plan.mapping=mapping; plan.exceptions=exceptions; plan.integrity=JP.integrity.checkPlan(pages, plan); if(!plan.integrity.ok) plan.blocking=true;
   JS.plan=plan; JS.res=res; JS.rea=rea;
@@ -4742,8 +4792,9 @@ function renderPrint(){
 }
 function jpSkeleton(){
   return `<div class="jp"><div class="rep-head jp-top"><div><div class="muted small">Check sheets (JDE Offloading Sheet / Delivery Docket PDF) organised by the day's plan</div><h1>Printing</h1></div><div class="spacer"></div>
-   <div style="width:210px"><select id="jpDay"></select></div>
+   <select id="jpDay" class="sr-only" tabindex="-1" aria-hidden="true"></select>
    <div class="jp-modes" role="tablist"><button class="on" data-jpmode="organise">Organise</button><button data-jpmode="reprint">Reprint an order</button></div></div>
+  <div class="rs-daybar" id="dbPrint"></div>
   <div class="jp-layout" id="jpOrganise">
    <aside class="jp-setup">
     <section class="jp-card"><h2><span class="jp-step">1</span>Import PDF</h2>
@@ -4787,7 +4838,7 @@ function jpSkeleton(){
 }
 function jpRender(){
   const dk=jpDayKey();
-  $('jpDay').innerHTML=DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)} · Week ${esc(d.week)}</option>`).join('')||'<option>No days loaded</option>';
+  $('jpDay').innerHTML=DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)} · Week ${esc(d.week)}</option>`).join('')||'<option>No days loaded</option>'; renderDayBar('print');
   jpRenderInputs();
   jpRenderFiles();
   const p=JS.plan;

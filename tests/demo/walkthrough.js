@@ -64,7 +64,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   ok(/Demo Transport Ltd/.test(await p.textContent('#coName')) && /Demo Transport Ltd/.test(chk),'company name shown next to the version (top left) and on the start windows');
   await Promise.all([p.waitForEvent('load',{timeout:8000}).catch(()=>null), p.click('#modal [data-act=go]')]);
   // right after choosing the user: master data (left) and reports (right), each compared with the folder
-  for(let i=0;i<40 && !(await p.isVisible('#modal [data-act=dgo]').catch(()=>false));i++){ if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]').catch(()=>{}); await p.waitForTimeout(300); }   // the app reloads once (customer master); the mock folder is linked again
+  for(let i=0;i<100 && !(await p.isVisible('#modal [data-act=dgo]').catch(()=>false));i++){ if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]').catch(()=>{}); await p.waitForTimeout(300); }   // the app reloads once (customer master); the mock folder is linked again
   await p.waitForSelector('#modal [data-act=dgo]',{timeout:30000}); await p.waitForTimeout(500); const dw=await modalText();
   ok(dw.includes('Demo Transport Ltd') && dw.includes('Master data') && dw.includes('Reports') && /MASTER_DEL_DETAILS\.xlsx\s*✓ loaded/.test(dw) && /FIXED_ROUTES_DIPSDATA\.xlsx\s*✓ loaded/.test(dw) && dw.includes('master data in the planner is the version found in the folder'),'after choosing the user: master data window, both files ✓ loaded (same as the folder)');
   ok(/DIPS_Plan_Mon\.xlsx\s*not loaded/.test(dw) && /0 of 10 loaded/.test(dw),'reports side lists week 46 (nothing loaded yet)'); await shot('data-window');

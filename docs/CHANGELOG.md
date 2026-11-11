@@ -4,6 +4,16 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.11.6 — 2026-11-12
+
+### Bug fixes
+- **A RESOURCES sheet of another day was loaded into the planning day.** A planning sheet for Fri 06.11 uploaded with a resources sheet for Wed 04.11 put both into Friday. Now the resources sheet only feeds the Resources of its own day (Wed); Friday keeps the planning sheet's data and shows route codes until its own resources arrive.
+- **Printing: orders deferred from another day** are found in the PDF of their original day when you organise the new day. They are flagged only (as a warning) when no imported PDF has them.
+
+### Edits
+- **Day selector:** Planning, Change report and Printing use the same weeks + week days buttons as Resources (filled = plan open, dashed = none, confirm before opening one). The Change report also has **All days**.
+- **Printing › Reallocations:** Order, From and To never wrap; only the customer does. The left bar is wider (430px).
+
 ## v0.11.5 — 2026-11-11
 
 ### Features
