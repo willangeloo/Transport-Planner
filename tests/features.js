@@ -91,6 +91,16 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   await p.click('#modal [data-act=other]'); await p.waitForTimeout(400);
   ok(await p.$eval('#rsDays .rs-day.on',e=>e.dataset.rsday)==='D2026-11-10' && (await p.textContent('#rsGrid')).includes('Uploaded Driver') && (await p.textContent('#rsGrid')).includes('07:00'),'upload loaded into Tuesday, own columns matched by name');
   await p.click('nav [data-tab=plan]'); await p.selectOption('#pDay','D2026-11-10'); ok((await p.textContent('#pRoutes')).includes('Uploaded Driver'),'uploaded resources used by Planning');
+  // the day selector (weeks + week days as buttons) is the same on Planning, Change report and Printing
+  { const cls=async sel=>p.$eval(sel,e=>e.className);
+    await p.click('nav [data-tab=plan]'); ok(await p.isVisible('#dbPlan .rs-wk.on') && /\bhas\b/.test(await cls('#dbPlan [data-dbday="D2026-11-09"]')) && /\bnone\b/.test(await cls('#dbPlan [data-dbdate="2026-11-12"]')),'Planning: weeks and week days as buttons (filled = plan open, dashed = no plan)');
+    await p.click('#dbPlan [data-dbday="D2026-11-10"]'); ok(await p.$eval('#pDay',e=>e.value)==='D2026-11-10' && /\bon\b/.test(await cls('#dbPlan [data-dbday="D2026-11-10"]')),'Planning: pressing a day opens it');
+    await p.click('#dbPlan [data-dbdate="2026-11-12"]'); ok(/Open the plan for Thu 12\.11\?/.test(await p.textContent('#modal')),'Planning: a day with no plan asks to confirm first'); await p.click('#modal [data-act=close]');
+    await p.click('#dbPlan [data-dbday="D2026-11-09"]');
+    await p.click('nav [data-tab=report]'); ok(await p.isVisible('#dbRep .rs-day.all.on') && await p.$eval('#rDay',e=>e.classList.contains('sr-only')),'Change report: the same day buttons, with “All days” (the drop-down list is gone)');
+    await p.click('#dbRep [data-dbday="D2026-11-10"]'); await p.waitForTimeout(200); ok(/Tue 10\.11/.test(await p.textContent('#rSub')) && await p.$eval('#rDay',e=>e.value)==='D2026-11-10','Change report: pressing a day filters the report to it'); await p.click('#dbRep [data-dball]'); ok(!/Tue 10\.11/.test(await p.textContent('#rSub')),'Change report: All days');
+    await p.click('nav [data-tab=print]'); ok(await p.isVisible('#dbPrint .rs-wk.on') && await p.$eval('#jpDay',e=>e.classList.contains('sr-only')),'Printing: the same day buttons (no drop-down list)');
+    await p.click('#dbPrint [data-dbday="D2026-11-10"]'); await p.waitForTimeout(300); ok(await p.$eval('#jpDay',e=>e.value)==='D2026-11-10','Printing: pressing a day selects it'); await p.click('#dbPrint [data-dbday="D2026-11-09"]'); }
   // the table is saved with the plan and survives a reload
   await p.reload(); ok(await enter(p,'Alex'),'back in after a reload');
   await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]'); ok((await p.textContent('#rsGrid')).includes('Check tyres') && (await heads()).includes('Start time'),'table, comments and own columns kept');
@@ -139,8 +149,8 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   const tiles=(await p.textContent('#jpTiles')).replace(/\s+/g,' ');
   ok(tiles.includes(`Orders${list.length}`),'every order page identified ('+list.length+' orders): '+tiles);
   ok(/Blank discarded\s*1/.test(tiles),'signature-only page discarded');
-  ok(/Reallocations\s*\d+ \/ \d+/.test(tiles) && (await p.textContent('#jpRea')).includes('Moved in Planning'),'the move made in Planning is a reallocation');
-  { const rea=(await p.textContent('#jpRea')).replace(/\s+/g,' '); ok(rea.includes('5699001') && rea.includes('Inserted, then moved in Planning') && rea.includes(insTo),'an inserted order that was moved is a reallocation too ('+insTo+')'); }
+  ok(/Reallocations\s*\d+ \/ \d+/.test(tiles) && (await p.$$eval('#jpRea tbody tr',x=>x.length))>=2 && !/Moved in Planning|Deferred in from/.test(await p.textContent("#jpRea")),'the moves made in Planning are reallocations, shown with only: order, customer / ship to, from, to');
+  { const rea=(await p.textContent('#jpRea')).replace(/\s+/g,' '); ok(rea.includes('5699001') && rea.includes(insTo),'an inserted order that was moved is a reallocation too ('+insTo+')'); }
   ok(!/bad/.test(await p.$$eval('#jpRea tr',x=>x.map(t=>t.className).join(' '))),'every reallocation found in the PDF');
   await p.click('#jpExport'); await p.waitForSelector('#jpSelBar:not([hidden])',{timeout:90000});
   ok(await p.$$eval('#jpChecks li',x=>x.length>0 && x.every(li=>!li.classList.contains('fail'))),'organised PDF passes every integrity check');
@@ -152,6 +162,8 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     await p.click('#jpTiles .jp-tile:has-text("To check")'); ok(/Showing only orders to check/.test(await p.textContent('#jpRoutes')),'balloon To check filters to the orders to check');
     await p.click('#jpTiles .jp-tile:has-text("To check")'); ok(await p.$$eval('#jpRoutes tbody tr',x=>x.length)===all && !/Showing only/.test(await p.textContent('#jpRoutes')),'clicking the balloon again shows every order'); await p.click('#jpExpand'); }
   // layout: the four steps on the left; Routes and Organised PDF merged on the right
+  ok((await p.$$eval('#jpRea th',x=>x.map(e=>e.textContent.trim()))).join('|')==='Order|Customer · Ship To|From|To','Reallocations: only the columns Order, Customer · Ship To, From, To');
+  ok(await p.evaluate(()=>{ const w=document.querySelector('.jp-setup').getBoundingClientRect().width; return w>=370 && [...document.querySelectorAll('.jp-tbl')].every(t=>t.scrollWidth<=t.clientWidth+1); }),'the left side bar is 10% wider and no list needs a sideways scroll');
   ok((await p.$$eval('.jp-setup h2',x=>x.map(e=>e.textContent.replace(/\s+/g,' ').trim().replace(/ (Edit in Resources|Planning)$/,'')))).join('|')==='1Import PDF|2Resources|3Reallocations|4Organise','steps 1–4 on the left: Import PDF, Resources, Reallocations, Organise');
   ok(await p.evaluate(()=>{ const s=document.querySelector('.jp-setup').getBoundingClientRect(), m=document.getElementById('jpOutput'); const mr=m.getBoundingClientRect(); const hs=[...document.querySelectorAll('#tab-print h2')].map(h=>h.textContent.trim());
     return s.right<=mr.left+1 && m.contains(document.getElementById('jpRoutes')) && m.contains(document.getElementById('jpOutPages')) && !hs.includes('Organised PDF') && !hs.includes('Routes'); }),'one merged section on the right (Routes and Organised PDF are not duplicated)');
@@ -196,9 +208,36 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     await p.click('nav [data-tab=plan]'); await p.selectOption('#pDay','D2026-11-16'); await p.click('#expAll'); const w2=await p.textContent('#pRoutes');
     ok(!/not assigned/.test(w2) && /BAY 07/.test(w2) && await p.$$eval('#pRoutes .route:not(.deferred)',x=>x.length)===1,'once Resources give the day a BAY 07, the deferred order is on it'); }
   // the day of a PDF is its DELIVERY date: this one was ordered on Monday 09.11 but is delivered on Tuesday 10.11
-  { const od=path.join(TMP,'order_vs_delivery.pdf'); fs.writeFileSync(od, await checkSheetPdf([{load:'74600002',order:'5688001',name:'ORDER DATE TEST BAR',date:'10/11/2026',orderDate:'09/11/2026'}],{}));
-    await p.click('nav [data-tab=print]'); await p.click('#jpDay'); await p.selectOption('#jpDay','D2026-11-09'); await p.setInputFiles('#jpFile',od); await p.waitForFunction(()=>document.getElementById('jpDay').value==='D2026-11-10',null,{timeout:30000});
-    ok(true,'a PDF ordered on Mon 09.11 and delivered on Tue 10.11 sets the day to Tue 10.11: the delivery date is used, not the order date'); }
+  { const od=path.join(TMP,'order_vs_delivery.pdf'); fs.writeFileSync(od, await checkSheetPdf([{load:String(tue[0][0]),order:'5688001',name:'ORDER DATE TEST BAR',date:'10/11/2026',orderDate:'09/11/2026'}],{}));
+    await p.click('nav [data-tab=print]'); await p.selectOption('#jpDay','D2026-11-09'); await p.setInputFiles('#jpFile',od); await p.waitForFunction(()=>document.getElementById('jpDay').value==='D2026-11-10',null,{timeout:30000});
+    ok(true,'a PDF ordered on Mon 09.11 and delivered on Tue 10.11 sets the day to Tue 10.11: the delivery date is used, not the order date');
+    // two PDFs of two days: each day uses only its own PDF (the other day's shipments are not "unassigned")
+    { const fl=async()=>p.$$eval('#jpFiles li',x=>x.length); ok(await fl()===2,'both PDFs are imported (Mon 09.11 and Tue 10.11)');
+      const tueRoutes=await p.$$eval('#jpRoutes .jp-route .jp-rname',x=>x.map(e=>e.textContent)); ok(!tueRoutes.some(n=>/UNASSIGNED|Not in Resources/i.test(n)) && tueRoutes.length===1,'Tuesday: only its own PDF is planned, the Monday shipments are not shown as unassigned ('+tueRoutes.map(x=>x.replace(/\s+/g,' ')).join(' | ')+')');
+      ok(/Another day/.test(await p.textContent('#jpFiles')),'the PDF of the other day is marked “Another day — not used for the selected day”');
+      await p.selectOption('#jpDay','D2026-11-09'); await p.waitForTimeout(500);
+      ok(!/5688001/.test(await p.textContent('#jpRoutes')) && /Orders\s*\d+/.test((await p.textContent('#jpTiles')).replace(/\s+/g,' ')),'Monday: the Tuesday PDF is left out');
+      // duplicates are blocked: the same file, or a second PDF of the same day
+      await p.setInputFiles('#jpFile',od); await p.waitForTimeout(1500); ok(await fl()===2 && /already imported/.test(await p.textContent('#toast')),'the same PDF cannot be imported twice');
+      const od2=path.join(TMP,'tue_again.pdf'); fs.writeFileSync(od2, await checkSheetPdf([{load:String(tue[0][0]),order:'5688002',name:'SECOND TUESDAY BAR',date:'10/11/2026',orderDate:'09/11/2026'}],{}));
+      await p.setInputFiles('#jpFile',od2); await p.waitForTimeout(1500); ok(await fl()===2 && /PDF for Tue 10\.11 is already imported/.test(await p.textContent('#toast')),'a second PDF of the same day is blocked'); }
+    // Reprint: the loadings, grouped by the day they were loaded
+    { await p.click('[data-jpmode=reprint]'); const days=await p.$$eval('#jpRpLoads .jp-lday',x=>x.map(e=>e.textContent.trim()));
+      ok(days.join('|')==='Mon 09.11|Tue 10.11','Reprint lists the loadings grouped by day: '+days.join(', '));
+      const first=await p.$('#jpRpLoads .jp-lgrp:first-child .jp-lchip'); const label=(await first.textContent()).replace(/\s+/g,' '); await first.click();
+      ok(await p.$$eval('#jpRpList li',x=>x.length)>0 && /Loading \d+/.test(await p.textContent('#jpRpCount')),'clicking a loading lists its orders ('+label+')'); await p.click('[data-jpmode=organise]'); } }
+  // an order deferred from Mon to Tue: its check sheet is in the Monday PDF; Tuesday's Printing must find it there
+  { await p.click('nav [data-tab=plan]'); await p.click('#dbPlan [data-dbday="D2026-11-09"]'); await p.click('#expAll');
+    const dk=await p.$eval('.route:not(.deferred) .drop:not(.dh)',e=>e.dataset.k); const ord=(await p.$eval(`.drop[data-k="${dk}"] .c-ord`,e=>e.textContent)).split(',')[0].trim();
+    await p.click(`.drop[data-k="${dk}"] [data-act=defer]`); await p.waitForSelector('#dCal'); await p.click('#dCal [data-d="2026-11-10"]'); await p.selectOption('#dBay',{index:1}); await p.click('#dOk'); await p.waitForTimeout(300);
+    await p.click('nav [data-tab=print]'); await p.click('#dbPrint [data-dbday="D2026-11-10"]'); await p.waitForTimeout(800);
+    ok((await p.textContent('#jpRea')).includes(ord) && !(await p.$('#jpRea tr.bad')) && !(await p.$('#jpRea tr.inf')),'Tuesday: the order deferred from Monday is a reallocation found in the PDF of its original day ('+ord+')');
+    ok(!/not in any imported PDF|is not in the PDF/.test(await p.textContent('#jpIssuesCard')) && /Reallocations\s*(\d+) \/ \1(?!\d)/.test((await p.textContent('#jpTiles')).replace(/\s+/g,' ')),'… and nothing is flagged: all reallocations are applied');
+    await p.fill('#jpSearch',ord); ok((await p.$$eval('#jpRoutes .jp-route',x=>x.length))===1,'… it is printed under its Tuesday route'); await p.fill('#jpSearch','');
+    ok(await p.evaluate(()=>{ const t=document.querySelector('#jpRea .jp-tbl'); const c=[...document.querySelectorAll('#jpRea tbody tr:first-child td')]; const ws=i=>getComputedStyle(c[i]).whiteSpace; return ws(0)==='nowrap' && ws(2)==='nowrap' && ws(3)==='nowrap' && ws(1)==='normal' && t.scrollWidth<=t.clientWidth+1; }),'Reallocations: Order, From and To never wrap (the customer may), and the left bar is wide enough');
+    // the original day's PDF is not imported (any more): only then is it flagged, as a warning
+    const idx=await p.$$eval('#jpFiles li',x=>x.findIndex(li=>/Mon 09\.11/.test(li.textContent))); await p.click(`#jpFiles li:nth-child(${idx+1}) .remove`); await p.waitForTimeout(800);
+    ok(/not in any imported PDF/.test(await p.textContent('#jpIssues')) && (await p.$$eval('#jpIssues .jp-badge',x=>x.map(e=>e.className).join(' '))).includes('warning'),'if no imported PDF has the order, it is flagged as a warning'); }
   // a Viewer can print but not edit resources
   await p.click('#userBtn'); await p.click('#modal [data-act=switch]'); ok(await enter(p,'Warehouse'),'Warehouse (Viewer) is in');
   await p.click('nav [data-tab=res]'); await p.click('#rsDays [data-rsday=\"D2026-11-09\"]'); const before=await txt(0,2);
@@ -216,6 +255,31 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     ok(await q.evaluate(()=>localStorage.getItem('routePlannerBeta.old')===null && localStorage.getItem('routePlannerBeta.usersConfig')===null && localStorage.getItem('routePlannerBeta.v082.customers')===null && sessionStorage.getItem('rp.user')===null && !!localStorage.getItem('routePlannerDevice') && JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')||'{}').theme==='dark' && !JSON.parse(localStorage.getItem('routePlannerBeta.v082.prefs')||'{}').name),'Reset at start clears all the browser\'s saved data (plan, customers, users list, session) and keeps only the theme and the computer id');
     await q.evaluate(async()=>{ __rpGate.setRoot(await window.showDirectoryPicker()); __rpGate.home(); }); await q.waitForSelector('#modal [data-act=allow]'); await q.click('#modal [data-act=allow]'); await q.waitForSelector('[data-act="u:Alex"]');
     ok(true,'Allow access goes on to “Who is planning?”'); await c3.close(); }
+  // ---------- START WORKFLOW: after the master data window, load a saved plan or start a new week ----------
+  { const c5=await demoContext(b,DEMO); const q=await c5.newPage(); const e5=[]; q.on('pageerror',e=>e5.push(e.message)); await q.goto('file://'+APP); ok(await enter(q,'Alex',{keepStart:true}),'Alex is at the start window');
+    ok(/Load a saved plan/.test(await q.textContent('#modal')) && /New week/.test(await q.textContent('#modal')),'start window: Load a saved plan / New week');
+    await q.click('#modal [data-act=sload]'); await q.waitForFunction(()=>/Saved plans/.test(document.getElementById('modal').textContent)); ok(/PLANS/.test(await q.textContent('#modal')) && /Saved plans/.test(await q.textContent('#modal')),'Load a saved plan shows the window of saved plans'); await q.click('#modal [data-act=close]');
+    await q.evaluate(()=>{ document.getElementById('scrim').classList.remove('on'); });
+    // new week: default is the week after the last loaded one; go back to week 46 (its reports exist) and create it
+    await q.evaluate(()=>document.querySelector('#userBtn').click()); await q.click('#modal [data-act=data]'); await q.waitForSelector('#modal [data-act=dgo]'); await q.click('#modal [data-act=dgo]');
+    await q.evaluate(()=>{ document.getElementById('scrim').classList.remove('on'); });
+    await q.close(); await c5.close();
+    const c6=await demoContext(b,DEMO); const r=await c6.newPage(); await r.goto('file://'+APP); await enter(r,'Alex',{keepStart:true});
+    await r.click('#modal [data-act=snew]'); await r.waitForSelector('#modal [data-act=nwok]'); const wk0=+(await r.textContent('#modal b[style*="18px"]')).replace(/\D/g,'');
+    await r.click('#modal [data-act=nwprev]'); const wk1=+(await r.textContent('#modal b[style*="18px"]')).replace(/\D/g,''); ok(wk1===wk0-1,'New week: the arrows move the week (Week '+wk0+' → '+wk1+')');
+    while(wk1!==46 && +(await r.textContent('#modal b[style*="18px"]')).replace(/\D/g,'')>46) await r.click('#modal [data-act=nwprev]');
+    await r.click('#modal [data-act=nwok]'); await r.waitForSelector('input[name=fb]');
+    ok((await r.$$eval('#pDay option',o=>o.length))===5 && /Week 46/.test(await r.textContent('#modal [data-act^="w:"].on')),'New week: its five days are in the application and the reports window opens on that week'); ok(!e5.length,'no script errors (start workflow)'); await c6.close(); }
+  // ---------- UPLOAD: a planning sheet (Fri) and a resources sheet (Wed) in one go ----------
+  { const c7=await demoContext(b,DEMO); const r=await c7.newPage(); const e7=[]; r.on('pageerror',e=>e7.push(e.message)); await r.goto('file://'+APP); await enter(r,'Alex');
+    const wedDriver=XLSX.utils.sheet_to_json(XLSX.readFile(path.join(DEMO,'REPORTS','week_46','RES_Wed.xlsx')).Sheets.Sheet1,{header:1})[1][2];
+    await r.click('#uploadBtn'); await r.waitForSelector('input[name=fb]'); await r.check('input[value="REPORTS/week_46/DIPS_Plan_Fri.xlsx"]'); await r.check('input[value="REPORTS/week_46/RES_Wed.xlsx"]'); await r.click('#fbOk'); await r.waitForSelector('[data-act=add]');
+    ok(/no RESOURCES file for this day/.test(await r.textContent('#modal')) && !/used it anyway/.test(await r.textContent('#modal')),'a RESOURCES sheet of another day is not used for the planning day');
+    await r.click('[data-act=add]'); await r.waitForTimeout(500);
+    const opts=await r.$$eval('#pDay option',o=>o.map(x=>x.textContent.replace(/\s+/g,' ').trim())); ok(opts.some(x=>/Fri 13\.11/.test(x)) && opts.some(x=>/Wed 11\.11/.test(x)),'two days: Fri 13.11 (planning) and Wed 11.11 (resources only): '+opts.join(' | '));
+    await r.click('#dbPlan [data-dbday="D2026-11-13"]'); await r.click('#expAll'); const fri=await r.textContent('#pRoutes'); ok(await r.$$eval('#pRoutes .drop:not(.dh)',x=>x.length)>0 && !fri.includes(wedDriver) && /ROUTE/.test(fri),'Fri has the orders of the planning sheet and does not take the Wednesday crews (it shows route codes)');
+    await r.click('#dbPlan [data-dbday="D2026-11-11"]'); await r.click('#expAll'); ok(await r.$$eval('#pRoutes .drop:not(.dh)',x=>x.length)===0 && (await r.textContent('#pRoutes')).includes(wedDriver),'Wed has only the routes of the resources sheet (no orders)');
+    await r.click('nav [data-tab=res]'); await r.click('#rsDays [data-rsday="D2026-11-11"]'); ok((await r.textContent('#rsGrid')).includes(wedDriver),'the resources sheet feeds the Resources tab of its own day'); ok(!e7.length,'no script errors (upload test)'); await c7.close(); }
   // ---------- DONEGAL is only on the Customers tab ----------
   { const D2=path.join(TMP,'donegal'); fs.cpSync(DEMO,D2,{recursive:true});
     const edit=(rel,fn)=>{ const f=path.join(D2,rel); const wb=XLSX.readFile(f); const n=wb.SheetNames[0]; const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1}); fn(rows); wb.Sheets[n]=XLSX.utils.aoa_to_sheet(rows); XLSX.writeFile(wb,f); };
