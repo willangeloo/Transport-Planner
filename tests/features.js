@@ -261,7 +261,6 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     await q.click('#modal [data-act=sload]'); await q.waitForFunction(()=>/Saved plans/.test(document.getElementById('modal').textContent)); ok(/PLANS/.test(await q.textContent('#modal')) && /Saved plans/.test(await q.textContent('#modal')),'Load a saved plan shows the window of saved plans'); await q.click('#modal [data-act=close]');
     await q.evaluate(()=>{ document.getElementById('scrim').classList.remove('on'); });
     // new week: default is the week after the last loaded one; go back to week 46 (its reports exist) and create it
-    await q.evaluate(()=>document.querySelector('#userBtn').click()); await q.click('#modal [data-act=data]'); await q.waitForSelector('#modal [data-act=dgo]'); await q.click('#modal [data-act=dgo]');
     await q.evaluate(()=>{ document.getElementById('scrim').classList.remove('on'); });
     await q.close(); await c5.close();
     const c6=await demoContext(b,DEMO); const r=await c6.newPage(); await r.goto('file://'+APP); await enter(r,'Alex',{keepStart:true});
@@ -292,7 +291,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     await q.selectOption('#pDay','D2026-11-09'); await q.click('#expAll'); const planTxt=await q.textContent('#pRoutes');
     ok(!/DONEGAL/i.test(planTxt) && !planTxt.includes('5609001') && !planTxt.includes('Driver 99'),'Donegal bays and customers are left out of Planning');
     await q.click('nav [data-tab=res]'); await q.click('#rsDays [data-rsday=\"D2026-11-09\"]'); const resTxt2=await q.textContent('#rsGrid'); ok(!/DONEGAL/i.test(resTxt2) && !resTxt2.includes('Driver 99'),'… and out of Resources');
-    await q.click('nav [data-tab=customers]'); await q.waitForTimeout(300); ok(/DONEGAL 01/.test(await q.textContent('#cBay')),'… but still on the Customers tab');
+    await q.click('nav [data-tab=res]'); await q.click('.subnav [data-tab=customers]'); await q.waitForTimeout(300); ok(/DONEGAL 01/.test(await q.textContent('#cBay')),'… but still on the Customers tab');
     await q.click('nav [data-tab=report]'); ok(!/DONEGAL/i.test(await q.textContent('#rBody')),'… and out of the change report'); ok(!e2.length,'no script errors (Donegal copy)'+(e2.length?': '+e2.join(' | '):'')); await c2.close(); }
   ok(!errs.length,'no script errors'+(errs.length?': '+errs.join(' | '):''));
   await b.close();
