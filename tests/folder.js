@@ -57,7 +57,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   ok(m.includes('DIPS_Plan_Tue.xlsx') && m.includes('REPORTS/week_45') && !m.includes('DIPS_Plan_Thu.xlsx'),'Week 45 shows REPORTS/week_45 files only');
   ok(m.includes('Tue 03.11') && m.includes('Wed 04.11'),'dates worked out from week folder + weekday (Tue 03.11, Wed 04.11)');
   ok(!m.includes('DIPS_Plan_Mon') && !m.includes('Manifest') && !m.includes('Notes.xlsx') && !m.includes('BETA v0.9.0'),'only files in their folders are listed (no _ARCHIVE, manifest, unknown names or main-folder files)');
-  ok(await p.isDisabled('input[value="REPORTS/week_45/PROD_Tue.xlsx"]'),'Products listed but not selectable yet');
+  ok(!(await p.isDisabled('input[value="REPORTS/week_45/PROD_Tue.xlsx"]')),'Products can be selected (v0.12.0)');
   await p.click('[data-act="m:master"]'); { const mm=await p.textContent('#modal'); ok(mm.includes('MASTER_DEL_DETAILS.xlsx') && mm.includes('MASTER_DATA'),'MASTER_DATA listed (Reports › Master Data)'); await p.check('input[value="MASTER_DATA/MASTER_DEL_DETAILS.xlsx"]'); await p.click('[data-act="m:data"]'); }
   for(const v of ['REPORTS/week_45/DIPS_Plan_Tue.xlsx','REPORTS/week_45/RES_Tue.xlsx','REPORTS/week_45/RES_Wed.xlsx']) await p.check(`input[value="${v}"]`);
   await p.click('#fbOk'); await p.waitForSelector('[data-act=add]');

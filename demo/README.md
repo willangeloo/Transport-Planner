@@ -9,7 +9,7 @@ demo/Route_planning/
 │   ├── FIXED_ROUTES_DIPSDATA.xlsx   BAY 07 Mon/Wed/Fri, BAY 06 Tue/Thu, BAY 01 every day (only a reference when deferring orders; no routes are built from it)
 │   └── users.json                   Alex (Master), Sam (Manager), Jordan + Casey (User), Warehouse (Viewer)
 ├── REPORTS/week_46/                 Mon 09.11 – Fri 13.11.2026
-│   └── DIPS_Plan_<wd>.xlsx  RES_<wd>.xlsx  PROD_<wd>.xlsx  UPLIFTS_<wd>.xlsx  POD_<wd>.xlsx
+│   └── DIPS_Plan_<wd>.xlsx  RES_<wd>.xlsx  PROD_<wd>.xlsx  UPLIFTS_<wd>_AM.xlsx  UPLIFTS_<wd>_PM.xlsx  POD_<wd>.xlsx
 ├── CHECK_SHEETS/JDE/week_46/        five fake check-sheet PDFs, one per day, in the JDE Offloading Sheet Report layout; the file names don't say the day, the app reads it from the pages
 └── PLANS/week_46/                   five plans (one per day, each based on the previous one) + one snapshot
 ```
@@ -20,11 +20,11 @@ demo/Route_planning/
 |---|---|
 | `DIPS_Plan_<wd>`, `RES_<wd>` | The planning and the routes, crews and trucks of each day |
 | `CHECK_SHEETS/JDE/week_46/*.pdf` | One page per order, in the layout of the JDE Offloading Sheet Report: load, customer PO (some empty), order and delivery date, customer number and address, products (cases **CS** and kegs **EA**) with weights, empties, totals. Every order's weight adds up to the weight in the planning file. Everything is invented: no real customer, product, brand or logo. Upload one in **Printing** to try it |
-| `PROD_<wd>` | The same products, one row per order line (Products can't be imported yet) |
-| `UPLIFTS_<wd>` | Pick-ups of empty kegs or damaged stock; every day has at least one |
+| `PROD_<wd>` | The same products, one row per order line (unit CS or EA): the Products totals on the Home page |
+| `UPLIFTS_<wd>_AM`, `UPLIFTS_<wd>_PM` | The uplifts outstanding report, as exported twice a day: before the trucks leave (AM) and after they are back (PM). 20 invented uplifts (empty kegs, damaged stock), each with an uplift number, the date raised and its products. An uplift is collected with the customer's first delivery after it was raised, so it disappears from the next report; three are raised after the customer's last delivery of the week and stay outstanding (allocate them by hand) |
 | `POD_<wd>` | Proof of delivery: one row per order with time and receiver; a few are short or refused |
 
-Products, Uplifts and POD are listed in **Load day** but can't be imported yet. The **Delivery Shortages** link isn't set in the demo's `users.json`: a Master pastes it during the demo (the walkthrough does this with a placeholder link).
+POD is listed in **Load day** but can't be imported yet. The **Delivery Shortages** link isn't set in the demo's `users.json`: a Master pastes it during the demo (the walkthrough does this with a placeholder link).
 
 ## Use it
 
@@ -59,8 +59,9 @@ Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how role
 7. **Customize:** dark / light theme and a bay colour.
 8. **Resources:** rename a route (Route / Bay), add a comment, copy and paste a block, export to Excel.
 9. **Printing:** choose the Monday PDF from **CHECK_SHEETS › JDE** (the window shows the day it read from each PDF) and click **Organise PDFs**: a cover per route in plan order, moved orders on their new route, deferred orders apart. Then import **Thursday's** PDF to show the exceptions: a load that is not in Resources (**UNASSIGNED**), a page nobody can read (**REVIEW**) and a signature-only page that is left out.
-10. **Save** (into `PLANS/week_46`), then **Open plan**, then a snapshot.
-11. Switch to **Warehouse**: view-only.
+10. **Uplifts and Home:** load the uplift reports up to `UPLIFTS_Wed_AM` (Wednesday morning). **Home** shows the week as balloons with the totals; open Wednesday: the 6 uplifts are in red in the **UPLIFT** column and triangles on the map (**▲ Uplifts** hides them). In **Resources › Uplift Control**, allocate one by hand to Thursday, then **Printing › Uplift** makes the uplift dockets of Wednesday (their own PDF) and the **Change report** lists them. Load `UPLIFTS_Wed_PM` to show that the collected ones are completed.
+11. **Save** (into `PLANS/week_46`), then **Open plan**, then a snapshot.
+12. Switch to **Warehouse**: view-only.
 
 ## Rebuild it
 

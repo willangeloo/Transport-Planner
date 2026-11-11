@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.11.7</title>
+<title>Route Planner BETA v0.12.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -112,7 +112,7 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .route.open .chev{transform:rotate(90deg)}
 .drops{display:none;background:#fafbfc;border-top:1px solid var(--line)}
 .route.open .drops{display:block}
-.drop{display:grid;grid-template-columns:18px minmax(170px,2fr) minmax(110px,1.2fr) 74px 92px 205px;gap:12px;align-items:center;padding:7px 16px 7px 31px;border-bottom:1px dashed var(--line)}
+.drop{display:grid;grid-template-columns:18px minmax(150px,2fr) minmax(90px,1.1fr) 64px 62px 80px 205px;gap:10px;align-items:center;padding:7px 16px 7px 31px;border-bottom:1px dashed var(--line)}
 .drop.dh{padding-top:6px;padding-bottom:6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;background:#f1f3f5;border-bottom:1px solid var(--line)}
 .drop .c-kg{text-align:right;font-variant-numeric:tabular-nums}
 .drop .c-ord{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.45}
@@ -121,7 +121,7 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .side-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
 .lhead{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);background:#fafbfc;position:sticky;top:0;z-index:2}
 .lhead h3{margin:0;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
-@media (max-width:1250px){ .drop{grid-template-columns:18px minmax(150px,2fr) 70px 86px 205px} .drop .c-ord{display:none} .side-top{grid-template-columns:1fr} }
+@media (max-width:1250px){ .drop{grid-template-columns:18px minmax(150px,2fr) 66px 66px 82px 205px} .drop .c-ord{display:none} .side-top{grid-template-columns:1fr} }
 .drop:last-child{border-bottom:0}
 .drop.sel{background:var(--accent-soft)}
 .drop input{margin:0}
@@ -286,7 +286,7 @@ th.sortable:hover{text-decoration:underline}
   #tab-customers,#tab-plan{grid-template-columns:1fr;grid-template-rows:45% 55%}
   .side{border-right:0;border-bottom:1px solid var(--line)}
   .drop{grid-template-columns:18px minmax(0,1fr) auto;padding-left:16px}
-  .drop .c-ord,.drop .c-kg,.drop .c-tw,.drop.dh{display:none}
+  .drop .c-ord,.drop .c-upl,.drop .c-kg,.drop .c-tw,.drop.dh{display:none}
   header{gap:10px;padding:0 10px}
   .brand .tag,.hbtn span,.legend{display:none}
   nav button{padding:0 7px}
@@ -338,8 +338,8 @@ nav button.hl.on{color:#fff}
 .rs-grid th[data-col]{position:sticky;cursor:grab}.rs-grid th.rs-rn{cursor:grab}
 .rs-grid th.rs-over{box-shadow:inset 0 0 0 2px var(--selbd);background:var(--selbg)}
 body.rs-moving{cursor:grabbing;user-select:none}
-#tab-res,#tab-print{overflow:auto;display:none}
-#tab-res.on,#tab-print.on{display:block}
+#tab-res,#tab-print,#tab-upl,#tab-home{overflow:auto;display:none}
+#tab-res.on,#tab-print.on,#tab-upl.on,#tab-home.on{display:block}
 .rs{max-width:none}
 .rs .rep-head select{width:100%}
 .rs-card{overflow:visible!important}
@@ -534,13 +534,51 @@ html[data-theme=dark] .jp-drop{border-color:#3b4b5a}
 html[data-theme=dark] .jp-ritem .thumb{background:#0f1720}
 html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
 }
+/* v0.12.0: uplifts (red numbers, triangles on the map, the Uplifts button) and the Home page balloons */
+.upl-no{color:#d11a2a;font-weight:700;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;white-space:nowrap}
+html[data-theme=dark] .upl-no{color:#ff7070}
+.drop .c-upl{font-size:11.5px;line-height:1.45}
+.drop.uplonly{background:repeating-linear-gradient(135deg,transparent 0 8px,rgba(209,26,42,.05) 8px 16px)}
+.rstats .upl,.rstats .upl b{color:#d11a2a} html[data-theme=dark] .rstats .upl,html[data-theme=dark] .rstats .upl b{color:#ff7070}
+.flag.upl{background:#fde2e2;color:#b91c1c} html[data-theme=dark] .flag.upl{background:#3d1c1a;color:#ff8a80}
+.uplrow{margin-top:8px;display:flex;gap:6px;align-items:center}
+.uplbtn{background:#4b5563;color:#fff;border:1px solid #374151;border-radius:999px;padding:4px 12px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.uplbtn.off{background:transparent;color:#4b5563;border-style:dashed}
+html[data-theme=dark] .uplbtn{background:#cbd5e1;color:#111827;border-color:#e2e8f0}
+html[data-theme=dark] .uplbtn.off{background:transparent;color:#cbd5e1}
+.upl-ic{background:none!important;border:0!important}.upl-ic svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
+.legend .tri{width:0!important;height:0!important;border-radius:0!important;background:none!important;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #4b5563}
+.uc-tbl td{vertical-align:top}.uc-tbl .muted{font-size:11.5px}
+.uc-f{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.jp-uplift{display:grid;gap:14px;padding:0 18px 18px}
+.jp-uplift table{width:100%;border-collapse:collapse;font-size:12.5px}.jp-uplift th,.jp-uplift td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.jp-uplift .ugrp{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}.jp-uplift .ugrp h3{margin:0;padding:8px 12px;font-size:13px;background:var(--soft,#fafbfc);display:flex;gap:10px;align-items:baseline}
+.home{max-width:1400px;margin:0 auto;padding:22px}
+.home .hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:12px}
+.hball{text-align:left;border:1px solid var(--line);background:var(--card,#fff);border-radius:22px;padding:14px 16px 16px;cursor:pointer;font:inherit;color:var(--ink);box-shadow:0 2px 6px rgba(15,30,45,.08);transition:transform .12s,box-shadow .12s}
+.hball:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(15,30,45,.16)}
+.hball .hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}.hball .hd b{font-size:18px}.hball .hd .spacer{flex:1}
+.hball .st{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600;white-space:nowrap}
+.hball dl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0}
+.hball dl>div{background:var(--bg);border-radius:10px;padding:5px 8px;min-width:0}
+.hball dt{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.hball dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hball dl>div.wide{grid-column:span 3;display:flex;gap:10px;align-items:baseline}.hball dl>div.wide dt{flex:0 0 62px}.hball dl>div.wide dd{flex:1}
+.hball dl>div.prod dd{display:flex;gap:12px}.hball dl>div.prod small,.hball dl>div.wide small{font-size:10px;color:var(--muted);font-weight:600}
+.hball dl>div.upl dd{color:#d11a2a} html[data-theme=dark] .hball dl>div.upl dd{color:#ff7070}
+.hball.none{background:#d5dbe2;color:#566473;border-style:dashed;box-shadow:none}
+.hball.none .st{background:#bfc7d0;color:#3f4b57}.hball.none .empty-t{font-size:13px;margin-top:22px;margin-bottom:22px;text-align:center}
+html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:#2a3846} html[data-theme=dark] .hball.none .st{background:#1a2430;color:#8a9aaa}
+.hball.today{outline:3px solid var(--accent);outline-offset:2px}
+.hwk{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.11.7</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.0</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
-    <button data-tab="plan" class="on">Planning</button>
+    <button data-tab="home" class="on">Home</button>
+    <button data-tab="plan">Planning</button>
     <button data-tab="res">Resources</button>
     <button data-tab="report" class="hl">Change report <span class="n" id="navCount">0</span></button>
     <button data-tab="print" class="hl">Printing</button>
@@ -554,8 +592,10 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
   <button class="hbtn" id="openBtn" title="Open a plan file (.json) or snapshot (.html) saved by someone">⤒ <span>Open plan</span></button>
   <button class="hbtn" id="resetBtn" title="Reset the whole application: plan, customer master, fixed routes, users file and folder links">↺ <span>Reset</span></button>
 </header>
-<div class="subnav" id="subnav" hidden><span class="subnav-t">Resources</span><button data-tab="res">Resources sheet</button><button data-tab="customers">Customers</button></div>
+<div class="subnav" id="subnav" hidden><span class="subnav-t">Resources</span><button data-tab="res">Resources sheet</button><button data-tab="customers">Customers</button><button data-tab="upl">Uplift Control</button></div>
 <main>
+  <!-- HOME (v0.12.0): the week days as balloons -->
+  <section class="tab on" id="tab-home"></section>
   <!-- CUSTOMERS -->
   <section class="tab" id="tab-customers">
     <aside class="side">
@@ -584,7 +624,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
   </section>
 
   <!-- PLAN -->
-  <section class="tab on" id="tab-plan">
+  <section class="tab" id="tab-plan">
     <aside class="side">
       <div class="sec side-top">
         <div>
@@ -606,6 +646,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
           <div class="row" style="gap:4px"><button class="btn sm" id="bayAll">All</button><button class="btn sm" id="bayNone">None</button></div>
         </div>
         <div class="chips" id="pBays"></div>
+        <div class="uplrow"><button class="uplbtn" id="uplBtn" title="Show or hide the outstanding uplifts (triangles) on the map">▲ Uplifts <span id="uplN"></span></button></div>
       </div>
       <div class="sec" style="padding-top:10px;padding-bottom:10px"><input type="search" id="pSearch" placeholder="Search order, Ship To, name, bay, driver, helper or truck…" autocomplete="off"><div id="pSearchN"></div></div>
       <div class="list"><div class="lhead"><h3>Routes &amp; orders</h3><div class="row" style="gap:4px"><button class="btn sm" id="newRouteBtn" title="Add a route (bay, loading number, crew, truck) to this day">+ New route</button><button class="btn sm pri" id="insBtn" title="Add an order that is not in the planning file">+ Insert order</button><button class="btn sm" id="expAll">Expand all</button><button class="btn sm" id="colAll">Collapse all</button></div></div><div id="pRoutes"></div></div>
@@ -646,6 +687,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
     </div>
   </section>
   <section class="tab" id="tab-res"></section>
+  <section class="tab" id="tab-upl"></section>
   <section class="tab" id="tab-print"></section>
   <section class="tab" id="tab-options"></section>
   <section class="tab" id="tab-shortages"></section>
@@ -1361,7 +1403,7 @@ html[data-theme=dark] .jp-progress .bar{background:#1f6f69}
       { title: 'Customer Name', w: 233, get: function (o) { return o.customer || '(not found)'; } },
       { title: 'Shipment', w: 64, get: function (o) { return o.shipment; } },
       { title: 'Pages', w: 36, align: 'right', get: function (o) { return String(o.pages.length); } },
-      { title: 'Note', w: 82, get: function (o) { return o.movedFrom ? 'Moved from ' + o.movedFrom : ''; } }
+      { title: 'Note', w: 82, get: function (o) { return [o.movedFrom ? 'Moved from ' + o.movedFrom : '', o.uplift || ''].filter(Boolean).join(' / '); } }
     ];
   }
 
@@ -1947,7 +1989,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.11.7';
+const APP_VERSION='0.12.0';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -1980,6 +2022,10 @@ let S = Object.assign(freshState(), load(KEY, EMB?clone0(EMB.state):{}));
 ['cur','grp','cust','dock'].forEach(k=>{ if(!S[k]||typeof S[k]!=='object'||Array.isArray(S[k])) S[k]={}; });
 if(!S.look||typeof S.look!=='object') S.look={}; if(!S.look.colors) S.look.colors={}; if(!S.look.names) S.look.names={};
 if(!Array.isArray(S.log)) S.log=[]; if(!Array.isArray(S.added)) S.added=[]; if(!Array.isArray(S.routes)) S.routes=[]; if(!Array.isArray(S.days)) S.days=[];
+// v0.12.0: uplifts (items from the outstanding reports, reports loaded, allocations by hand) and products per order (from the Products report)
+function uplState(){ if(!S.upl||typeof S.upl!=='object'||Array.isArray(S.upl)) S.upl={}; ['items','man'].forEach(k=>{ if(!S.upl[k]||typeof S.upl[k]!=='object'||Array.isArray(S.upl[k])) S.upl[k]={}; }); if(!Array.isArray(S.upl.reports)) S.upl.reports=[]; return S.upl; }
+uplState();
+if(!S.prod||typeof S.prod!=='object'||Array.isArray(S.prod)) S.prod={}; if(!S.prod.orders||typeof S.prod.orders!=='object'||Array.isArray(S.prod.orders)) S.prod.orders={}; if(!Array.isArray(S.prod.files)) S.prod.files=[];
 function save(){ store(KEY,S); }
 let UPLOADS = load(UPKEY, EMB?clone0(EMB.uploads):[]); if(!Array.isArray(UPLOADS)) UPLOADS=[];   // one entry per uploaded day
 function saveUploads(){ return store(UPKEY,UPLOADS); }
@@ -2139,6 +2185,88 @@ function dayView(dayKey){
   return {routes, drops};
 }
 
+// ---------- uplifts (v0.12.0) ----------
+// The "uplifts outstanding" report is exported at least twice a day. An uplift is outstanding while the newest report lists it, and
+// completed when a newer report no longer lists it. It is planned automatically on the customer's first delivery from the day it can
+// still be collected; a planner can put any outstanding uplift on any planned route by hand (that choice wins).
+const uplList = () => Object.values(uplState().items).sort((a,b)=>String(a.no).localeCompare(String(b.no),'en',{numeric:true}));
+const uplOpenList = () => uplList().filter(u=>!u.closed);
+const fmtAt = at => at ? dayLbl(at.slice(0,10))+' '+at.slice(11,16) : '';
+// the first day the uplift can still be collected: a morning report = that day, an afternoon report (12:00 or later) = the next day
+function uplFrom(u){ const at=u.lastAt||''; let d=at.slice(0,10); if(d && +at.slice(11,13)>=12) d=addDays(d,1); if(u.raised && (!d || u.raised>d)) d=u.raised; return d||''; }
+// plan of every outstanding uplift: {no: {date, day (key, null if the day isn't loaded), load, manual}}
+function uplPlan(){
+  const out={}, by={};
+  Object.values(ORD).forEach(o=>{ const c=curOf(o.uid); const d=dayMap[c.day]; if(!d) return; const m=(by[d.date]=by[d.date]||{}); const ls=(m[o.s]=m[o.s]||[]); const ld=c.load||''; if(!ls.includes(ld)) ls.push(ld); });
+  const dates=Object.keys(by).sort();
+  uplOpenList().forEach(u=>{
+    const man=S.upl.man[u.no];
+    if(man){ const k=dayKeyForDate(man.date); out[u.no]={no:u.no, date:man.date, day:k, load:man.load||null, manual:true, by:man.by||''}; return; }
+    const from=uplFrom(u); const dt=dates.find(x=>x>=from && by[x][u.ship]); if(!dt) return;
+    const ls=by[dt][u.ship]; out[u.no]={no:u.no, date:dt, day:dayKeyForDate(dt), load:ls.find(Boolean)||null, manual:false};
+  });
+  return out;
+}
+function uplOnDay(dk, plan){ const d=dayMap[dk]; if(!d) return []; const pl=plan||uplPlan(); return Object.values(pl).filter(x=>x.date===d.date && S.upl.items[x.no]).map(x=>Object.assign({u:S.upl.items[x.no]},x)); }
+const uplProducts = u => (u.lines||[]).map(l=>`${l.product||l.desc||'?'}${l.qty!=null?' ×'+l.qty:''}`).join(', ');
+const uplNoHtml = nos => nos.map(n=>`<span class="upl-no">${esc(n)}</span>`).join('<br>');
+function uplRouteTxt(x){ if(!x) return ''; if(!x.day) return 'day not loaded'; if(!x.load) return 'not on a route yet'; return loadMap[x.day+'|'+x.load] ? routeName(x.day,x.load) : 'Load '+x.load+' (not on the day)'; }
+function uplWhenTxt(x){ return x ? (x.day?dayLabel(x.day):dayLbl(x.date)+' (not loaded)') : ''; }
+// the time of a report: from its name (…_AM = 08:00, …_PM = 15:00, or a time like 0800 / 14h30), else when the file was saved
+function uplReportAt(name, week, mod){
+  const nd=nameDate(name, week); const s=String(name).replace(/\.[a-z]+$/i,''); let hm=null;
+  const ap=s.match(/(?:^|[^A-Z])(AM|PM)(?:[^A-Z]|$)/i); if(ap) hm=ap[1].toUpperCase()==='AM'?'08:00':'15:00';
+  const t=s.match(/(?:^|[_ -])([01]\d|2[0-3])[:h]?([0-5]\d)(?:$|[_ -])/i); if(t) hm=t[1]+':'+t[2];
+  const md=mod?new Date(mod):null, z=n=>String(n).padStart(2,'0');
+  const date=(nd&&nd.date)||(md?ymd(md.getFullYear(),md.getMonth()+1,md.getDate()):todayStr());
+  if(!hm) hm=md?z(md.getHours())+':'+z(md.getMinutes()):'12:00';
+  return date+'T'+hm;
+}
+function uplHeader(rows){ return findHeader(rows,['UPLIFT NUMBER','SHIP TO']) || findHeader(rows,['UPLIFT ORDER NUMBER','SHIP TO']) || findHeader(rows,['SHIP TO','REASON','QUANTITY']); }
+function parseUplifts(f){
+  for(const n of f.wb.SheetNames){ const rows=sheetRows(f.wb.Sheets[n]); const h=uplHeader(rows); if(!h) continue;
+    const col=(...ks)=>{ for(const k of ks) if(h.idx[k]!=null) return h.idx[k]; return null; }, gv=(r,c)=>c==null?null:r[c];
+    const cNo=col('UPLIFT NUMBER','UPLIFT ORDER NUMBER','UPLIFT NO','UPLIFT'), cShip=col('SHIP TO','ADDRESS NUMBER SHIP TO'), cName=col('NAME','SHIP TO NAME','CUSTOMER NAME','CUSTOMER'),
+      cProd=col('PRODUCT','ITEM','ITEM NUMBER'), cDesc=col('DESCRIPTION'), cQty=col('QUANTITY','QTY'), cReason=col('REASON'), cRaised=col('DATE RAISED','RAISED','ORDER DATE','DATE');
+    const items={}; let lines=0;
+    rows.slice(h.row+1).forEach(r=>{ const ship=toId(gv(r,cShip)); if(!ship) return; const prod=cleanStr(gv(r,cProd))||'';
+      const no=toId(gv(r,cNo))||('U'+ship+(prod?'-'+prod:'')); lines++;
+      const it=items[no]||(items[no]={no, ship, name:cleanStr(gv(r,cName))||((custMap[ship]||{}).name)||ship, reason:cleanStr(gv(r,cReason))||'', raised:parseDateCell(gv(r,cRaised)), lines:[]});
+      it.lines.push({product:prod, desc:cleanStr(gv(r,cDesc))||'', qty:toNum(gv(r,cQty))}); });
+    return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(f.name,f.week,f.mod), items:Object.values(items), lines};
+  }
+  return null;
+}
+// a newer report sets what is outstanding; an older one is only kept as a record
+function uplApply(rep){
+  const U=uplState(); const latest=U.reports.filter(r=>!r.old).reduce((m,r)=>r.at>m?r.at:m,'');
+  const rec={file:rep.file, path:rep.path, hash:rep.hash, at:rep.at, loadedAt:new Date().toISOString(), by:FOLDER.user||'', n:rep.items.length, added:0, closed:0, reopened:0, old:false};
+  U.reports=U.reports.filter(r=>!(r.file===rep.file && r.hash===rep.hash));
+  if(latest && rep.at<latest){ rec.old=true; U.reports.push(rec); return rec; }
+  const before=uplPlan(); const seen=new Set();
+  rep.items.forEach(x=>{ seen.add(x.no); let u=U.items[x.no];
+    if(!u){ u=U.items[x.no]={no:x.no, firstAt:rep.at, firstFile:rep.file, hist:[]}; rec.added++; }
+    else if(u.closed){ (u.hist=u.hist||[]).push({ts:rep.at, what:'Listed again in '+rep.file}); u.closed=null; rec.reopened++; }
+    Object.assign(u,{ship:x.ship, name:x.name, reason:x.reason, raised:x.raised||u.raised||null, lines:x.lines, lastAt:rep.at, lastFile:rep.file}); });
+  Object.values(U.items).forEach(u=>{ if(u.closed || seen.has(u.no)) return; const p=before[u.no];
+    u.closed={at:rep.at, file:rep.file, date:p?p.date:'', load:p?p.load:'', route:p?uplRouteTxt(p):'', driver:p&&p.day&&p.load?loadInfo(p.day,p.load).driver:'', truck:p&&p.day&&p.load?loadInfo(p.day,p.load).truck:'', manual:!!(p&&p.manual)};
+    delete U.man[u.no]; rec.closed++; });
+  U.reports.push(rec); return rec;
+}
+// ---------- products (v0.12.0): quantities per order and unit, from the Products report (PROD_<wd>) ----------
+const PROD_UNITS=['CS','EA','KEG'];
+function prodHeader(rows){ return findHeader(rows,['ORDER NUMBER','QUANTITY','UNIT']) || findHeader(rows,['ORDER NUMBER','QUANTITY','UOM']); }
+function parseProducts(f){
+  for(const n of f.wb.SheetNames){ const rows=sheetRows(f.wb.Sheets[n]); const h=prodHeader(rows); if(!h) continue;
+    const cO=h.idx['ORDER NUMBER'], cQ=h.idx['QUANTITY'], cU=h.idx['UNIT']!=null?h.idx['UNIT']:h.idx['UOM']; const orders={}; let lines=0;
+    rows.slice(h.row+1).forEach(r=>{ const o=toId(r[cO]), q=toNum(r[cQ]); if(!o||q==null) return; let u=String(r[cU]==null?'':r[cU]).trim().toUpperCase(); if(!PROD_UNITS.includes(u)) u='other';
+      const t=orders[o]||(orders[o]={}); t[u]=(t[u]||0)+q; lines++; });
+    return {file:f.name, path:f.path||'', hash:f.hash||'', orders, lines};
+  }
+  return null;
+}
+function prodApply(p, at){ Object.assign(S.prod.orders, p.orders); S.prod.files=S.prod.files.filter(x=>!(x.name===p.file && (x.path||'')===(p.path||''))).concat([{name:p.file, path:p.path, hash:p.hash, at, n:Object.keys(p.orders).length}]); }
+
 // ---------- customization (v0.10, MASTER only): bay colours and route names for one day ----------
 // the colour a bay really shows: the planner's choice, else the master-file colour, else the colour it has on the loaded days
 function bayShown(b){ const c=colorOfBay(b); if(c!=='#888') return c; for(const d of DATA.days) for(const l of d.loads) if(bayBase(l.bay)===b && routeColor[d.key+'|'+l.id]) return routeColor[d.key+'|'+l.id]; return '#888888'; }
@@ -2159,7 +2287,7 @@ function renderOptions(){
     <div style="margin-top:14px"><label>Delivery Shortages report (Power BI)</label><div class="muted small" style="margin:2px 0 6px">Paste the report link, or the whole embed code (&lt;iframe …&gt;). Only powerbi.com is accepted. It is saved in users.json for everyone.</div>
      <div class="row"><input type="text" id="optBi" value="${esc(UCFG.bi||'')}" placeholder="https://app.powerbi.com/reportEmbed?reportId=…" style="flex:1"><button class="btn" data-opt="bi">Save link</button></div></div>`:'';
   const loaded=S.log.filter(e=>e.type==='load').slice().sort((a,b)=>b.id-a.id);
-  const files=`<div class="muted small" style="margin:8px 0 10px">Every file loaded into the planner (information only — these are not planning changes).</div>`+(loaded.length?`<table data-tbl="load"><thead><tr><th>Day</th><th>What</th><th>File</th><th>Details</th><th>Logged</th></tr></thead><tbody>${loaded.map(e=>`<tr><td>${e.day?esc(dayLabel(e.day)):'—'}</td><td><b>${esc({day:'Planning day',res:'RESOURCES',master:'Customer master',fixed:'Fixed routes'}[e.kind]||e.kind)}</b>${e.replaced?'<div class="muted">replaced the loaded version</div>':''}</td><td class="muted">${(e.files||[]).map(esc).join('<br>')}</td><td>${esc(e.summary||'')}</td><td class="muted">${fmtTime(e.ts)}${e.by?`<div><span class="flag dk-off byflag">👤 ${esc(e.by)}</span></div>`:''}</td></tr>`).join('')}</tbody></table>`:'<div class="muted small">No files loaded yet.</div>');
+  const files=`<div class="muted small" style="margin:8px 0 10px">Every file loaded into the planner (information only — these are not planning changes).</div>`+(loaded.length?`<table data-tbl="load"><thead><tr><th>Day</th><th>What</th><th>File</th><th>Details</th><th>Logged</th></tr></thead><tbody>${loaded.map(e=>`<tr><td>${e.day?esc(dayLabel(e.day)):'—'}</td><td><b>${esc({day:'Planning day',res:'RESOURCES',master:'Customer master',fixed:'Fixed routes',upl:'Uplifts outstanding',prod:'Products'}[e.kind]||e.kind)}</b>${e.replaced?'<div class="muted">replaced the loaded version</div>':''}</td><td class="muted">${(e.files||[]).map(esc).join('<br>')}</td><td>${esc(e.summary||'')}</td><td class="muted">${fmtTime(e.ts)}${e.by?`<div><span class="flag dk-off byflag">👤 ${esc(e.by)}</span></div>`:''}</td></tr>`).join('')}</tbody></table>`:'<div class="muted small">No files loaded yet.</div>');
   el.innerHTML=`<div class="rep"><div class="rep-head"><div><div class="muted small">Look, users and files of the planner</div><h1>Options</h1></div></div>
    ${sec('customize','🎨','Customize',customize)}${users?sec('users','👥','Users',users):''}${sec('files','📥',`Files loaded <span class="muted" style="font-weight:400">(${loaded.length})</span>`,files)}
    ${/* RULE: Theme is always the LAST section of Options; any section added later goes above it */''}${sec('theme','🌓','Theme',theme)}</div>`;
@@ -2182,6 +2310,74 @@ async function saveBiLink(v){
 }
 function lookChanged(){ save(); indexDays(); if(pInit) renderPlan(); if(cInit) renderCustomers(false); renderOptions(); toast('Customization saved with the plan'); }
 
+
+// ---------- Home (v0.12.0): the days of a week as balloons — planned days with their totals, the others greyed out ----------
+const HM={wk:'', browse:false};
+function homeStats(dk, pl){
+  const v=dayView(dk), routes=v.routes.filter(r=>!r.deferred), drops=v.routes.flatMap(r=>r.drops), uids=drops.flatMap(d=>d.uids);
+  const pr={CS:0,EA:0,KEG:0}; let hasP=false; uids.forEach(u=>{ const t=S.prod.orders[String(ORD[u].o)]; if(t){ hasP=true; PROD_UNITS.forEach(k=>pr[k]+=t[k]||0); } });
+  const sum=f=>routes.reduce((s,r)=>s+(toNum(r.load[f])||0),0);
+  return {bays:routes.length, drops:drops.length, orders:uids.length, kg:drops.reduce((s,d)=>s+d.kg,0), km:sum('km'), pallets:sum('pallets'), prod:hasP?pr:null, upl:uplOnDay(dk,pl).length, uplNos:uplOnDay(dk,pl).map(x=>x.no)};
+}
+function renderHome(){
+  const el=$('tab-home'); const pl=uplPlan(), t=todayStr();
+  if(!HM.browse||!HM.wk){ const cur=dayMap[P.day]; const ref=DATA.days.some(d=>weekStart(d.date)===weekStart(t))?t:cur?cur.date:DATA.days.length?DATA.days[DATA.days.length-1].date:t; HM.wk=weekStart(ref); }
+  const weeks=[...new Set(DATA.days.map(d=>weekStart(d.date)).concat(HM.wk))].sort();
+  const dates=[0,1,2,3,4,5,6].map(i=>addDays(HM.wk,i)).filter(d=>dateDow(d)<5 || dayKeyForDate(d));
+  const n=x=>kg(x), wkTot={drops:0,orders:0,kg:0,upl:0}; let planned=0;
+  const balls=dates.map(d=>{ const k=dayKeyForDate(d), today=d===t?' today':'';
+    if(!k) return `<button class="hball none${today}" data-hdate="${d}" title="No plan for this day yet — click to create it"><div class="hd"><b>${esc(dayLbl(d))}</b><span class="spacer"></span><span class="st">no plan</span></div><div class="empty-t">No plan yet<br><span class="small">Click to create the plan for this day</span></div></button>`;
+    const s=homeStats(k,pl); planned++; wkTot.drops+=s.drops; wkTot.orders+=s.orders; wkTot.kg+=s.kg; wkTot.upl+=s.upl;
+    const p=s.prod; const cell=(t2,v,cls)=>`<div class="${cls||''}"><dt>${t2}</dt><dd>${v}</dd></div>`;
+    return `<button class="hball${today}" data-hday="${esc(k)}" title="Open the plan of ${esc(dayLbl(d))}"><div class="hd"><b>${esc(dayLbl(d))}</b><span class="spacer"></span>${d===t?'<span class="st">today</span>':'<span class="st">plan open</span>'}</div>
+      <dl>${cell('Bays',s.bays)}${cell('Drops',n(s.drops))}${cell('Orders',n(s.orders))}${cell('Kgs',n(s.kg))}${cell('Km',n(s.km))}${cell('Pallets',n(s.pallets))}
+      <div class="wide prod"><dt>Products</dt><dd>${p?PROD_UNITS.map(u=>`<span><small>${u}</small> ${n(p[u])}</span>`).join(''):'<span class="muted" style="font-weight:400">not loaded</span>'}</dd></div>
+      <div class="wide upl"><dt>Uplifts</dt><dd title="${esc(s.uplNos.join(', '))}">${s.upl}${s.upl?` <small class="muted" style="font-weight:400">· ${esc(s.uplNos.join(', '))}</small>`:''}</dd></div></dl></button>`; }).join('');
+  el.innerHTML=`<div class="home"><div class="rep-head" style="margin-bottom:6px"><div><div class="muted small">${companyName()?esc(companyName())+' · ':''}the days of the week · click a day to plan it</div><h1>Home</h1></div><div class="spacer"></div>
+     <div class="hwk"><button class="rs-nav" data-hwnav="-1" title="Previous week" aria-label="Previous week">‹</button>${weeks.map(w=>`<button class="rs-wk ${w===HM.wk?'on':''}" data-hwk="${w}">Week ${isoWeek(w)}</button>`).join('')}<button class="rs-nav" data-hwnav="1" title="Next week" aria-label="Next week">›</button></div></div>
+    <div class="muted small">Week ${isoWeek(HM.wk)} · ${planned} of ${dates.length} days planned${planned?` · ${n(wkTot.drops)} drops · ${n(wkTot.orders)} orders · ${n(wkTot.kg)} kg · <span class="upl-no" style="font-family:inherit">${wkTot.upl} uplift${wkTot.upl!==1?'s':''}</span>`:''} · ${uplOpenList().length} uplift${uplOpenList().length!==1?'s':''} outstanding</div>
+    <div class="hgrid">${balls}</div></div>`;
+}
+$('tab-home').addEventListener('click',e=>{
+  const nv=e.target.closest('[data-hwnav]'); if(nv){ HM.wk=addDays(HM.wk,7*(+nv.dataset.hwnav)); HM.browse=true; return renderHome(); }
+  const w=e.target.closest('[data-hwk]'); if(w){ HM.wk=w.dataset.hwk; HM.browse=true; return renderHome(); }
+  const b=e.target.closest('[data-hday]'); if(b){ showTab('plan'); selectDay(b.dataset.hday); return; }
+  const c=e.target.closest('[data-hdate]'); if(c) openDayPlan(c.dataset.hdate, k=>{ HM.browse=true; showTab('plan'); selectDay(k); });
+});
+// ---------- Uplift Control (v0.12.0): every uplift outstanding and the records of completed ones, with the day and route planned ----------
+const UC={f:'open', q:''};
+function renderUplCtl(){
+  const el=$('tab-upl'); const U=uplState(), pl=uplPlan(), all=uplList(), ro=!can('edit');
+  const open=all.filter(u=>!u.closed), done=all.filter(u=>u.closed);
+  const nAuto=open.filter(u=>pl[u.no]&&!pl[u.no].manual).length, nHand=open.filter(u=>pl[u.no]&&pl[u.no].manual).length, nNone=open.filter(u=>!pl[u.no]).length;
+  const reps=U.reports.slice().sort((a,b)=>b.at.localeCompare(a.at)||b.loadedAt.localeCompare(a.loadedAt)); const last=reps.find(r=>!r.old);
+  const F={open:u=>!u.closed, none:u=>!u.closed&&!pl[u.no], hand:u=>!u.closed&&pl[u.no]&&pl[u.no].manual, done:u=>!!u.closed, all:()=>true};
+  const q=UC.q.toLowerCase(); const rows=all.filter(F[UC.f]||F.open).filter(u=>!q||[u.no,u.ship,u.name,u.reason,uplProducts(u),(custMap[u.ship]||{}).bay].some(v=>String(v||'').toLowerCase().includes(q)));
+  const kpi=(f,n,t)=>`<div class="kpi click ${UC.f===f?'on2':''}" data-ucf="${f}"><b>${n}</b><span>${t}</span></div>`;
+  const tr=u=>{ const x=pl[u.no], c=custMap[u.ship], cl=u.closed;
+    const when = cl ? (cl.date?`${esc(dayLbl(cl.date))}`:'<span class="muted">—</span>') : x ? (x.day?`<button class="btn sm" data-uact="goday" data-no="${esc(u.no)}" data-day="${esc(x.day)}" title="Open this day in Planning">${esc(dayLabel(x.day))}</button>`:esc(uplWhenTxt(x))) : '<b style="color:var(--danger)">not planned</b>';
+    const li=x&&x.day&&x.load?loadInfo(x.day,x.load):null;
+    const route = cl ? (cl.route?`${esc(cl.route)}<div class="muted">${[cl.driver,cl.truck,cl.load&&'Load '+cl.load].filter(Boolean).map(esc).join(' · ')}</div>`:'<span class="muted">—</span>')
+      : x ? `<b>${esc(uplRouteTxt(x))}</b>${li?`<div class="muted">${[li.driver,li.helper&&'+ '+li.helper,li.truck,'Load '+x.load].filter(Boolean).map(esc).join(' · ')}</div>`:''}` : '<span class="muted">no delivery on the loaded days</span>';
+    const how = cl ? `<span class="flag ad">completed</span><div class="muted">not in the report of ${esc(fmtAt(cl.at))}${cl.date?' · was planned '+(cl.manual?'by hand':'with the delivery'):''}</div>`
+      : x ? (x.manual?`<span class="flag mv">by hand</span>${x.by?`<div class="muted">${esc(x.by)}</div>`:''}`:'<span class="flag">with the delivery</span>') : '<span class="flag upl">not planned</span>';
+    const acts = cl||ro ? '' : `<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate…</button>${x&&x.manual?` <button class="btn sm" data-uact="auto" data-no="${esc(u.no)}">Automatic</button>`:''}`;
+    return `<tr><td><span class="upl-no">${esc(u.no)}</span></td><td data-s="${esc(u.raised||'')}">${u.raised?esc(dayLbl(u.raised)):'—'}<div class="muted">seen ${esc(fmtAt(u.firstAt))}</div></td><td><b>${esc(u.name)}</b><div class="muted">${esc(u.ship)}${c&&c.bay?' · '+esc(c.bay):''}${c&&c.days&&c.days.length?' · delivered '+esc(daysTxt(c.days)):''}</div></td><td>${(u.lines||[]).map(l=>`${esc(l.product)} ×${esc(l.qty==null?'?':l.qty)}${l.desc?`<div class="muted">${esc(l.desc)}</div>`:''}`).join('')}</td><td>${esc(u.reason||'—')}</td><td>${when}</td><td>${route}</td><td>${how}</td><td class="no-print">${acts}</td></tr>`; };
+  el.innerHTML=`<div class="rep"><div class="rep-head"><div><div class="muted small">Uplifts outstanding (from the newest report) and the records of completed ones · planned with the customer's next delivery, or by hand</div><h1>Uplift Control</h1></div><div class="spacer"></div>
+    <button class="btn no-viewer" data-uc="load" title="Load an uplifts outstanding report from REPORTS › week_XX">⤒ Load uplifts report</button><button class="btn" data-uc="export">⤓ Export Excel</button></div>
+    <div class="kpis">${kpi('open',open.length,'outstanding')}${kpi('none',nNone,'not planned')}${kpi('hand',nHand,'allocated by hand')}<div class="kpi"><b>${nAuto}</b><span>with a delivery</span></div>${kpi('done',done.length,'completed (records)')}${kpi('all',all.length,'all uplifts')}</div>
+    ${last?`<div class="note info" style="margin-bottom:12px">Outstanding as of the report of <b>${esc(fmtAt(last.at))}</b> (${esc(last.file)}). Load the next report (at least twice a day): uplifts it doesn't list any more are completed.</div>`:'<div class="note warn" style="margin-bottom:12px">No uplifts report loaded yet. Load the newest <b>UPLIFTS</b> report from REPORTS › week_XX (📁 Reports or ⤒ Load uplifts report).</div>'}
+    <div class="card"><h2>↩ Uplifts <span class="muted" style="font-weight:400">(${rows.length})</span><span class="spacer"></span><input type="search" id="ucQ" class="secf" placeholder="Search uplift, customer, product, bay…" value="${esc(UC.q)}"></h2>
+     ${rows.length?`<table class="uc-tbl" data-tbl="upl"><thead><tr><th>Uplift</th><th>Raised</th><th>Customer</th><th>Products</th><th>Reason</th><th>Day planned</th><th>Route</th><th>Status</th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:'<div class="empty small">No uplifts here.</div>'}</div>
+    <div class="card"><h2>📥 Reports loaded <span class="muted" style="font-weight:400">(${reps.length})</span></h2>${reps.length?`<table><thead><tr><th>Report time</th><th>File</th><th>Uplifts</th><th>New</th><th>Completed</th><th>Loaded</th></tr></thead><tbody>${reps.map(r=>`<tr><td><b>${esc(fmtAt(r.at))}</b>${r.old?'<div class="muted">older than the newest — record only</div>':''}</td><td class="muted">${esc(r.path||r.file)}</td><td>${r.n}</td><td>${r.old?'—':r.added}</td><td>${r.old?'—':r.closed}</td><td class="muted">${esc(fmtTime(r.loadedAt))}${r.by?' · '+esc(r.by):''}</td></tr>`).join('')}</tbody></table>`:'<div class="empty small">None yet.</div>'}</div></div>`;
+  const qi=$('ucQ'); if(qi) qi.oninput=e=>{ UC.q=e.target.value; const pos=e.target.selectionStart; renderUplCtl(); const n=$('ucQ'); n.focus(); n.setSelectionRange(pos,pos); };
+}
+$('tab-upl').addEventListener('click',e=>{
+  const f=e.target.closest('[data-ucf]'); if(f){ UC.f=f.dataset.ucf; return renderUplCtl(); }
+  const b=e.target.closest('[data-uc]'); if(!b) return;
+  if(b.dataset.uc==='load'){ if(!guard('edit','load reports')) return; return openFolderBrowser('data'); }
+  if(b.dataset.uc==='export'){ const pl=uplPlan(); writeXlsx(uplList().map(u=>{ const x=pl[u.no], cl=u.closed; return {'Uplift Number':u.no,'Raised':u.raised||'','Ship To':u.ship,'Customer':u.name,'Products':uplProducts(u),'Reason':u.reason||'','Status':cl?'Completed':'Outstanding','Day planned':cl?(cl.date?dayLbl(cl.date):''):x?uplWhenTxt(x):'not planned','Route':cl?cl.route:x?uplRouteTxt(x):'','Planned':cl?(cl.manual?'by hand':''):x?(x.manual?'by hand':'with the delivery'):'','Completed (report)':cl?fmtAt(cl.at):''}; }),`Uplifts_${todayStr()}.xlsx`,[12,11,10,28,24,14,12,16,22,16,18]); }
+});
 // ---------- Delivery Shortages (v0.11.4): the Power BI report, embedded; it opens with the account signed in to the browser ----------
 const BI={src:''};
 function renderShortages(){
@@ -2227,18 +2423,20 @@ document.addEventListener('click',e=>{
   if(b.dataset.dbwk){ st.wk=b.dataset.dbwk; st.browse=true; const first=DATA.days.find(d=>weekStart(d.date)===st.wk); if(first){ st.browse=false; dbPick(sc,first.key); } else renderDayBar(sc); }
 });
 // ---------- tabs ----------
-let curTab='plan'; const SUBTAB={customers:'res'};   // sub heading: Customers belongs to Resources
+let curTab='plan'; const SUBTAB={customers:'res', upl:'res'};   // sub heading: Customers and Uplift Control belong to Resources
 document.querySelectorAll('nav button, .bitab, .subnav button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 function showTab(t){
   curTab=t;
   document.querySelectorAll('nav button, .bitab, .subnav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t || (b.closest('nav') && b.dataset.tab===(SUBTAB[t]||''))));
-  { const sub=(t==='res'||t==='customers'); $('subnav').hidden=!sub; document.body.classList.toggle('hassub',sub); }
+  { const sub=(t==='res'||!!SUBTAB[t]); $('subnav').hidden=!sub; document.body.classList.toggle('hassub',sub); }
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
   if(t==='customers'){ initCMap(); if(cMap) setTimeout(()=>{ cMap.invalidateSize(); if(!cFitted){ cFitted=true; renderCustomers(true); } },0); }
   if(t==='plan'){ initPMap(); if(pMap) setTimeout(()=>{pMap.invalidateSize(); if(!pFitted){fitRoutes(); pFitted=true;}},0); }
   if(t==='report') renderReport();
   if(t==='options') renderOptions();
   if(t==='shortages') renderShortages();
+  if(t==='home') renderHome();
+  if(t==='upl') renderUplCtl();
   if(t==='res'){ RS.day=P.day; RS.browse=false; renderResources(); }
   if(t==='print'){ JS.day=P.day; renderPrint(); }
 }
@@ -2359,7 +2557,8 @@ function defaultDay(){
   if(UPLOADS.length){ const up=DATA.days.filter(d=>uploadOf(d.date)); const nx=up.find(d=>d.date>=t); return (nx||up[up.length-1]).key; }
   return dayMap['W39-2']?'W39-2':DATA.days[0].key;
 }
-const P={day:null, hidden:new Set(), show:new Set(), sel:new Set(), open:new Set(), q:''};
+const P={day:null, hidden:new Set(), show:new Set(), sel:new Set(), open:new Set(), q:'', upl:true};
+let UPLP={};   // v0.12.0: the uplift plan, worked out once per render of Planning
 const daySel=$('pDay');
 function buildDaySel(){
   if(!DATA.days.length){ daySel.innerHTML='<option value="">No days loaded</option>'; P.day=null; return; }
@@ -2387,7 +2586,7 @@ function initPMap(){
   renderPlan();
 }
 function renderPlan(){
-  view = dayView(P.day); renderDayBar('plan');
+  view = dayView(P.day); UPLP = uplPlan(); renderDayBar('plan');
   renderRoutes(); renderBayChips(); renderPlanMap(); renderBanner(); renderSelBar(); updateNav(); renderSrc();
   const all = view.routes.flatMap(r=>r.drops);
   $('pK1').textContent = dayMap[P.day] ? view.routes.filter(r=>!r.deferred).length : '–';
@@ -2404,8 +2603,12 @@ function renderBanner(){
 }
 function renderBayChips(){
   $('pBays').innerHTML = view.routes.map(r=>`<button class="chip ${mapVisible(r)?'':'off'}" data-r="${r.id}"><span class="sw" style="background:${r.color}"></span>${esc(r.deferred?'Unassigned':r.name)}</button>`).join('');
-  $('pLegend').innerHTML = `<div><i style="background:#2f9e44"></i>Each bay has its own colour</div><div><i style="background:${DEF_COLOR};border:2px solid #f59e0b"></i>Deferred in, not on a bay</div><div><i style="background:#fff;border:3px solid #111"></i>Moved / inserted / split</div>`;
+  $('pLegend').innerHTML = `<div><i style="background:#2f9e44"></i>Each bay has its own colour</div><div><i style="background:${DEF_COLOR};border:2px solid #f59e0b"></i>Deferred in, not on a bay</div><div><i style="background:#fff;border:3px solid #111"></i>Moved / inserted / split</div>`+(P.upl?`<div><i class="tri"></i>Uplift outstanding (route colour = planned · grey = not planned)</div>`:'');
+  const n=uplMapList().length; $('uplN').textContent=dayMap[P.day]?'('+n+')':''; $('uplBtn').classList.toggle('off',!P.upl); $('uplBtn').setAttribute('aria-pressed',P.upl?'true':'false');
 }
+// the outstanding uplifts the map can show for the day: those planned on it, and those not planned on any loaded day
+function uplMapList(){ const d=dayMap[P.day]; if(!d) return []; return uplOpenList().map(u=>({u, x:UPLP[u.no]||null})).filter(o=>!o.x || o.x.date===d.date); }
+$('uplBtn').addEventListener('click',()=>{ P.upl=!P.upl; refreshMap(); });
 // v0.11.2: which routes are on the map. None or all expanded = all; some expanded = only those; "show on map" adds or removes single routes.
 function mapVisible(r){ const id=r.id, n=view.routes.length, o=P.open.size; const base=(o===0||o>=n)?true:P.open.has(id); return (base && !P.hidden.has(id)) || P.show.has(id); }
 function refreshMap(){ renderBayChips(); renderPlanMap(); }
@@ -2437,30 +2640,40 @@ function ordMatch(o,q){ return o.n.toLowerCase().includes(q) || String(o.s).incl
 function renderRoutes(){
   const q=P.q;
   if(!dayMap[P.day]){ $('pRoutes').innerHTML='<div class="empty">No planning day loaded.<br>Click <b>⤒ Load day</b> and drop the planning and RESOURCES files.</div>'; return; }
-  const shownRoutes = q ? view.routes.filter(r=>routeMatch(r,q) || r.drops.some(d=>dropMatch(d,q))) : view.routes;
+  const dUpl=uplOnDay(P.day, UPLP);
+  const shownRoutes = q ? view.routes.filter(r=>routeMatch(r,q) || r.drops.some(d=>dropMatch(d,q)) || dUpl.some(x=>String(x.load||'')===String(r.id||'') && [x.u.name,x.u.ship,x.no].some(v=>String(v).toLowerCase().includes(q)))) : view.routes;
   $('pRoutes').innerHTML = shownRoutes.map(r=>{
     const st=routeStats(r), l=r.load;
     const crew = l? [l.driver&&('🚚 '+esc(l.driver)), l.helper&&('+ '+esc(l.helper)), l.truck&&('· '+esc(l.truck))].filter(Boolean).join(' ') : '';
     const meta = l? [l.pallets!=null&&`<span><b>${l.pallets}</b> pallets</span>`, l.km!=null&&`<span><b>${l.km}</b> km</span>`].filter(Boolean).join('') : '';
+    // v0.12.0: uplifts planned on this route — on the customer's drop (UPLIFT column), or as an uplift-only stop
+    const rUpl=dUpl.filter(x=>String(x.load||'')===String(r.id||'')), usedUpl=new Set();
+    const uplOf=d=>{ if(d.grp && r.drops.some(o=>o.ship===d.ship && !o.grp)) return []; const m=rUpl.filter(x=>x.u.ship===d.ship && !usedUpl.has(x.no)); m.forEach(x=>usedUpl.add(x.no)); return m; };
     const drops = (q && !routeMatch(r,q) ? r.drops.filter(d=>dropMatch(d,q)) : r.drops).map(d=>{
+      const du=uplOf(d);
       const c=custMap[d.ship];
       const addr=d.addr||(c&&c.addr)||'';
       const more = d.grp ? `<button class="btn sm" data-act="merge" title="Put these orders back on one line">Merge</button>` : (d.uids.length>1 ? `<button class="btn sm" data-act="split" title="Split this customer's orders into two lines">Split</button>` : '');
       return `<div class="drop ${P.sel.has(d.key)?'sel':''}" data-k="${esc(d.key)}"><input type="checkbox" ${P.sel.has(d.key)?'checked':''} data-act="tick">
         <div class="nm"><div title="${esc(d.name)}">${esc(d.name)}${dropFlags(d)}</div><div class="muted small" title="${esc(addr)}">${esc(d.ship)}${addr?' · '+esc(addr):''}</div></div>
         <div class="c-ord">${d.uids.map(u=>esc(ORD[u].o)).join(', ')}</div>
+        <div class="c-upl">${du.length?uplNoHtml(du.map(x=>x.no)):''}</div>
         <div class="c-kg">${kg(d.kg)}</div>
         <div class="c-tw">${c&&c.tw?esc(c.tw):'<span class="muted">—</span>'}</div>
         <div class="acts"><button class="btn sm" data-act="locate" title="Show on map">⌖</button>${more}<button class="btn sm" data-act="move">Move</button><button class="btn sm" data-act="defer">Defer</button></div></div>`;
-    }).join('') || '<div class="empty small">No drops on this route.</div>';
+    }).join('') + rUpl.filter(x=>!r.drops.some(d=>d.ship===x.u.ship)).filter(x=>!q || routeMatch(r,q) || [x.u.name,x.u.ship,x.no].some(v=>String(v).toLowerCase().includes(q))).map(x=>{ const u=x.u, c=custMap[u.ship];
+      return `<div class="drop uplonly" data-un="${esc(u.no)}"><span></span><div class="nm"><div title="${esc(u.name)}">${esc(u.name)}<span class="flag upl" title="No delivery for this customer on this route: the uplift was put here by hand">uplift only</span>${x.manual?'<span class="flag mv">by hand</span>':''}</div><div class="muted small">${esc(u.ship)} · ${esc(uplProducts(u))}</div></div>
+        <div class="c-ord"><span class="muted">—</span></div><div class="c-upl">${uplNoHtml([u.no])}</div><div class="c-kg"></div><div class="c-tw">${c&&c.tw?esc(c.tw):'<span class="muted">—</span>'}</div>
+        <div class="acts"><button class="btn sm" data-uact="locate" data-no="${esc(u.no)}" title="Show on map">⌖</button><button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate…</button></div></div>`; }).join('');
+    const nUpl=rUpl.length;
     return `<div class="route ${P.open.has(r.id)||q?'open':''} ${r.deferred?'deferred':''}" data-r="${r.id}">
       <div class="rhead" data-act="toggle"><span class="rbar" style="background:${r.color}"></span><div style="flex:1;min-width:0">
         <div class="title">${esc(r.name)} ${l?`<span class="ld">${esc(loadTxt(l.id))}</span>`:''}${l&&l.custom?'<span class="flag ad">new route</span>':''}</div>
         ${crew?`<div class="crew">${crew}</div>`:''}
-        <div class="rstats"><span><b>${st.drops}</b> drop${st.drops!==1?'s':''}</span><span><b>${st.orders}</b> order${st.orders!==1?'s':''}</span><span><b>${kg(st.kg)}</b> kg</span>${meta}</div>
+        <div class="rstats"><span><b>${st.drops}</b> drop${st.drops!==1?'s':''}</span><span><b>${st.orders}</b> order${st.orders!==1?'s':''}</span><span><b>${kg(st.kg)}</b> kg</span>${meta}${nUpl?`<span class="upl"><b>${nUpl}</b> uplift${nUpl!==1?'s':''}</span>`:''}</div>
         ${l&&l.area?`<div class="area">${esc(l.area)}</div>`:''}
       </div><span class="chev">›</span></div>
-      <div class="drops">${r.drops.length?'<div class="drop dh"><span></span><span>Customer</span><span class="c-ord">Orders</span><span class="c-kg">Kg</span><span class="c-tw">Window</span><span></span></div>':''}${drops}</div></div>`;
+      <div class="drops">${r.drops.length||nUpl?'<div class="drop dh"><span></span><span>Customer</span><span class="c-ord">Orders</span><span class="c-upl">Uplift</span><span class="c-kg">Kg</span><span class="c-tw">Window</span><span></span></div>':''}${drops||'<div class="empty small">No drops on this route.</div>'}</div></div>`;
   }).join('');
   // search summary + matches on other days
   if(!q){ $('pSearchN').innerHTML=''; return; }
@@ -2505,7 +2718,7 @@ function dropPopup(d){
   const ords=d.uids.map(u=>ORD[u].o).join(', ');
   return `<div class="pop"><h4>${esc(d.name)}</h4><div class="muted">Ship To ${esc(d.ship)} · ${esc(d.addr||(c&&c.addr)||'')}</div>
    <table><tr><td>Route</td><td><b style="color:${li.color}">${esc(routeName(d.day,d.load))}</b>${li.driver?' · '+esc(li.driver):''}</td></tr>
-   <tr><td>Orders</td><td class="ords">${esc(ords)}</td></tr><tr><td>Weight</td><td>${kg(d.kg)} kg</td></tr>
+   <tr><td>Orders</td><td class="ords">${esc(ords)}</td></tr>${(()=>{ const us=uplOnDay(d.day,UPLP).filter(x=>x.u.ship===d.ship && String(x.load||'')===String(d.load||'')); return us.length?`<tr><td>Uplift</td><td>${us.map(x=>`<span class="upl-no">${esc(x.no)}</span> ${esc(uplProducts(x.u))}`).join('<br>')}</td></tr>`:''; })()}<tr><td>Weight</td><td>${kg(d.kg)} kg</td></tr>
    <tr><td>Time window</td><td>${esc((c&&c.tw)||'—')}</td></tr><tr><td>Master bay</td><td>${esc((c&&c.bay)||'—')}</td></tr><tr><td>Usual days</td><td>${daysTxt(c&&c.days)}</td></tr></table>
    <div class="acts" style="flex-wrap:wrap"><button class="btn sm pri" data-pact="move" data-k="${esc(d.key)}">Move to bay…</button><button class="btn sm" data-pact="defer" data-k="${esc(d.key)}">Defer…</button>${d.uids.length>1&&!d.grp?`<button class="btn sm" data-pact="split" data-k="${esc(d.key)}">Split…</button>`:''}<button class="btn sm" data-pact="sel" data-k="${esc(d.key)}">${P.sel.has(d.key)?'Unselect':'Select'}</button><button class="btn sm" data-cact="edit" data-id="${esc(d.ship)}">✎ ${c?'Edit customer':'Add customer'}</button></div></div>`;
 }
@@ -2530,7 +2743,52 @@ function renderPlanMap(){
       m.addTo(pLayer); pMarkers[d.key]=m;
     });
   });
+  // v0.12.0: outstanding uplifts as triangles (next to the customer's dot): route colour when planned on this day, grey when not planned
+  uMarkers={}; if(!P.upl) return;
+  const shown=new Set(view.routes.filter(mapVisible).map(r=>String(r.id||'')));
+  uplMapList().forEach(({u,x})=>{
+    if(x && !shown.has(String(x.load||''))) return;
+    if(P.q && ![u.name,u.ship,u.no].some(v=>String(v).toLowerCase().includes(P.q))) return;
+    const c=custMap[u.ship]; if(!c||c.lat==null) return;
+    const col=x ? (x.load ? (routeColor[P.day+'|'+x.load]||'#888') : DEF_COLOR) : '#9ca3af';
+    const m=L.marker([c.lat,c.lng],{icon:uplIcon(col,!x), zIndexOffset:400, keyboard:false, title:''}).bindPopup(()=>uplPopup(u,x)).bindTooltip(`▲ Uplift ${esc(u.no)} · ${esc(u.name)} · ${x?esc(uplRouteTxt(x)):'not planned'}`);
+    m.addTo(pLayer); uMarkers[u.no]=m;
+  });
 }
+let uMarkers={};
+const uplIcon=(col,none)=>L.divIcon({className:'upl-ic', html:`<svg width="18" height="16" viewBox="0 0 18 16" aria-label="Uplift"><polygon points="9,1.5 16.8,14.8 1.2,14.8" fill="${col}" stroke="${none?'#374151':'#111'}" stroke-width="1.6"${none?' stroke-dasharray="3 2"':''}/></svg>`, iconSize:[18,16], iconAnchor:[-3,17], popupAnchor:[6,-14]});
+function uplPopup(u,x){ const c=custMap[u.ship];
+  return `<div class="pop"><h4>▲ Uplift <span class="upl-no" style="font-size:13px">${esc(u.no)}</span></h4><div class="muted">${esc(u.name)} · Ship To ${esc(u.ship)}${c&&c.addr?' · '+esc(c.addr):''}</div>
+   <table><tr><td>Products</td><td>${esc(uplProducts(u))||'—'}</td></tr><tr><td>Reason</td><td>${esc(u.reason||'—')}</td></tr><tr><td>Raised</td><td>${u.raised?esc(dayLbl(u.raised)):'—'}</td></tr>
+   <tr><td>Planned</td><td>${x?`<b>${esc(uplWhenTxt(x))}</b> · ${esc(uplRouteTxt(x))}<div class="muted">${x.manual?'allocated by hand'+(x.by?' by '+esc(x.by):''):'with the customer\'s delivery'}</div>`:'<b style="color:var(--danger)">Not planned</b><div class="muted">No delivery for this customer on the loaded days</div>'}</td></tr></table>
+   <div class="acts" style="flex-wrap:wrap"><button class="btn sm pri" data-uact="alloc" data-no="${esc(u.no)}">Allocate to a route…</button>${x&&x.manual?`<button class="btn sm" data-uact="auto" data-no="${esc(u.no)}">Back to automatic</button>`:''}</div></div>`; }
+function uplLocate(no){ const m=uMarkers[no]; if(!m||!pMap){ toast('This uplift is not on the map (no location, hidden route or the Uplifts button is off)'); return; } pMap.setView(m.getLatLng(),14); m.openPopup(); }
+// allocate an outstanding uplift to any route of a loaded day (by hand), or put it back to automatic
+function openUplAlloc(no){
+  if(!guard('edit','allocate uplifts')) return; const u=S.upl.items[no]; if(!u||u.closed){ toast('This uplift is not outstanding'); return; }
+  if(!DATA.days.length){ toast('No planning day loaded'); return; }
+  const x=uplPlan()[no]; let dk=(x&&x.day)||(dayMap[P.day]?P.day:DATA.days[0].key);
+  const dels=DATA.days.map(d=>{ const r=dayView(d.key).routes.find(rt=>rt.drops.some(dr=>dr.ship===u.ship)); return r?`${d.label} · ${r.deferred?'not on a bay':r.name}`:''; }).filter(Boolean);
+  const draw=()=>{ const v=dayView(dk);
+    openModal(`<div class="mh"><h2>Allocate uplift <span class="upl-no" style="font-size:16px">${esc(no)}</span></h2><div class="muted small">${esc(u.name)} · Ship To ${esc(u.ship)} · ${esc(uplProducts(u))}${u.reason?' · '+esc(u.reason):''}</div></div>
+     <div class="mb"><div class="note info">Now: ${x?`<b>${esc(uplWhenTxt(x))}</b> · ${esc(uplRouteTxt(x))} · ${x.manual?'allocated by hand':'automatic, with the delivery'}`:'<b>not planned</b> (no delivery for this customer on the loaded days)'}<br>Deliveries of this customer: ${dels.length?dels.map(esc).join(' · '):'none on the loaded days'}</div>
+      <div><label>Day</label><select id="uaDay">${DATA.days.map(d=>`<option value="${d.key}" ${d.key===dk?'selected':''}>${esc(d.label)} · Week ${esc(d.week)}</option>`).join('')}</select></div>
+      <div><label>Route</label><select id="uaLoad">${v.routes.filter(r=>!r.deferred).map(r=>{ const has=r.drops.some(d=>d.ship===u.ship); return `<option value="${esc(r.id)}" ${x&&x.day===dk&&String(x.load)===String(r.id)?'selected':''}>${esc(r.name)} — ${esc(r.load.driver||'no driver')}${has?' · delivers this customer':''}</option>`; }).join('')||'<option value="">No routes on this day</option>'}</select></div></div>
+     <div class="mf">${x&&x.manual?'<button class="btn" data-act="auto" style="margin-right:auto">Back to automatic</button>':''}<button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok" ${v.routes.some(r=>!r.deferred)?'':'disabled'}>Allocate</button></div>`,
+     {onAct:a=>{ if(a==='auto'){ uplSetAuto(no); closeModal(); return; } if(a!=='ok') return; const ld=$('uaLoad').value; if(!ld) return;
+       S.upl.man[no]={date:dayMap[dk].date, load:ld, by:FOLDER.user||'', ts:new Date().toISOString()}; (u.hist=u.hist||[]).push({ts:new Date().toISOString(), by:FOLDER.user||'', what:`Allocated by hand to ${dayMap[dk].label} · ${routeName(dk,ld)}`});
+       closeModal(); uplChanged(); toast(`Uplift ${no} allocated to ${dayMap[dk].label} · ${routeName(dk,ld)}`); }});
+    $('uaDay').onchange=e=>{ dk=e.target.value; draw(); }; };
+  draw();
+}
+function uplSetAuto(no){ if(!guard('edit','change uplifts')) return; const u=S.upl.items[no]; if(!u||!S.upl.man[no]) return; delete S.upl.man[no]; (u.hist=u.hist||[]).push({ts:new Date().toISOString(), by:FOLDER.user||'', what:'Back to automatic'}); uplChanged(); toast(`Uplift ${no} is planned with the customer's delivery again`); }
+function uplChanged(){ save(); if(pInit) renderPlan(); if(curTab==='upl') renderUplCtl(); if(curTab==='report') renderReport(); if(curTab==='home') renderHome(); if(curTab==='print') renderPrint(); }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-uact]'); if(!b) return; const no=b.dataset.no, a=b.dataset.uact; if(pMap) pMap.closePopup();
+  if(a==='alloc') return openUplAlloc(no);
+  if(a==='auto') return uplSetAuto(no);
+  if(a==='locate') return uplLocate(no);
+  if(a==='goday'){ const k=b.dataset.day; if(!dayMap[k]) return; showTab('plan'); selectDay(k); const x=UPLP[no]; if(x&&x.load){ P.open.add(x.load); renderRoutes(); } setTimeout(()=>uplLocate(no),150); }
+});
 function fitRoutes(){
   if(!pMap) return;
   const pts=Object.values(pMarkers).map(m=>m.getLatLng());
@@ -3086,13 +3344,15 @@ function parseDateCell(v){
   return null;
 }
 function classifyWorkbook(wb){
-  let plan=0, res=0, fixed=0, cust=0;
+  let plan=0, res=0, fixed=0, cust=0, upl=0, prod=0;
   wb.SheetNames.forEach(n=>{ const rows=sheetRows(wb.Sheets[n]);
     if(findCustHeader(rows)) cust++;
     else if(findHeader(rows,['TRIP TAG','DAY'])) fixed++;
+    else if(uplHeader(rows)) upl++;
+    else if(prodHeader(rows)) prod++;
     else if(findHeader(rows,['LOAD NUMBER','ORDER NUMBER'])) plan++;
     else if(findHeader(rows,['SHIPMENT','BAY'])) res++; });
-  return cust ? 'cust' : fixed ? 'fixed' : plan>res ? 'plan' : res>0 ? 'res' : null;
+  return cust ? 'cust' : fixed ? 'fixed' : plan>res ? 'plan' : res>0 ? 'res' : upl ? 'upl' : prod ? 'prod' : null;
 }
 function resLoads(r){
   const loads={}; const ri=r.h.idx, gv=(row,k)=>ri[k]!=null?row[ri[k]]:null;
@@ -3271,7 +3531,8 @@ async function fileHash(f){
 }
 // every file the planner has loaded: days (DIPS Plan / RES), customer master, fixed routes
 function loadedFiles(){ const out=[]; UPLOADS.forEach(u=>(u.fileInfo||[]).forEach(fi=>out.push(Object.assign({date:u.date},fi))));
-  if(MASTER) out.push({name:MASTER.file, path:MASTER.path||'', hash:MASTER.hash||'', kind:'cust'}); if(S.fixed) out.push({name:S.fixed.file, path:S.fixed.path||'', hash:S.fixed.hash||'', kind:'fixed'}); return out; }
+  if(MASTER) out.push({name:MASTER.file, path:MASTER.path||'', hash:MASTER.hash||'', kind:'cust'}); if(S.fixed) out.push({name:S.fixed.file, path:S.fixed.path||'', hash:S.fixed.hash||'', kind:'fixed'});
+  uplState().reports.forEach(r=>out.push({name:r.file, path:r.path||'', hash:r.hash||'', kind:'upl'})); S.prod.files.forEach(f=>out.push({name:f.name, path:f.path||'', hash:f.hash||'', kind:'prod'})); return out; }
 // loaded = this exact file is in the planner · changed = a file with this name/place was loaded, but its content is different now · new
 function fileStatus(f){ const L=loadedFiles(); if(f.hash && L.some(x=>x.hash===f.hash)) return 'loaded';
   if(L.some(x=>(x.path&&f.path&&x.path===f.path)||((!x.path||!f.path)&&x.name===f.name))) return 'changed'; return 'new'; }
@@ -3319,7 +3580,7 @@ function renderUpload(){
   const noLib = typeof XLSX==='undefined';
   let body = noLib ? `<div class="note warn">The Excel reader needs an internet connection to load. Connect and reopen the file to use uploads.</div>` :
    (UP.files.length||UP.busy ? '' : `<div class="note info">Reports are loaded from the company folder only: <b>REPORTS › week_XX</b> (DIPS Plan and RES) and <b>MASTER_DATA</b> (customer master, fixed routes). Click <b>📁 Choose files</b>.</div>`);
-  if(UP.files.length) body+=`<div class="fchips">${UP.files.map(f=>`<span class="fchip ${f.kind}">${f.kind==='plan'?'📋 Planning':f.kind==='fixed'?'🗓 Fixed routes':f.kind==='cust'?'👥 Customer master':'🚚 Resources'} · ${esc(f.path||f.name)}</span>`).join('')}</div>`;
+  if(UP.files.length) body+=`<div class="fchips">${UP.files.map(f=>`<span class="fchip ${f.kind}">${f.kind==='plan'?'📋 Planning':f.kind==='fixed'?'🗓 Fixed routes':f.kind==='cust'?'👥 Customer master':f.kind==='upl'?'↩ Uplifts':f.kind==='prod'?'📦 Products':'🚚 Resources'} · ${esc(f.path||f.name)}</span>`).join('')}</div>`;
   if(UP.err) body+=`<div class="note warn">${esc(UP.err)}</div>`;
   if(UP.busy) body+=`<div class="note info">Reading files…</div>`;
   let ok='';
@@ -3342,8 +3603,11 @@ function renderUpload(){
     if(p.fixed) body+=`<div class="note info">🗓 <b>Fixed routes:</b> ${p.fixed.bays.length} bays from ${esc(p.fixed.file)} — ${[0,1,2,3,4,5].map(i=>DOW[i]+' '+p.fixed.bays.filter(b=>b.days.includes(i)).length).join(' · ')}. These bays will be available on every planning day.</div>`;
     if(p.cust){ const cu=p.cust, nb=new Set(cu.list.map(c=>c.bay).filter(Boolean)).size;
       body+=`<div class="note ${cu.noLoc?'warn':'info'}">👥 <b>Customer master:</b> ${cu.list.length} customers from ${esc(cu.file)} › ${esc(cu.sheet)} · ${nb} bays${cu.noLoc?` · <b>${cu.noLoc}</b> without coordinates (not on the map)`:''}.${MASTER?` Replaces the current master (${MASTER.list.length} customers from ${esc(MASTER.file)}). Customer edits made in the planner are kept.`:''} The page reloads after loading it.</div>`; }
-    const nAct=p.days.length+(p.resDays?p.resDays.length:0)+(p.fixed?1:0)+(p.cust?1:0);
-    const lbl=[p.days.length?`Add ${p.days.length} day${p.days.length>1?'s':''}`:'', p.resDays&&p.resDays.length?'Apply RESOURCES':'', p.fixed?'Apply fixed routes':'', p.cust?'Load customer master':''].filter(Boolean).join(' + ');
+    if(p.upl&&p.upl.length){ const latest=uplState().reports.filter(r=>!r.old).reduce((m,r)=>r.at>m?r.at:m,'');
+      body+=`<div class="note info">↩ <b>Uplifts outstanding:</b> ${p.upl.map(r=>`${esc(r.file)} <span class="muted">(${esc(fmtAt(r.at))})</span>: <b>${r.items.length}</b> uplift${r.items.length!==1?'s':''}${latest&&r.at<latest?' <span class="muted">· older than the report already loaded, kept as a record only</span>':''}`).join('<br>')}<div class="muted small" style="margin-top:4px">The newest report says which uplifts are outstanding; the ones it doesn't list any more are marked completed. Uplifts are planned with the customer's next delivery, or by hand in Uplift Control.</div></div>`; }
+    if(p.prod&&p.prod.length) body+=`<div class="note info">📦 <b>Products:</b> ${p.prod.map(r=>`${esc(r.file)}: ${Object.keys(r.orders).length} orders, ${r.lines} lines`).join(' · ')} — the CS / EA / KEG totals on the Home page.</div>`;
+    const nAct=p.days.length+(p.resDays?p.resDays.length:0)+(p.fixed?1:0)+(p.cust?1:0)+(p.upl?p.upl.length:0)+(p.prod?p.prod.length:0);
+    const lbl=[p.days.length?`Add ${p.days.length} day${p.days.length>1?'s':''}`:'', p.resDays&&p.resDays.length?'Apply RESOURCES':'', p.upl&&p.upl.length?'Load uplifts':'', p.prod&&p.prod.length?'Load products':'', p.fixed?'Apply fixed routes':'', p.cust?'Load customer master':''].filter(Boolean).join(' + ');
     if(nAct) ok=`<button class="btn pri" data-act="add">${lbl}</button>`;
     if(p.issues.length) body+=`<div><label>Data checks (${p.issues.length})</label><div class="note ${p.issues.some(i=>i.lvl==='err')?'warn':'info'}"><ul class="issues">${p.issues.map(i=>`<li>${i.lvl==='err'?'⛔':i.lvl==='warn'?'⚠':'ℹ'} ${esc(i.t)}</li>`).join('')}</ul></div></div>`;
     else if(p.days.length) body+=`<div class="note info">✓ All loads matched to resources and all customers found in the master file.</div>`;
@@ -3377,8 +3641,8 @@ async function takeFiles(files){
     for(const f of files){
       if(!/\.xls[xm]?$/i.test(f.name)){ errs.push(`“${f.name}” is not an Excel file.`); continue; }
       const wb=await readWorkbook(f); const kind=classifyWorkbook(wb);
-      if(!kind){ errs.push(`“${f.name}” doesn't look like a planning, RESOURCES, fixed-routes or customer master file — ignored.`); continue; }
-      const key=f.rpPath||f.name, hash=f.rpHash||await fileHash(f); UP.files=UP.files.filter(x=>x.key!==key); UP.files.push({key, name:f.name, path:f.rpPath||'', week:f.rpPath?weekOfPath(f.rpPath):null, kind, wb, hash});
+      if(!kind){ errs.push(`“${f.name}” doesn't look like a planning, RESOURCES, uplifts, products, fixed-routes or customer master file — ignored.`); continue; }
+      const key=f.rpPath||f.name, hash=f.rpHash||await fileHash(f); UP.files=UP.files.filter(x=>x.key!==key); UP.files.push({key, name:f.name, path:f.rpPath||'', week:f.rpPath?weekOfPath(f.rpPath):null, kind, wb, hash, mod:f.lastModified});
     }
     const plans=UP.files.filter(f=>f.kind==='plan'), ress=UP.files.filter(f=>f.kind==='res'), fx=UP.files.filter(f=>f.kind==='fixed'), cm=UP.files.filter(f=>f.kind==='cust');
     let cust=null; if(cm.length){ cust=parseCust(cm[cm.length-1]); if(!cust) errs.push(`“${cm[cm.length-1].name}”: no customer rows found.`); }
@@ -3386,6 +3650,8 @@ async function takeFiles(files){
     UP.parsed = (plans.length||ress.length) ? parseDays(plans, ress, cmap) : {days:[], resDays:[], issues:[]};
     UP.parsed.fixed=null; UP.parsed.cust=cust; UP.parsed.cmap=cmap;
     if(fx.length){ UP.parsed.fixed=parseFixed(fx[fx.length-1]); if(!UP.parsed.fixed) errs.push(`“${fx[fx.length-1].name}”: no “Trip Tag” / “Day” rows found.`); }
+    UP.parsed.upl=UP.files.filter(f=>f.kind==='upl').map(f=>{ const r=parseUplifts(f); if(!r) errs.push(`“${f.name}”: no uplift rows found.`); return r; }).filter(Boolean).sort((a,b)=>a.at.localeCompare(b.at));
+    UP.parsed.prod=UP.files.filter(f=>f.kind==='prod').map(f=>{ const r=parseProducts(f); if(!r) errs.push(`“${f.name}”: no product rows found.`); return r; }).filter(Boolean);
   }catch(e){ errs.push('Could not read the file: '+(e&&e.message||e)); }
   UP.err=errs.join(' '); UP.busy=false; renderUpload();
 }
@@ -3422,7 +3688,7 @@ function uploadAct(a){
   if(p.cust) logLoad({kind:'master', day:'', files:[p.cust.file], replaced:!!MASTER, summary:MASTER?custDiff(MASTER.list,p.cust.list).txt:`${p.cust.list.length} customers`});
   if(p.fixed) logLoad({kind:'fixed', day:'', files:[p.fixed.file], replaced:!!S.fixed, summary:S.fixed?fixedDiff(S.fixed,p.fixed).txt:`${p.fixed.bays.length} bays`});
   p.days.forEach(d=>{ d.fileInfo=d.files.map(fi); });
-  if(!p.days.length && !(p.resDays&&p.resDays.length) && !p.fixed && !p.cust) return;
+  if(!p.days.length && !(p.resDays&&p.resDays.length) && !p.fixed && !p.cust && !(p.upl&&p.upl.length) && !(p.prod&&p.prod.length)) return;
   if(p.cust && !store(CUSTKEY,{file:p.cust.file, at, list:p.cust.list, hash:fi(p.cust.file).hash, path:fi(p.cust.file).path})){ toast('Browser storage is full — could not keep the customer master'); return; }
   if(p.fixed){ const f=fi(p.fixed.file); S.fixed=Object.assign({at, hash:f.hash, path:f.path},p.fixed); store(FIXKEY,S.fixed); }
   p.days.forEach(d=>{ const ex=dayKeyForDate(d.date); if(ex) clearChanges(originChanges(ex));
@@ -3447,6 +3713,10 @@ function uploadAct(a){
   p.days.forEach(d=>{ if(d.res) resMerge(d.date, d.loads); }); (p.resDays||[]).forEach(rd=>resMerge(rd.date, rd.loads));
   UPLOADS.sort((a,b)=>a.date.localeCompare(b.date));
   const stored=saveUploads();
+  // v0.12.0: uplifts outstanding (oldest report first, so the newest one decides) and products — after the days, so uplifts plan on them
+  indexDays(); normalizeState();
+  const uplRecs=(p.upl||[]).map(r=>{ const rec=uplApply(r); logLoad({kind:'upl', day:'', files:[r.file], replaced:false, summary:rec.old?`${rec.n} uplifts · older than the newest report, record only`:`${rec.n} outstanding · ${rec.added} new · ${rec.closed} completed`}); return rec; });
+  (p.prod||[]).forEach(r=>{ prodApply(r,at); logLoad({kind:'prod', day:'', files:[r.file], replaced:false, summary:`${Object.keys(r.orders).length} orders, ${r.lines} lines`}); });
   const before=Object.values(S.cur).filter(c=>isPending(c.day)).length;
   afterDataChange();
   const landed=before-Object.values(S.cur).filter(c=>isPending(c.day)).length;
@@ -3458,6 +3728,8 @@ function uploadAct(a){
   if(p.days.length) parts.push(`${p.days.length} day${p.days.length>1?'s':''} loaded — ${p.days.reduce((s,d)=>s+d.orders.length,0)} orders`);
   if(p.resDays&&p.resDays.length) parts.push(`RESOURCES applied to ${p.resDays.map(d=>d.label).join(', ')}`);
   if(p.fixed) parts.push(`fixed routes: ${p.fixed.bays.length} bays`);
+  if(uplRecs.length){ const lr=uplRecs.filter(r=>!r.old).slice(-1)[0]; parts.push(`uplifts: ${uplOpenList().length} outstanding${lr?` (report of ${fmtAt(lr.at)})`:''}`); }
+  if(p.prod&&p.prod.length) parts.push(`products of ${p.prod.reduce((s,r)=>s+Object.keys(r.orders).length,0)} orders`);
   if(p.cust){ parts.push(`customer master: ${p.cust.list.length} customers`); try{ sessionStorage.setItem('rp.msg',parts.join(' · ')); }catch(e){} location.reload(); return; }
   toast(parts.join(' · ')+(landed>0?` · ${landed} deferred order${landed>1?'s':''} carried in`:'')+(stored?'':' (this session only — browser storage full)'));
 }
@@ -3465,6 +3737,8 @@ function afterDataChange(){
   indexDays(); normalizeState(); save(); buildDaySel();
   if(pInit) renderPlan(); updateNav();
   if(curTab==='print') renderPrint();
+  if(curTab==='home') renderHome();
+  if(curTab==='upl') renderUplCtl();
 }
 
 // ================= REPORT (v0.9.0: sections, filters, per-section export, clickable boxes) =================
@@ -3576,8 +3850,11 @@ function renderReport(){
   $('rSub').textContent='Planning changes vs. loaded files'+(R.day?' · '+dayLabel(R.day):'')+' · '+DATA.days.length+' day'+(DATA.days.length!==1?'s':'')+' loaded';
   const files=[...new Set(DATA.days.flatMap(d=>{const u=uploadOf(d.date); return u?u.files:[];}))];
   $('printMeta').textContent='Generated '+new Date().toLocaleString('en-IE')+(R.day?' · Day: '+dayLabel(R.day):'')+(R.q?' · Search: '+R.q:'')+' · Source files: '+files.concat(MASTER?[MASTER.file]:[]).join(', ');
+  // v0.12.0: the uplifts planned for the day (all days when none is chosen) — a list, not changes
+  const uRows=reportUplifts(), uHtml=reportUplHtml(uRows);
+  $('rKpis').insertAdjacentHTML('beforeend',`<div class="kpi" title="Uplifts planned (see the Uplifts section)"><b style="color:#d11a2a">${uRows.length}</b><span>uplifts planned</span></div>`);
   const anyAtAll=S.log.length||pendingGroups().length;
-  if(!anyAtAll || !S.log.some(isChange) && !pendingGroups().length){ $('rBody').innerHTML=`<div class="card"><div class="empty">No changes yet.<br>Go to <b>Planning</b> to move, defer, split or insert orders, or edit a customer from the <b>Customers</b> map — every change is logged here with the order numbers staff need to update in other systems.</div></div>`; return; }
+  if(!anyAtAll || !S.log.some(isChange) && !pendingGroups().length){ $('rBody').innerHTML=uHtml+`<div class="card"><div class="empty">No changes yet.<br>Go to <b>Planning</b> to move, defer, split or insert orders, or edit a customer from the <b>Customers</b> map — every change is logged here with the order numbers staff need to update in other systems.</div></div>`; return; }
   const undoBtn=(e,lbl)=>`<button class="btn sm no-print" data-undo="${e.id}" ${canUndo(e)?'':'disabled title="Later changes affect this — undo those first"'}>${lbl||'Undo'}</button>`;
   const dayTd=k=>`<td data-s="${esc(dateOfKey(k)||'')}">${esc(dayLabel(k))}</td>`, kgTd=w=>`<td data-s="${w||0}">${kg(w)}</td>`, tsTd=e=>`<td class="muted" data-s="${esc(e.ts)}">${fmtTime(e.ts)}${e.by?`<div><span class="flag dk-off byflag" title="Changed by ${esc(e.by)}">👤 ${esc(e.by)}</span></div>`:''}</td>`;
   const cust=e=>`<td><b>${esc(e.name)}</b><div class="muted">${esc(e.ship)}</div></td>`;
@@ -3598,7 +3875,7 @@ function renderReport(){
     res:{head:['Day','Bay','Loading no.','What changed','File','Logged'],
       row:e=>`<tr>${dayTd(e.day)}<td><b>${esc(e.bay)}</b></td><td class="ords">${esc(e.load||'')}</td><td class="chg">${e.created?'<b>Day created from RESOURCES</b> (no orders yet)':e.added?'<b>New route</b>':e.changes.map(c=>`<div><b>${esc(c.f)}:</b> <s>${esc(c.from)}</s> → ${esc(c.to)}</div>`).join('')}</td><td class="muted">${esc(e.file||'')}</td>${tsTd(e)}</tr>`},
     load:{head:['Day','What','File','Details','Logged'],
-      row:e=>`<tr>${dayTd(e.day)}<td><b>${esc({day:'Planning day',res:'RESOURCES',master:'Customer master',fixed:'Fixed routes'}[e.kind]||e.kind)}</b>${e.replaced?'<div class="muted">replaced the loaded version</div>':''}</td><td class="muted">${(e.files||[]).map(esc).join('<br>')}</td><td>${esc(e.summary||'')}</td>${tsTd(e)}</tr>`},
+      row:e=>`<tr>${dayTd(e.day)}<td><b>${esc({day:'Planning day',res:'RESOURCES',master:'Customer master',fixed:'Fixed routes',upl:'Uplifts outstanding',prod:'Products'}[e.kind]||e.kind)}</b>${e.replaced?'<div class="muted">replaced the loaded version</div>':''}</td><td class="muted">${(e.files||[]).map(esc).join('<br>')}</td><td>${esc(e.summary||'')}</td>${tsTd(e)}</tr>`},
     dock:{head:['Day','Customer','Orders','Kg','Docket now','Reason','Logged',''],
       row:e=>`<tr>${dayTd(e.day)}${cust(e)}${ords(e)}${kgTd(e.kg)}<td><b>${esc(DOCK[e.to.dk]||e.to.dk)}</b>${e.from&&e.from.dk?`<div class="muted">was ${esc(DOCK[e.from.dk]||e.from.dk)}</div>`:''}</td>${why(e)}${tsTd(e)}<td>${undoBtn(e)}</td></tr>`},
     cust:{head:['Customer','Changes','Note','Logged',''],
@@ -3623,9 +3900,22 @@ function renderReport(){
   });
   const filt=[R.pw?'only <b>P&amp;W</b> orders':'', R.only?`showing only <b>${esc(SECTIONS.find(x=>x.id===R.only).title)}</b>`:'', R.q?`search “<b>${esc(R.q)}</b>”`:''].filter(Boolean);
   $('rBody').innerHTML=(filt.length?`<div class="note info no-print" style="margin-bottom:12px">Filtered: ${filt.join(' · ')} — <a href="#" data-clear="1">show everything</a></div>`:'')
-    +(html||'<div class="card"><div class="empty small">No changes match this selection.</div></div>');
+    +(html||'<div class="card"><div class="empty small">No changes match this selection.</div></div>')+(R.only?'':uHtml);
   applySorts();
 }
+function reportUplifts(){ const pl=uplPlan(); const q=R.q; const d=R.day&&dayMap[R.day];
+  return Object.values(pl).filter(x=>x.day && (!d || x.date===d.date)).map(x=>Object.assign({u:S.upl.items[x.no]},x)).filter(x=>x.u)
+    .filter(x=>!q || [x.no,x.u.name,x.u.ship,uplProducts(x.u),uplRouteTxt(x),x.load&&loadInfo(x.day,x.load).driver].some(v=>String(v||'').toLowerCase().includes(q)))
+    .sort((a,b)=>a.date.localeCompare(b.date)||uplRouteTxt(a).localeCompare(uplRouteTxt(b))||a.u.name.localeCompare(b.u.name)); }
+function reportUplHtml(rows){
+  if(!rows.length && !uplOpenList().length) return '';
+  const col=R.col.has('upl');
+  const body=rows.length?`<table data-tbl="uplr"><thead><tr><th>Day</th><th>Uplift</th><th>Customer</th><th>Products</th><th>Reason</th><th>Route</th><th>Driver · truck</th><th>Planned</th></tr></thead><tbody>${rows.map(x=>{ const li=x.load?loadInfo(x.day,x.load):null;
+      return `<tr><td data-s="${esc(x.date)}">${esc(dayLabel(x.day))}</td><td><span class="upl-no">${esc(x.no)}</span></td><td><b>${esc(x.u.name)}</b><div class="muted">${esc(x.u.ship)}</div></td><td>${esc(uplProducts(x.u))}</td><td>${esc(x.u.reason||'—')}</td><td><b>${esc(uplRouteTxt(x))}</b>${x.load?`<div class="muted">${esc(loadTxt(x.load))}</div>`:''}</td><td>${li?esc([li.driver,li.truck].filter(Boolean).join(' · ')||'—'):'—'}</td><td>${x.manual?'by hand'+(x.by?`<div class="muted">${esc(x.by)}</div>`:''):'with the delivery'}</td></tr>`; }).join('')}</tbody></table>`
+    : `<div class="empty small">No uplifts planned ${R.day?'for '+esc(dayLabel(R.day)):'on the loaded days'}.</div>`;
+  return `<div class="card rsec ${col?'collapsed':''}" data-sec="upl"><h2 data-tog="upl"><span class="chev2">▾</span>↩ Uplifts planned <span class="muted" style="font-weight:400">(${rows.length})</span><span class="spacer"></span><button class="btn sm no-print" data-uplx="1" title="Export the uplifts planned to Excel">⤓ Export</button></h2><div class="secbody">${body}</div></div>`;
+}
+$('rBody').addEventListener('click',e=>{ if(!e.target.closest('[data-uplx]')) return; writeXlsx(reportUplifts().map(x=>{ const li=x.load?loadInfo(x.day,x.load):{}; return {'Day':dayLabel(x.day),'Uplift Number':x.no,'Ship To':x.u.ship,'Customer':x.u.name,'Products':uplProducts(x.u),'Reason':x.u.reason||'','Route':uplRouteTxt(x),'Load':x.load||'','Driver':li.driver||'','Truck':li.truck||'','Planned':x.manual?'by hand':'with the delivery'}; }),`Uplifts_planned_${repTag()}.xlsx`,[12,12,10,28,24,14,16,10,14,10,14]); });
 // sort a section's rows by the clicked column (text A→Z, numbers and dates in order)
 R.sort={};
 const sortMark=(id,i)=>{ const o=R.sort[id]; return o&&o.col===i?(o.dir>0?' ▲':' ▼'):''; };
@@ -4078,12 +4368,12 @@ async function openDataWindow(chain){
     : mdBad ? '<div class="note warn">⚠ The folder has master data that is not in the planner (or a different version). Click <b>Load master data</b>.</div>'
     : '<div class="note warn">Master data files are missing in MASTER_DATA.</div>';
   // right: the reports of the newest week
-  const weeks=fbWeeks(); const wk=weeks.length?weeks[0]:null; const rep=files.filter(f=>['planning','res'].includes(f.kind) && (wk?f.week===wk:true));
+  const weeks=fbWeeks(); const wk=weeks.length?weeks[0]:null; const rep=files.filter(f=>['planning','res','upl','prod'].includes(f.kind) && (wk?f.week===wk:true));
   const rst=rep.map(fileStatus), nl=rst.filter(x=>x==='loaded').length, nc=rst.filter(x=>x==='changed').length, nn=rst.filter(x=>x==='new').length;
-  const others=files.filter(f=>['prod','upl','pod'].includes(f.kind) && (wk?f.week===wk:true)).length;
+  const others=files.filter(f=>f.kind==='pod' && (wk?f.week===wk:true)).length;
   const right = rep.length ? `<div class="mlist fblist" style="max-height:290px">${rep.map(row).join('')}</div>
-      <div class="note ${nc?'warn':'info'}" style="margin-top:8px">${nl} of ${rep.length} loaded${nc?` · <b>${nc} changed in the folder</b>`:''}${nn?` · ${nn} not loaded`:''}</div>${others?`<div class="muted small">${others} more file${others>1?'s':''} (Products, Uplifts, POD) — not used yet.</div>`:''}`
-    : '<div class="muted small" style="padding:4px 8px">No DIPS Plan / RES reports found in REPORTS › week_XX.</div>';
+      <div class="note ${nc?'warn':'info'}" style="margin-top:8px">${nl} of ${rep.length} loaded${nc?` · <b>${nc} changed in the folder</b>`:''}${nn?` · ${nn} not loaded`:''}</div>${others?`<div class="muted small">${others} more file${others>1?'s':''} (POD) — not used yet.</div>`:''}`
+    : '<div class="muted small" style="padding:4px 8px">No DIPS Plan / RES / Uplifts / Products reports found in REPORTS › week_XX.</div>';
   openModal(`<div class="mh">${companyName()?`<div class="coh">${esc(companyName())}</div>`:''}<h2>Master data &amp; reports</h2><div class="muted small">📁 ${esc(FOLDER.name)} · compared with what is loaded in the planner</div></div>
    <div class="mb"><div class="dwgrid"><div><h3 style="margin:0 0 8px;font-size:13px">Master data <span class="muted small">· MASTER_DATA</span></h3>${left}${mdNote}</div>
      <div><h3 style="margin:0 0 8px;font-size:13px">Reports <span class="muted small">· ${wk?'REPORTS › week '+wk:'REPORTS'}</span></h3>${right}</div></div></div>
@@ -4144,7 +4434,7 @@ async function scanFolder(dir, prefix, depth, out, top, skip){
     const k=fileKind(name, top); if(!k) continue;
     const f=await h.getFile(); const path=prefix+name;
     try{ f.rpPath=path; }catch(e){}
-    const hash=['planning','res','cust','fixed'].includes(k)?await fileHash(f):''; try{ f.rpHash=hash; }catch(e){}
+    const hash=['planning','res','cust','fixed','upl','prod'].includes(k)?await fileHash(f):''; try{ f.rpHash=hash; }catch(e){}
     out.push({name, path, dir:prefix.replace(/\/$/,''), week:weekOfPath(path), kind:k, mod:f.lastModified, size:f.size, file:f, hash});
   }
   return out;
@@ -4172,14 +4462,14 @@ function fbWeeks(){
 // the Reports window: three main groups on top — Master Data, Planning Data (by week) and Saved Plans (by week)
 const FB_GROUPS={
   master:[['cust','👥 Customer Master'],['fixed','🗓 Fixed Routes']],
-  data:[['planning','📋 DIPS Plan'],['res','🚚 Resources'],['prod','📦 Products — not used yet'],['upl','↩ Uplifts — not used yet'],['pod','✍ POD — not used yet']],
+  data:[['planning','📋 DIPS Plan'],['res','🚚 Resources'],['prod','📦 Products'],['upl','↩ Uplifts outstanding'],['pod','✍ POD — not used yet']],
   plan:[['plan','📄 Saved plans (.json) — to keep working'],['snap','📸 Snapshots (.html) — read-only copies']]};
 const FB_TITLE={master:'Master Data',data:'Planning Data',plan:'Saved Plans'};
 function renderFolderBrowser(){
   if(!FB_GROUPS[FB.mode]) FB.mode='data';
   const mode=FB.mode, plan=mode==='plan', master=mode==='master';
   const groups=FB_GROUPS[mode];
-  const off=g=>['prod','upl','pod'].includes(g);                 // not used yet: listed, but blocked
+  const off=g=>g==='pod';                                         // not used yet: listed, but blocked
   const weekly=!master;
   const weeks=fbWeeks();
   const inView=f=>!weekly || !FB.week || (FB.week==='other' ? !f.week : f.week===+FB.week);
@@ -4188,10 +4478,10 @@ function renderFolderBrowser(){
     return fs.map(f=>{ const nd=nameDate(f.name,f.week); const ld=nd&&nd.date&&dayKeyForDate(nd.date); const cur=lineage().current===f.name.replace(/\.(json|html?)$/i,'');
       const when=!plan&&!master&&nd&&nd.date?`<span class="flag">${esc(dayLbl(nd.date))}</span> `:'';
       return `<label class="fbrow ${off(g)?'dis':''}"><input type="${plan?'radio':'checkbox'}" name="fb" value="${esc(f.path)}" ${off(g)?'disabled':''} ${FB.sel.has(f.path)?'checked':''}>
-        <span class="fn">${when}${esc(f.name)} ${['planning','res','cust','fixed'].includes(g)?STATUS_FLAG[fileStatus(f)]+(fileStatus(f)==='new'&&ld?' <span class="flag mv" title="This day is in the planner from another file">day loaded</span>':''):''}${cur?' <span class="flag ad">working on</span>':''} <span class="muted small">${esc(f.dir)}</span></span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`; }).join(''); };
+        <span class="fn">${when}${esc(f.name)} ${['planning','res','cust','fixed','upl','prod'].includes(g)?STATUS_FLAG[fileStatus(f)]+(fileStatus(f)==='new'&&ld?' <span class="flag mv" title="This day is in the planner from another file">day loaded</span>':''):''}${cur?' <span class="flag ad">working on</span>':''} <span class="muted small">${esc(f.dir)}</span></span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`; }).join(''); };
   const hasOther=weekly && FB.files.some(f=>(plan?['plan','snap']:['planning','res','prod','upl','pod']).includes(f.kind) && !f.week);
   const weekChips = (weeks.length||hasOther) ? `<div class="chips">${weeks.map(w=>`<button class="chip ${String(w)===FB.week?'on':''}" data-act="w:${w}">Week ${w}</button>`).join('')}${hasOther?`<button class="chip ${FB.week==='other'?'on':''}" data-act="w:other">Main folder</button>`:''}<button class="chip ${FB.week===''?'on':''}" data-act="w:">All</button></div>` : '';
-  const desc={master:'Customer master and fixed routes in MASTER_DATA',data:'Reports in REPORTS/week_XX — tick what to import',plan:'Plans and snapshots in PLANS/week_XX'}[mode];
+  const desc={master:'Customer master and fixed routes in MASTER_DATA',data:'Reports in REPORTS/week_XX — tick what to import (uplifts: the newest report decides what is outstanding)',plan:'Plans and snapshots in PLANS/week_XX'}[mode];
   openModal(`<div class="mh"><h2>📁 ${esc(FOLDER.name)} · Reports</h2><div class="muted small">${desc} · newest first · <b>✓ loaded</b> = this exact file is in the planner, <b>⚠ changed</b> = it was changed in the folder after loading</div></div>
    <div class="mb"><div class="fbmain">${['master','data','plan'].map(m=>`<button class="fbtab ${mode===m?'on':''}" data-act="m:${m}">${FB_TITLE[m]}</button>`).join('')}</div>
     ${weekChips}
@@ -4797,10 +5087,13 @@ function jpReplan(){
   JS.pages=pages;
   const plan=JP.planner.buildPlan({pages, mapping, exceptions, overrides:JS.overrides, routeOrder:res.order, routeInfo:res.info});
   plan.mapping=mapping; plan.exceptions=exceptions; plan.integrity=JP.integrity.checkPlan(pages, plan); if(!plan.integrity.ok) plan.blocking=true;
+  // v0.12.0: an order whose customer has an uplift planned that day is tagged (route list and cover): its uplift docket is printed in the Uplift section
+  { const bySh={}; (dk?uplOnDay(dk):[]).forEach(x=>(bySh[x.u.ship]=bySh[x.u.ship]||[]).push(x.no)); const ships=jpShipMap(); plan.uplTagged=0;
+    plan.routes.forEach(r=>r.orders.forEach(o=>{ const s=ships.get(String(o.order)); const nos=s&&bySh[s]; o.uplift=nos?'UPLIFT '+nos.join(', '):''; if(nos) plan.uplTagged++; })); }
   JS.plan=plan; JS.res=res; JS.rea=rea;
   jpRender();
 }
-function jpSig(){ const dk=jpDayKey(); return dk?JSON.stringify([dk, jpResources(dk).rows, jpReallocations(dk).map(r=>r.shipment+r.order+r.route)]):''; }
+function jpSig(){ const dk=jpDayKey(); return dk?JSON.stringify([dk, jpResources(dk).rows, jpReallocations(dk).map(r=>r.shipment+r.order+r.route), uplOnDay(dk).map(x=>x.no+'|'+x.u.ship)]):''; }
 
 // ---------- render ----------
 function renderPrint(){
@@ -4811,7 +5104,7 @@ function renderPrint(){
 function jpSkeleton(){
   return `<div class="jp"><div class="rep-head jp-top"><div><div class="muted small">Check sheets (JDE Offloading Sheet / Delivery Docket PDF) organised by the day's plan</div><h1>Printing</h1></div><div class="spacer"></div>
    <select id="jpDay" class="sr-only" tabindex="-1" aria-hidden="true"></select>
-   <div class="jp-modes" role="tablist"><button class="on" data-jpmode="organise">Organise</button><button data-jpmode="reprint">Reprint an order</button></div></div>
+   <div class="jp-modes" role="tablist"><button class="on" data-jpmode="organise">Delivery</button><button data-jpmode="uplift">Uplift</button><button data-jpmode="reprint">Reprint a Docket</button></div></div>
   <div class="rs-daybar" id="dbPrint"></div>
   <div class="jp-layout" id="jpOrganise">
    <aside class="jp-setup">
@@ -4845,9 +5138,17 @@ function jpSkeleton(){
      </div></section>
    </section>
   </div>
+  <div class="jp-uplift" id="jpUplift" hidden>
+   <section class="jp-card"><h2>Uplifts planned <span class="spacer"></span><button class="btn sm" data-jpgo="upl">Uplift Control</button></h2>
+    <p class="jp-hint">The uplifts planned for the day, by route in the order of the day's plan. They are printed apart from the delivery check sheets (never in the same PDF): a cover per route, then one uplift docket per uplift.</p>
+    <div id="jpUpList"></div>
+    <div class="row" style="margin-top:12px;gap:10px"><button class="btn pri jp-big" id="jpUpGo" style="width:auto">Organise uplift PDF</button><span class="jp-hint" id="jpUpHint"></span></div>
+    <div class="jp-progress" id="jpUpProgress" hidden><div class="bar"></div><span class="label"></span></div></section>
+   <section class="jp-card" id="jpUpOut" hidden><div class="jp-outhead"><div><h3 id="jpUpTitle"></h3><span class="jp-hint" id="jpUpInfo"></span></div><span class="spacer"></span><button class="btn pri" id="jpUpPrint">Print</button><button class="btn" id="jpUpDownload">Download</button></div><div class="jp-pages" id="jpUpPages"></div></section>
+  </div>
   <div class="jp-reprint" id="jpReprint" hidden>
    <section class="jp-card"><h2>Loadings</h2><p class="jp-hint">The loadings of the imported PDFs, grouped by day. Click one to list its orders.</p><div id="jpRpLoads"></div></section>
-   <section class="jp-card"><h2>Reprint an order</h2><p class="jp-hint">Type the order number (or part of the customer name). Only the original pages of that order are printed, without a cover.</p>
+   <section class="jp-card"><h2>Reprint a docket</h2><p class="jp-hint">Type the order number (or part of the customer name). Only the original pages of that docket are printed, without a cover.</p>
     <input id="jpQuery" type="search" autocomplete="off" placeholder="Order number" aria-label="Order number">
     <p class="jp-hint" id="jpRpCount" style="margin-top:8px"></p><ul class="jp-rplist" id="jpRpList"></ul></section>
    <section class="jp-card" id="jpRpPreview" hidden><div class="jp-outhead"><div><h3 id="jpRpTitle"></h3><span class="jp-hint" id="jpRpInfo"></span></div><span class="spacer"></span><button class="btn pri" id="jpRpPrint">Print order</button><button class="btn" id="jpRpDownload">Download</button></div><div class="jp-pages" id="jpRpPages"></div></section>
@@ -4861,8 +5162,8 @@ function jpRender(){
   jpRenderFiles();
   const p=JS.plan;
   if(!p){ $('jpTiles').textContent=''; $('jpIssuesCard').hidden=true; $('jpReviewCard').hidden=true; $('jpDiscardCard').hidden=true;
-    $('jpRoutes').innerHTML='<p class="jp-empty">Routes will appear here after you import a PDF.</p>'; jpExportState(); if(JS.mode==='reprint') jpRenderReprint(); return; }
-  jpTiles(); jpIssues(); jpReview(); jpRoutes(); jpPreview(); jpExportState(); if(JS.mode==='reprint') jpRenderReprint();
+    $('jpRoutes').innerHTML='<p class="jp-empty">Routes will appear here after you import a PDF.</p>'; jpExportState(); if(JS.mode==='reprint') jpRenderReprint(); if(JS.mode==='uplift') jpRenderUplift(); return; }
+  jpTiles(); jpIssues(); jpReview(); jpRoutes(); jpPreview(); jpExportState(); if(JS.mode==='reprint') jpRenderReprint(); if(JS.mode==='uplift') jpRenderUplift();
 }
 function jpRenderInputs(){
   const dk=jpDayKey(); const res=dk?jpResources(dk):{rows:[]}, rea=dk?jpReallocations(dk):[];
@@ -4963,7 +5264,7 @@ function jpRouteBody(body,r){
   const warnKeys=new Set(JS.plan.issues.filter(i=>i.orderKey).map(i=>i.orderKey)); const res=JS.result;
   const table=jh('table',null, jh('thead',null, jh('tr',null, jh('th',{text:''}), jh('th',{text:'Order Number'}), jh('th',{text:r.kind==='review'?'Reason':'Customer Name'}), jh('th',{text:'Ship To'}), jh('th',{text:'Shipment'}), jh('th',{text:'Note'}), jh('th',{text:''}))));
   const tb=jh('tbody');
-  r.orders.forEach(o=>{ const note=o.movedFrom?jh('span',{class:'jp-moved',text:'Moved from '+o.movedFrom}):(warnKeys.has(o.key)?jh('span',{class:'jp-warn',text:'See Checks'}):'');
+  r.orders.forEach(o=>{ const note=jh('span',null, o.movedFrom?jh('span',{class:'jp-moved',text:'Moved from '+o.movedFrom}):(warnKeys.has(o.key)?jh('span',{class:'jp-warn',text:'See Checks'}):''), o.uplift?jh('span',{class:'flag upl',title:'This customer has an uplift planned today: print its docket in the Uplift section',text:o.uplift}):null);
     const cb=jh('input',{type:'checkbox','aria-label':'Print order '+o.order,disabled:!res,onchange:ev=>{ if(ev.target.checked){ JS.exO.delete(o.key); JS.exR.delete(r.name); } else JS.exO.add(o.key); jpAfterSel(); }}); cb.checked=!JS.exO.has(o.key)&&!JS.exR.has(r.name);
     tb.appendChild(jh('tr',null, jh('td',null,cb), jh('td',{class:'ords',text:o.order||'-'}), jh('td',{text:r.kind==='review'?o.reason:(o.customer||'(not found)')}), jh('td',{text:(JS.ships&&JS.ships.get(String(o.order)))||'-'}), jh('td',{text:o.shipment||'-'}), jh('td',null,note),
       jh('td',null, jh('button',{class:'btn sm',text:'View',onclick:()=>jpViewer((o.order?'Order '+o.order:'Page to check')+(o.customer?'  |  '+o.customer:''),o.pages)})))); });
@@ -5080,7 +5381,7 @@ function jpExportState(){
   else if(p.blocking) hint.textContent='Fix the items marked "Must fix" in Checks first.';
   else if(!p.mapping.rows.length) hint.textContent='Resources is empty. Every order will print as UNASSIGNED.';
   else { const warn=p.issues.filter(i=>i.level!=='info').length;
-    hint.textContent=p.routes.length+' route(s), each with its cover, and '+jfmt(p.routes.reduce((n,r)=>n+r.pageCount,0))+' original pages.'+(warn?' '+warn+' item(s) in Checks.':'')+' You will see the result before printing.'; }
+    hint.textContent=p.routes.length+' route(s), each with its cover, and '+jfmt(p.routes.reduce((n,r)=>n+r.pageCount,0))+' original pages.'+(warn?' '+warn+' item(s) in Checks.':'')+(p.uplTagged?' '+p.uplTagged+' order(s) tagged UPLIFT: print their uplift dockets in the Uplift section.':'')+' You will see the result before printing.'; }
 }
 let jpSeq=0;
 function jpClearResult(){ if(JS.result&&JS.result.doc) JS.result.doc.destroy(); JS.result=null; JS.exR=new Set(); JS.exO=new Set(); if($('jpOutput')){ $('jpSelBar').hidden=true; $('jpPreviewHead').hidden=true; $('jpOutPages').textContent=''; $('jpOutEmpty').hidden=false; $('jpOutInfo').textContent='In the order of the day\'s plan'; $('jpChecks').textContent=''; } }
@@ -5149,6 +5450,80 @@ function jpPrintBytes(bytes){
   document.body.appendChild(fr);
 }
 async function jpBusy(btn,label,fn){ const old=btn.textContent; btn.disabled=true; btn.textContent=label; try{ await fn(); }catch(e){ toast(e&&e.message||String(e)); } finally{ btn.disabled=false; btn.textContent=old; } }
+
+// ---------- Uplift (v0.12.0): the uplift dockets of the day, organised like the deliveries (by route, a cover each) — a PDF of its own ----------
+const JU={result:null, dk:null, sig:''};
+function jpUplGroups(dk){
+  const list=uplOnDay(dk), v=dayView(dk), groups=[], used=new Set();
+  v.routes.filter(r=>!r.deferred).forEach(r=>{ const its=list.filter(x=>String(x.load||'')===String(r.id)); if(!its.length) return; its.forEach(x=>used.add(x.no)); const l=r.load||{};
+    groups.push({name:r.name, load:l.id||'', driver:l.driver||'', helper:l.helper||'', truck:l.truck||'', items:its.sort((a,b)=>a.u.name.localeCompare(b.u.name))}); });
+  const rest=list.filter(x=>!used.has(x.no)); if(rest.length) groups.push({name:'NOT ON A ROUTE', load:'', driver:'', helper:'', truck:'', items:rest, none:true});
+  return groups;
+}
+function jpRenderUplift(){
+  const box=$('jpUpList'); if(!box) return; const dk=jpDayKey(); const groups=dk?jpUplGroups(dk):[]; const n=groups.reduce((s,g)=>s+g.items.length,0);
+  const sig=JSON.stringify([dk,groups.map(g=>[g.name,g.items.map(x=>x.no)])]); if(sig!==JU.sig){ JU.sig=sig; JU.dk=dk; jpUplClear(); }
+  if(!dk){ box.innerHTML='<p class="jp-empty">Load a planning day first.</p>'; $('jpUpGo').disabled=true; $('jpUpHint').textContent=''; return; }
+  box.innerHTML=groups.length?groups.map(g=>`<div class="ugrp"><h3>${esc(g.name)}<span class="muted small" style="font-weight:400">${[g.driver&&'Driver: '+g.driver,g.helper&&'Helper: '+g.helper,g.truck&&'Truck: '+g.truck,g.load&&'Load '+g.load].filter(Boolean).map(esc).join(' · ')||(g.none?'not on a route yet — allocate them in Uplift Control':'')}</span><span class="spacer"></span><b class="upl-no">${g.items.length}</b></h3>
+     <table><thead><tr><th>Uplift</th><th>Customer</th><th>Ship To</th><th>Products</th><th>Reason</th><th>Planned</th></tr></thead><tbody>${g.items.map(x=>`<tr><td><span class="upl-no">${esc(x.no)}</span></td><td><b>${esc(x.u.name)}</b></td><td>${esc(x.u.ship)}</td><td>${esc(uplProducts(x.u))}</td><td>${esc(x.u.reason||'—')}</td><td>${x.manual?'by hand':'with the delivery'}</td></tr>`).join('')}</tbody></table></div>`).join('')
+    : `<div class="note info">No uplifts planned for ${esc(dayLabel(dk))}. Load the uplifts outstanding report, or allocate uplifts in <b>Uplift Control</b>.</div>`;
+  $('jpUpGo').disabled=!n; $('jpUpHint').textContent=n?`${n} uplift${n>1?'s':''} on ${groups.length} route${groups.length>1?'s':''}: ${groups.length} cover${groups.length>1?'s':''} and ${n} docket${n>1?'s':''}.`:'';
+}
+function jpUplClear(){ if(JU.result&&JU.result.doc) JU.result.doc.destroy(); JU.result=null; if($('jpUpOut')){ $('jpUpOut').hidden=true; $('jpUpPages').textContent=''; } }
+async function uplPdf(dk, groups){
+  const {PDFDocument, StandardFonts, rgb}=window.PDFLib; const doc=await PDFDocument.create(); doc.setTitle('Uplifts '+dayLabel(dk)); doc.setCreator('Route Planner v'+APP_VERSION);
+  const f=await doc.embedFont(StandardFonts.Helvetica), b=await doc.embedFont(StandardFonts.HelveticaBold);
+  const W=595.28, H=841.89, M=40, RED=rgb(.82,.1,.16), INK=rgb(.09,.13,.17), MUT=rgb(.36,.42,.48), LINE=rgb(.8,.84,.88), SOFT=rgb(.95,.96,.97);
+  const safe=s=>String(s==null?'':s).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-').replace(/[·•]/g,'-').replace(/[^\x20-\x7E -ÿ]/g,'?');
+  const fit=(s,font,size,w)=>{ s=safe(s); if(font.widthOfTextAtSize(s,size)<=w) return s; while(s.length>1 && font.widthOfTextAtSize(s+'...',size)>w) s=s.slice(0,-1); return s+'...'; };
+  const txt=(p,s,x,y,o)=>p.drawText(fit(s,o&&o.bold?b:f,(o&&o.size)||10,(o&&o.w)||W-M-x),{x,y,size:(o&&o.size)||10,font:o&&o.bold?b:f,color:(o&&o.color)||INK});
+  const stamp=new Date(), manifest=[]; const foot=(p,label)=>{ p.drawLine({start:{x:M,y:34},end:{x:W-M,y:34},thickness:.5,color:LINE}); txt(p,'Route Planner v'+APP_VERSION+'  -  uplifts of '+dayLabel(dk)+'  -  '+label,M,22,{size:7.5,color:MUT}); txt(p,'Printed '+stamp.toLocaleString('en-IE'),W-M-150,22,{size:7.5,color:MUT,w:150}); };
+  for(const g of groups){
+    // cover of the route
+    let p=doc.addPage([W,H]); let y=H-M-6;
+    txt(p,'UPLIFTS',M,y,{bold:true,size:11,color:RED}); txt(p,dayLabel(dk),W-M-160,y,{size:11,color:MUT,w:160}); y-=34;
+    txt(p,g.name,M,y,{bold:true,size:26}); y-=22;
+    txt(p,[g.driver&&'Driver: '+g.driver,g.helper&&'Helper: '+g.helper,g.truck&&'Truck: '+g.truck,g.load&&'Load '+g.load].filter(Boolean).join('   -   ')||(g.none?'Not on a route yet':''),M,y,{size:11,color:MUT}); y-=16;
+    txt(p,g.items.length+' uplift'+(g.items.length>1?'s':'')+' to collect - a docket for each follows this cover. Not mixed with the delivery check sheets.',M,y,{size:9,color:MUT}); y-=26;
+    const cols=[['#',22],['Uplift',62],['Customer',170],['Ship To',62],['Products',138],['Reason',61]];
+    const head=()=>{ p.drawRectangle({x:M,y:y-5,width:W-2*M,height:18,color:SOFT}); let x=M+4; cols.forEach(([t,w])=>{ txt(p,t,x,y,{bold:true,size:8.5,color:MUT,w:w-4}); x+=w; }); y-=20; };
+    head();
+    g.items.forEach((it,i)=>{ if(y<70){ foot(p,g.name+' (cover)'); p=doc.addPage([W,H]); y=H-M-6; txt(p,g.name+' (continued)',M,y,{bold:true,size:13}); y-=26; head(); }
+      const vals=[String(i+1),it.no,it.u.name,it.u.ship,uplProducts(it.u),it.u.reason||'-']; let x=M+4;
+      cols.forEach(([t,w],ci)=>{ txt(p,vals[ci],x,y,{size:9,bold:ci===1,color:ci===1?RED:INK,w:w-6}); x+=w; }); y-=6; p.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.4,color:LINE}); y-=12; });
+    foot(p,g.name+' (cover)'); manifest.push({route:g.name,type:'cover'});
+    // one docket per uplift
+    for(const it of g.items){ const u=it.u, c=custMap[u.ship]||{}; const q=doc.addPage([W,H]); let yy=H-M-6;
+      txt(q,'UPLIFT DOCKET',M,yy,{bold:true,size:12,color:RED}); txt(q,g.name+(g.load?'  -  Load '+g.load:''),W-M-220,yy,{size:10,color:MUT,w:220}); yy-=40;
+      txt(q,'Uplift '+u.no,M,yy,{bold:true,size:28,color:RED}); yy-=30;
+      txt(q,u.name,M,yy,{bold:true,size:16}); yy-=18;
+      txt(q,'Ship To '+u.ship+(c.addr?'   -   '+c.addr:'')+(c.pc?'   '+c.pc:''),M,yy,{size:10,color:MUT}); yy-=28;
+      const kv=[['Day',dayLabel(dk)],['Route',g.name],['Driver',[g.driver,g.helper].filter(Boolean).join(' + ')||'-'],['Truck',g.truck||'-'],['Time window',c.tw||'-'],['Raised',u.raised?dayLbl(u.raised):'-'],['Reason',u.reason||'-'],['Planned',it.manual?'allocated by hand':'with the delivery to this customer']];
+      kv.forEach(([k,v2],i)=>{ const col=i%2, x=M+col*((W-2*M)/2); if(col===0&&i) yy-=0; txt(q,k,x,yy,{size:8.5,color:MUT,w:80}); txt(q,v2,x+80,yy,{size:10,bold:k==='Route',w:(W-2*M)/2-90}); if(col===1) yy-=18; }); yy-=14;
+      q.drawRectangle({x:M,y:yy-5,width:W-2*M,height:18,color:SOFT}); [['Product',M+4],['Description',M+100],['Qty to collect',W-M-160],['Qty collected',W-M-80]].forEach(([t,x])=>txt(q,t,x,yy,{bold:true,size:8.5,color:MUT,w:110})); yy-=22;
+      (u.lines||[]).forEach(l=>{ txt(q,l.product||'-',M+4,yy,{size:10,w:92}); txt(q,l.desc||'',M+100,yy,{size:10,w:W-2*M-270}); txt(q,l.qty==null?'-':String(l.qty),W-M-160,yy,{size:11,bold:true,w:70}); q.drawRectangle({x:W-M-80,y:yy-4,width:70,height:16,borderColor:LINE,borderWidth:.8}); yy-=8; q.drawLine({start:{x:M,y:yy},end:{x:W-M,y:yy},thickness:.4,color:LINE}); yy-=14; });
+      yy-=24; [['Customer name and signature',M],['Driver signature',M+(W-2*M)/2+10]].forEach(([t,x])=>{ q.drawRectangle({x,y:yy-58,width:(W-2*M)/2-10,height:58,borderColor:LINE,borderWidth:.8}); txt(q,t,x+6,yy-12,{size:8.5,color:MUT,w:200}); });
+      yy-=80; txt(q,'Date / time collected: ______________________     Condition / notes: ________________________________________',M,yy,{size:9,color:MUT});
+      foot(q,'docket '+u.no); manifest.push({route:g.name,type:'docket',no:u.no}); }
+  }
+  return {bytes:await doc.save(), manifest, pages:doc.getPageCount()};
+}
+async function jpUplOrganise(){
+  const dk=jpDayKey(); const groups=dk?jpUplGroups(dk):[]; if(!groups.length) return; const btn=$('jpUpGo'), prog=$('jpUpProgress'); btn.disabled=true; jpUplClear();
+  try{ jpProgress(prog,.1,'Loading the PDF tools…'); await loadPdfLibs(); jpProgress(prog,.4,'Making the uplift dockets…');
+    const res=await uplPdf(dk,groups); res.generatedAt=new Date(); const g=res.generatedAt, z=n=>String(n).padStart(2,'0');
+    res.name=safeName(`${g.getFullYear()}-${z(g.getMonth()+1)}-${z(g.getDate())}_${z(g.getHours())}.${z(g.getMinutes())}${FOLDER.user?'_'+FOLDER.user:''}_UPLIFTS`)+'.pdf';
+    if(FOLDER.status==='ok' && FOLDER.handle && can('edit')){ try{ const cs=await subDir(FOLDER.handle,'CHECK_SHEETS'), od=await subDir(cs,'Organised'); const nm=await saveToFolder(od,res.name.replace(/\.pdf$/i,''),'.pdf',res.bytes,'application/pdf'); res.savedAs='CHECK_SHEETS/Organised/'+nm+'.pdf'; res.name=nm+'.pdf'; }catch(e){ res.saveErr=String(e&&e.message||e); } }
+    jpProgress(prog,.8,'Preparing the preview…');
+    res.doc=await pdfjsLib.getDocument({data:res.bytes.slice(),isEvalSupported:false}).promise; JU.result=res;
+    $('jpUpOut').hidden=false; $('jpUpTitle').textContent='Uplifts · '+dayLabel(dk);
+    const n=groups.reduce((s,x)=>s+x.items.length,0);
+    $('jpUpInfo').textContent=res.pages+' pages: '+groups.length+' cover'+(groups.length>1?'s':'')+' and '+n+' docket'+(n>1?'s':'')+'.'+(res.savedAs?' Saved: '+res.savedAs:(res.saveErr?' Not saved to the folder: '+res.saveErr:''));
+    jpPageGrid($('jpUpPages'), res.manifest.map((m,i)=>({doc:res.doc,index:i,key:'upl:'+JU.sig+':'+res.name+':'+i,caption:(m.type==='cover'?'Cover · ':'Uplift '+m.no+' · ')+m.route})), 'Uplifts · '+dayLabel(dk));
+    $('jpUpOut').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){ toast('Could not make the uplift PDF: '+(e&&e.message||e)); }
+  finally{ prog.hidden=true; btn.disabled=false; }
+}
 // ---------- reprint ----------
 // every order of every imported PDF (all days), found in the PDF pages themselves
 function jpAllOrders(){
@@ -5193,7 +5568,7 @@ function jpSelectReprint(key){
   jpPageGrid($('jpRpPages'), o.pages.map((pg,i)=>{ const src=JS.org.sources[pg.fileIndex]; return {doc:src.doc,index:pg.pageIndex,key:pg.fileIndex+':'+src.name+':'+pg.pageIndex,caption:'Page '+(i+1)+' of '+o.pages.length}; }), 'Order '+o.order);
 }
 const jpRpOrder=()=>jpAllOrders().find(x=>x.key===JS.reprintKey);
-function jpMode(m){ JS.mode=m; $('jpOrganise').hidden=m!=='organise'; $('jpReprint').hidden=m!=='reprint'; document.querySelectorAll('[data-jpmode]').forEach(b=>b.classList.toggle('on',b.dataset.jpmode===m)); if(m==='reprint'){ jpRenderReprint(); $('jpQuery').focus(); } }
+function jpMode(m){ JS.mode=m; $('jpOrganise').hidden=m!=='organise'; $('jpReprint').hidden=m!=='reprint'; $('jpUplift').hidden=m!=='uplift'; document.querySelectorAll('[data-jpmode]').forEach(b=>b.classList.toggle('on',b.dataset.jpmode===m)); if(m==='reprint'){ jpRenderReprint(); $('jpQuery').focus(); } if(m==='uplift') jpRenderUplift(); }
 // ---------- wiring ----------
 function jpWire(){
   const dz=$('jpDrop'), fi=$('jpFile');
@@ -5216,6 +5591,9 @@ function jpWire(){
   $('jpPrintRoute').addEventListener('click',e=>{ if(JS.result) jpBusy(e.currentTarget,'Preparing…',async()=>jpPrintBytes(await JS.org.routePdf(JS.result,JS.outRoute))); });
   $('jpDownloadRoute').addEventListener('click',e=>{ if(JS.result) jpBusy(e.currentTarget,'Preparing…',async()=>jpDownload(await JS.org.routePdf(JS.result,JS.outRoute),'CheckSheets_'+JS.outRoute.replace(/[^A-Z0-9_-]+/gi,'_')+'_'+jpStamp(JS.result.generatedAt)+'.pdf')); });
   $('jpQuery').addEventListener('input',jpRenderReprint);
+  $('jpUpGo').addEventListener('click',jpUplOrganise);
+  $('jpUpPrint').addEventListener('click',()=>{ if(JU.result) jpPrintBytes(JU.result.bytes); });
+  $('jpUpDownload').addEventListener('click',()=>{ if(JU.result) jpDownload(JU.result.bytes,JU.result.name); });
   $('jpQuery').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('jpRpList').querySelector('button'); if(b) b.click(); } });
   $('jpRpPrint').addEventListener('click',e=>{ const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpPrintBytes(await JS.org.orderPdf(o))); });
   $('jpRpDownload').addEventListener('click',e=>{ const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpDownload(await JS.org.orderPdf(o),'Reprint_'+o.order+'.pdf')); });
@@ -5225,7 +5603,8 @@ function jpWire(){
 }
 // for the browser tests
 window.__rpMaps={cMap:()=>cMap, pMap:()=>pMap, pCount:()=>Object.keys(pMarkers).length, pPoints:()=>Object.values(pMarkers).map(m=>m.getLatLng())};
-window.__rpPrint={state:JS, replan:jpReplan, loadPdfLibs, selPages:jpSelPages};
+window.__rpPrint={state:JS, replan:jpReplan, loadPdfLibs, selPages:jpSelPages, upl:JU};
+window.__rpUpl={plan:()=>uplPlan(), state:()=>S.upl, markers:()=>Object.keys(uMarkers), prod:()=>S.prod};
 
 // ---------- boot ----------
 indexDays(); normalizeState(); save();
@@ -5239,7 +5618,7 @@ if(!MASTER){ const n=document.createElement('div'); n.className='note warn'; n.i
   n.innerHTML='👥 <b>No customer master loaded.</b> Load <i>MASTER_DEL_DETAILS.xlsx</i> (also from <b>Planning → Load day</b>). It is kept in this browser after that. <button class="btn sm" id="noMasterBtn">Load customer master…</button>';
   $('tab-customers').prepend(n); $('noMasterBtn').onclick=()=>$('uploadBtn').onclick(); }
 initCMap();
-showTab('plan');
+showTab('home');
 renderLineage();
 $('lineage').onclick=showLineage;
 renderUserBtn();
