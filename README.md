@@ -19,14 +19,14 @@ Open `Route Planner.html` in Chrome or Edge.
 | Read this | For |
 |---|---|
 | [docs/user-guide.md](docs/user-guide.md) | How to do each task, with screenshots |
-| [demo/README.md](demo/README.md) | The demo week: made-up data to try or present the app |
+| [demo/README.md](demo/README.md) | The demo month (September 2026, 1,500 customers): made-up data to try or present the app |
 | [docs/users-config.md](docs/users-config.md) | The users file (`users.json`) and roles |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | What changed in each version |
 | [docs/backend-blueprint.md](docs/backend-blueprint.md) | How to build the production version with a backend |
 
 ## No data in this repository
 
-The app reads everything at runtime from files the planner chooses. The only spreadsheets in the repository are the invented [demo week](demo/README.md).
+The app reads everything at runtime from files the planner chooses. The only spreadsheets in the repository are the invented [demo month](demo/README.md).
 
 | File | How it gets into the app |
 |---|---|
@@ -59,7 +59,7 @@ The repo mirrors the shared "Planning app" folder. Data folders exist only on yo
 |---|---|---|
 | `Route Planner.html` | yes | The app (current version) |
 | `docs/` | yes | User guide, changelog, users file, backend blueprint |
-| `demo/` | yes | The demo week (made-up data, safe to share) |
+| `demo/` | yes | The demo month (made-up data, safe to share) |
 | `tests/` | yes | Browser tests and the demo generator |
 | `MASTER_DATA/` | no | Customer master, fixed routes, manifest, `users.json` |
 | `REPORTS/week_XX/` | no | Daily reports |

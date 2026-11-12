@@ -1,5 +1,5 @@
 // Full-feature walkthrough on the DEMO folder (made-up data). It is both the regression test for every feature
-// and the source of the demo plan files (PLANS/week_46) and of the screenshots in docs/img.
+// and the source of the screenshots in docs/img (run on the small one-week data set from make-demo.js; npm run screenshots). The published demo plans are made by make-plans.js.
 // Usage: node walkthrough.js [app.html] [demoFolder] [screenshotFolder]
 const {chromium}=require('playwright'); const fs=require('fs'); const path=require('path');
 const APP=path.resolve(process.argv[2]||path.join(__dirname,'..','..','Route Planner.html'));
