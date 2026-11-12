@@ -79,4 +79,29 @@ async function checkSheetPdf(orders, opts){
 }
 // the demo's file names say nothing about the day (the app reads the day from the first pages)
 const JDE_NAMES={Mon:'Offloading_Sheet_Report_2.pdf',Tue:'Offloading_Sheet_Report_4.pdf',Wed:'Offloading_Sheet_Report_1.pdf',Thu:'Offloading_Sheet_Report_5.pdf',Fri:'Offloading_Sheet_Report_3.pdf'};
-module.exports={checkSheetPdf, makeLines, CATALOGUE, JDE_NAMES};
+// Makes a FAKE uplift docket PDF ("DELIVERY DOCKET  REPRINT  ***UPLIFT***", one page per uplift order), in the layout of the
+// JDE uplift docket: Order No, Load No (= shipment), Order / Delivery Date, Deliver to, Customer Number (= Ship To), Customer PO No,
+// the product lines (negative quantities), deposit items and the signature boxes. Everything is invented: no brand, logo or real data.
+//   upliftDocketPdf([{order, load, cust, po, name, addrLines, orderDate:'16/10/26', date:'22/10/26', lines:[{code, desc, uom, qty, price}]}])
+async function upliftDocketPdf(list){
+  const doc=await PDFDocument.create(); doc.setTitle('Demo uplift dockets'); doc.setCreator('Route Planner demo');
+  const reg=await doc.embedFont(StandardFonts.Helvetica), bold=await doc.embedFont(StandardFonts.HelveticaBold), BLACK=rgb(0,0,0), GREY=rgb(.6,.6,.6), H=841.89, W=595.28;
+  const t=(p,s,x,y,o)=>p.drawText(String(s),{x,y,size:(o&&o.size)||8,font:o&&o.bold?bold:reg,color:BLACK});
+  const box=(p,x,y,w,h)=>p.drawRectangle({x,y,width:w,height:h,borderColor:GREY,borderWidth:.6});
+  list.forEach(d=>{ const p=doc.addPage([W,H]);
+    t(p,'DEMO DRINKS',30,795,{bold:true,size:20}); t(p,'DELIVERY DOCKET',175,800,{bold:true,size:12}); t(p,'REPRINT',175,784,{bold:true,size:12}); t(p,'***UPLIFT***',175,768,{bold:true,size:12});
+    t(p,'DEMO DRINKS Telephone 0000 000000',30,745,{bold:true});
+    box(p,20,640,540,98); t(p,'Deliver to',24,728,{bold:true}); t(p,'Order No.',330,728); t(p,d.order,420,728); t(p,'Load No.',330,718); t(p,d.load,420,718);
+    (d.addrLines||[]).forEach((l,i)=>t(p,l,24,716-i*10)); t(p,'Order Date',330,706); t(p,d.orderDate||'',420,706); t(p,'Delivery Depot',470,706); t(p,'Delivery Date',330,696); t(p,d.date||'',420,696); t(p,'Demo Depot',470,696);
+    t(p,'Terms and Conditions : invented demo document, not a real docket.',330,684);
+    box(p,20,612,540,26); t(p,'Customer Number',24,628); t(p,'Customer PO No',140,628); t(p,'Delivery Instructions:',330,628); t(p,d.cust,24,618); t(p,d.po||'',140,618); t(p,'--',330,618);
+    t(p,'Product Code',24,598,{bold:true}); t(p,'Product Description',80,598,{bold:true}); t(p,'UOM',180,598,{bold:true}); t(p,'Order Quantity',210,598,{bold:true}); t(p,'Despatch Quantity',268,598,{bold:true}); t(p,'Price',340,598,{bold:true}); t(p,'Empties',390,598,{bold:true}); t(p,'Quantity Collected',490,598,{bold:true});
+    let y=584; let tq=0, tp=0; d.lines.forEach(l=>{ t(p,l.code,24,y); t(p,l.desc,80,y,{size:7}); t(p,l.uom,180,y); t(p,l.qty,215,y); t(p,l.qty,272,y); t(p,l.price==null?'FREE':Number(l.price).toFixed(2),340,y); tq+=l.qty; tp+=l.price||0; y-=12; });
+    t(p,'OTH712',390,584); t(p,'50L KEG DEPOSIT ITEM',430,584,{size:7}); t(p,'PAC731',390,572); t(p,'Empty cases returned',430,572,{size:7});
+    t(p,'Totals',150,y-6,{bold:true}); t(p,tq,215,y-6,{bold:true}); t(p,tq,272,y-6,{bold:true}); t(p,tp.toFixed(2),340,y-6,{bold:true});
+    box(p,20,300,320,70); t(p,'Delivery Confirmation Signature',90,360,{bold:true}); t(p,'Customer Signature',24,345,{bold:true}); t(p,'Customer Name',24,328,{bold:true}); t(p,'Delivery Driver Signature',24,310,{bold:true});
+    t(p,'Demo document made by tests/lib/checksheet.js: no real customer, product or company.',30,60,{bold:true,size:7}); t(p,'Page 1 of 1',280,40,{size:6}); });
+  return doc.save();
+}
+
+module.exports={checkSheetPdf, upliftDocketPdf, makeLines, CATALOGUE, JDE_NAMES};

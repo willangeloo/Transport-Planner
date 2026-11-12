@@ -253,8 +253,11 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=res]'); await p.click('.subnav [data-tab=upl]'); await shot('uplift-control');
   { const no='7700108'; await p.click(`#tab-upl [data-uact=alloc][data-no="${no}"]`); await p.waitForSelector('#uaDay'); await p.selectOption('#uaDay','D2026-11-12'); await p.waitForTimeout(100); await p.selectOption('#uaLoad',{index:0}); await shot('uplift-allocate'); await p.click('#modal [data-act=ok]');
     ok((await p.evaluate(n=>__rpUpl.plan()[n],no)).manual,'Uplift Control: uplift '+no+' allocated by hand to Thursday'); }
-  await p.click('nav [data-tab=print]'); await p.click('#dbPrint [data-dbday="D2026-11-11"]'); await p.click('[data-jpmode=uplift]'); await p.click('#jpUpGo'); await p.waitForSelector('#jpUpOut:not([hidden])',{timeout:60000}); await p.waitForTimeout(1500);
-  ok(/5 covers and 5 dockets/.test(await p.textContent('#jpUpInfo')),'Printing › Uplift: the uplift dockets of Wednesday, a cover per route'); await shot('print-uplift');
+  await p.click('nav [data-tab=print]'); await p.click('#dbPrint [data-dbday="D2026-11-11"]'); await p.click('[data-jpmode=uplift]');
+  await p.click('#jpUpJde'); await p.waitForSelector('input[name=jde]'); await p.check('input[name=jde]'); await p.click('#jdeOk'); await p.waitForFunction(()=>document.querySelectorAll('#jpUpFiles tbody tr').length>0,null,{timeout:60000});
+  ok((await p.$$eval('#jpUpFiles tbody tr',x=>x.length))===7,'Printing › Uplift: the uplift dockets PDF (CHECK_SHEETS › UPLIFTS) is matched with the report, docket by docket'); await shot('uplift-dockets');
+  await p.click('#jpUpGo'); await p.waitForSelector('#jpUpOut:not([hidden])',{timeout:60000}); await p.waitForTimeout(1500);
+  ok(/5 covers and 5 dockets \(5 JDE pages\)/.test(await p.textContent('#jpUpInfo')),'Printing › Uplift: the uplift dockets of Wednesday, a cover per route, the JDE pages in plan order'); await shot('print-uplift');
   await p.click('[data-jpmode=organise]'); await p.click('nav [data-tab=report]'); await p.click('#dbRep [data-dbwk="2026-11-09"]'); await p.click('#dbRep [data-dbday="D2026-11-11"]'); await p.evaluate(()=>document.querySelector('[data-sec=upl]').scrollIntoView()); await shot('report-uplifts');
   await p.click('#dbRep [data-dball]'); await p.click('nav [data-tab=plan]');
 

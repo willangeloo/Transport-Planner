@@ -72,7 +72,7 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
 
 | A registered laptop shows only its owner | Your user on another laptop | No folder set: blocked |
 |---|---|---|
-| ![Laptop registered](img/44-laptop-registered.png) | ![Other laptop](img/45-other-laptop.png) | ![No folder](img/41-folder-check-failed.png) |
+| ![Laptop registered](img/45-laptop-registered.png) | ![Other laptop](img/46-other-laptop.png) | ![No folder](img/42-folder-check-failed.png) |
 
 **The header.** Left to right: the tabs (Planning, Resources, Change report, Printing, Options), **📊 Delivery Shortages**, then **👤 your name** (click it for **Switch user** and **My folder…**), **💾 Save**, **📁 Reports**, **⤒ Open plan** and **↺ Reset**. Under **Resources** there is a sub heading with **Resources sheet** and **Customers**.
 
@@ -89,7 +89,7 @@ Every file shows **✓ loaded**, **⚠ changed since loaded** or **not loaded**.
 | **Set a folder** | anyone | their own, Users and Viewers | their own |
 | **Unregister a laptop** (e.g. a replacement laptop) | anyone else | Users and Viewers | — |
 
-![A Master sets a folder](img/43-master-sets-folder.png)
+![A Master sets a folder](img/44-master-sets-folder.png)
 
 > A browser can't read a folder's full path or the Windows user. That's why the laptop registration is what ties a laptop to a person. Use **one browser** (Chrome or Edge) on your laptop: a different browser counts as a different computer.
 
@@ -303,7 +303,7 @@ The tab has the four steps on the left. On the right are the summary, **Checks**
 
 **Delivery: uplifts.** An order whose customer has an uplift planned that day is tagged **UPLIFT &lt;number&gt;** in the route list and on the cover, and the hint under **Organise PDFs** counts them: print their uplift dockets in the **Uplift** section (they are never in the delivery PDF).
 
-**Reprint a Docket** (top right) finds one order, from any imported PDF, by number or customer and prints only its original pages, without a cover. The **Loadings** list on that screen shows the loadings (shipments) of the imported PDFs grouped by the day they were loaded, with their route when the day's Resources are loaded: click one to list its orders.
+**Reprint a Docket** (top right) also searches the uplift dockets imported in **Uplift** (tagged UPLIFT). It finds one order, from any imported PDF, by number or customer and prints only its original pages, without a cover. The **Loadings** list on that screen shows the loadings (shipments) of the imported PDFs grouped by the day they were loaded, with their route when the day's Resources are loaded: click one to list its orders.
 
 | Choose from CHECK_SHEETS › JDE | Printing |
 |---|---|
@@ -325,7 +325,7 @@ The **Options** tab has these sections. **Theme is always the last one**: any se
 
 | Options | Dark theme |
 |---|---|
-| ![Options](img/42-options.png) | ![Dark theme](img/29-plan-dark.png) |
+| ![Options](img/43-options.png) | ![Dark theme](img/29-plan-dark.png) |
 
 ## 17. Roles: who can do what
 
@@ -348,7 +348,7 @@ A **Viewer** sees the planner like a snapshot, with no editing buttons. Roles ar
 
 | Viewer | Options (Master) |
 |---|---|
-| ![Viewer](img/40-viewer.png) | ![Options](img/42-options.png) |
+| ![Viewer](img/41-viewer.png) | ![Options](img/43-options.png) |
 
 ## 18. Delivery Shortages
 
@@ -385,9 +385,15 @@ An **uplift** is a pick-up at a customer (empty kegs, damaged stock). The **upli
 
 **Planning.** The route list has an **UPLIFT** column between **Orders** and **Kg**: the uplift numbers, in red, on the customer's drop. An uplift put on a route that doesn't deliver that customer is an **uplift only** stop on that route. Each route counts its uplifts. On the map, outstanding uplifts are **triangles** next to the customer: in the route's colour when planned that day, **grey (dashed)** when not planned anywhere. The **▲ Uplifts** button under the bay buttons in *Show on map* hides or shows them (dark grey in the light theme, light grey in the dark theme). Click a triangle for the details and **Allocate to a route…**.
 
-**Uplift Control** (Resources › Uplift Control) lists every uplift: order number and shipment, scheduled pick and first seen, customer and PO, the lines with the order value and next status, **your note** (the workbook's Status column: type in it; it is kept when the uplift is archived or comes back), **day planned** (a button that opens it in Planning), **route** (with driver, helper, truck and load) and status. The boxes on top filter it (outstanding, not planned, allocated by hand, completed, all); **Reports loaded** lists each report with how many uplifts were new or completed. **⤓ Export Excel (Summary + Archive)** writes a workbook in the layout of the Uplift control workbook: **Summary** (Order No … Order Value, **Bay** = route - driver + helper, e.g. `BAY 01 - Michael J + Dano`, **Reschedule** = the day planned, Status = your note, First seen, Last seen) and **Archive** (with Comments and Archived on).
+**Uplift Control** (Resources › Uplift Control) lists every uplift: order number and shipment, scheduled pick and first seen, customer and PO, the lines with the order value and next status, **your note** (the workbook's Status column: type in it; it is kept when the uplift is archived or comes back), **day planned** (a button that opens it in Planning), **route** (with driver, helper, truck and load) and status. The boxes on top filter it (outstanding, not planned, allocated by hand, completed, all); **Reports loaded** lists each report with how many uplifts were new or completed. **⤓ Export Excel (Summary + Archive)** writes a workbook in the layout of the Uplift control workbook: **Summary** (Order No … Order Value, **Bay** = route - driver + helper, e.g. `BAY 01 - Driver 21 + Helper 21`, **Reschedule** = the day planned, Status = your note, First seen, Last seen) and **Archive** (with Comments and Archived on).
 
-**Printing › Uplift** organises the **uplift dockets** of the day like the deliveries: one cover per route in the order of the day's plan, then a docket per uplift (customer, address, time window, products and the quantity to collect, boxes for the quantity collected and the signatures). Click **Organise uplift PDF**, check the preview, then **Print** or **Download**. It is a PDF of its own, never mixed with the delivery check sheets, and it is saved in **CHECK_SHEETS › Organised** as `date_time_user_UPLIFTS.pdf`.
+**Printing › Uplift** organises the **uplift dockets** of the day like the deliveries. This section is only on the **Uplift** screen (not under Delivery or Reprint a Docket).
+
+1. **Import the uplift docket PDF** printed by JDE (*DELIVERY DOCKET … REPRINT … \*\*\*UPLIFT\*\*\**, one page per uplift order): **📁 Choose from CHECK_SHEETS › UPLIFTS** or drop it on the box. An uplift PDF dropped in **Delivery** is sent here instead, so dockets and check sheets are never mixed.
+2. **Each docket is matched with the uplifts report** by its **Order No**, and checked: **Load No** = Shipment Number, **Customer Number** = Ship To, **Customer PO** and the **product codes**. The table shows **where to collect** it (day and route, e.g. `Wed 11.11 · BAY 02 - Driver 22 + Helper 22`), and flags a docket that isn't in the report, one already completed, one not planned, or a detail that differs (⚠).
+3. **Organise uplift PDF:** one cover per route in the order of the day's plan, then each uplift's **original JDE page**; an uplift with no page in the imported PDFs gets a docket made by the planner (customer, address, products, boxes for the quantity collected and the signatures). Check the preview, then **Print** or **Download**. It is a PDF of its own and is saved in **CHECK_SHEETS › Organised** as `date_time_user_UPLIFTS.pdf`.
+
+**Reprint a Docket** also finds the uplift dockets: type the order number, the customer number or part of the name; uplift dockets are tagged **UPLIFT**.
 
 **Change report › Uplifts planned** lists the uplifts planned for the chosen day (see [section 12](#12-change-report-and-exporting-changes)).
 
@@ -395,6 +401,10 @@ An **uplift** is a pick-up at a customer (empty kegs, damaged stock). The **upli
 |---|---|
 | ![Planning with uplifts](img/35-plan-uplifts.png) | ![Uplift Control](img/36-uplift-control.png) |
 
-| Allocate by hand | Printing › Uplift | Change report |
-|---|---|---|
-| ![Allocate an uplift](img/37-uplift-allocate.png) | ![Uplift dockets](img/38-print-uplift.png) | ![Uplifts planned](img/39-report-uplifts.png) |
+| Allocate by hand | Uplift dockets matched with the report |
+|---|---|
+| ![Allocate an uplift](img/37-uplift-allocate.png) | ![Uplift dockets](img/38-uplift-dockets.png) |
+
+| Printing › Uplift | Change report |
+|---|---|
+| ![Organised uplift PDF](img/39-print-uplift.png) | ![Uplifts planned](img/40-report-uplifts.png) |

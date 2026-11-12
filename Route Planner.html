@@ -550,7 +550,8 @@ html[data-theme=dark] .uplbtn.off{background:transparent;color:#cbd5e1}
 .legend .tri{width:0!important;height:0!important;border-radius:0!important;background:none!important;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #4b5563}
 .uc-tbl td{vertical-align:top}.ucnote{width:130px;font-size:12px;padding:3px 6px}.uc-tbl .muted{font-size:11.5px}
 .uc-f{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-.jp-uplift{display:grid;gap:14px;padding:0 18px 18px}
+.jp-uplift{display:grid;gap:14px;padding:0 18px 18px}.jp-uplift[hidden]{display:none}
+.jp-up-tbl .ok{color:var(--ok)}.jp-up-tbl .bad{color:var(--danger)}.jp-up-tbl .warn{color:var(--warn)}
 .jp-uplift table{width:100%;border-collapse:collapse;font-size:12.5px}.jp-uplift th,.jp-uplift td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .jp-uplift .ugrp{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}.jp-uplift .ugrp h3{margin:0;padding:8px 12px;font-size:13px;background:var(--soft,#fafbfc);display:flex;gap:10px;align-items:baseline}
 .home{max-width:1400px;margin:0 auto;padding:22px}
@@ -2213,7 +2214,7 @@ function uplPlan(){
 function uplOnDay(dk, plan){ const d=dayMap[dk]; if(!d) return []; const pl=plan||uplPlan(); return Object.values(pl).filter(x=>x.date===d.date && S.upl.items[x.no]).map(x=>Object.assign({u:S.upl.items[x.no]},x)); }
 const uplProducts = u => (u.lines||[]).map(l=>`${l.product||l.desc||'?'}${l.qty!=null?' ×'+l.qty:''}`).join(', ');
 const money = v => v==null||v==='' ? '' : (+v).toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2});
-// "BAY004 - Junior + Lukas": the route and crew, as the Bay column of the Uplift control workbook
+// "BAY004 - Driver 1 + Helper 1": the route and crew, as the Bay column of the Uplift control workbook
 function uplBayTxt(x){ if(!x||!x.day||!x.load) return x?uplRouteTxt(x):''; const li=loadInfo(x.day,x.load); const crew=[li.driver,li.helper].filter(Boolean).join(' + '); return routeName(x.day,x.load)+(crew?' - '+crew:''); }
 const uplNoHtml = nos => nos.map(n=>`<span class="upl-no">${esc(n)}</span>`).join('<br>');
 function uplRouteTxt(x){ if(!x) return ''; if(!x.day) return 'day not loaded'; if(!x.load) return 'not on a route yet'; return loadMap[x.day+'|'+x.load] ? routeName(x.day,x.load) : 'Load '+x.load+' (not on the day)'; }
@@ -5205,8 +5206,14 @@ function jpSkeleton(){
    </section>
   </div>
   <div class="jp-uplift" id="jpUplift" hidden>
+   <section class="jp-card"><h2>Uplift dockets (PDF)</h2>
+    <p class="jp-hint">The uplift dockets printed by JDE (DELIVERY DOCKET … ***UPLIFT***). Each page is matched with the uplifts report by its <b>Order No</b>, and checked: Load No = shipment, Customer Number = Ship To, Customer PO and products. Their pages are printed under the route where the uplift is collected. Never mixed with the delivery check sheets.</p>
+    <button class="btn jp-big" id="jpUpJde" style="width:auto" title="Choose uplift docket PDFs from CHECK_SHEETS › UPLIFTS in the company folder">📁 Choose from CHECK_SHEETS › UPLIFTS</button>
+    <label class="jp-drop" id="jpUpDrop" tabindex="0" style="margin-top:8px"><input type="file" id="jpUpFile" accept="application/pdf,.pdf" multiple hidden><strong>Drop the uplift docket PDF here</strong><span>or click to choose a file. More than one file is accepted.</span></label>
+    <div class="jp-progress" id="jpUpReadProgress" hidden><div class="bar"></div><span class="label"></span></div>
+    <div id="jpUpFiles"></div></section>
    <section class="jp-card"><h2>Uplifts planned <span class="spacer"></span><button class="btn sm" data-jpgo="upl">Uplift Control</button></h2>
-    <p class="jp-hint">The uplifts planned for the day, by route in the order of the day's plan. They are printed apart from the delivery check sheets (never in the same PDF): a cover per route, then one uplift docket per uplift.</p>
+    <p class="jp-hint">The uplifts planned for the day, by route in the order of the day's plan. They are printed apart from the delivery check sheets (never in the same PDF): a cover per route, then each uplift's docket — the JDE page when it is in an imported PDF, else a docket made by the planner.</p>
     <div id="jpUpList"></div>
     <div class="row" style="margin-top:12px;gap:10px"><button class="btn pri jp-big" id="jpUpGo" style="width:auto">Organise uplift PDF</button><span class="jp-hint" id="jpUpHint"></span></div>
     <div class="jp-progress" id="jpUpProgress" hidden><div class="bar"></div><span class="label"></span></div></section>
@@ -5214,7 +5221,7 @@ function jpSkeleton(){
   </div>
   <div class="jp-reprint" id="jpReprint" hidden>
    <section class="jp-card"><h2>Loadings</h2><p class="jp-hint">The loadings of the imported PDFs, grouped by day. Click one to list its orders.</p><div id="jpRpLoads"></div></section>
-   <section class="jp-card"><h2>Reprint a docket</h2><p class="jp-hint">Type the order number (or part of the customer name). Only the original pages of that docket are printed, without a cover.</p>
+   <section class="jp-card"><h2>Reprint a docket</h2><p class="jp-hint">Type the order number (or part of the customer name or customer number). Delivery check sheets and <b>uplift dockets</b> (from the Uplift section) are both searched. Only the original pages of that docket are printed, without a cover.</p>
     <input id="jpQuery" type="search" autocomplete="off" placeholder="Order number" aria-label="Order number">
     <p class="jp-hint" id="jpRpCount" style="margin-top:8px"></p><ul class="jp-rplist" id="jpRpList"></ul></section>
    <section class="jp-card" id="jpRpPreview" hidden><div class="jp-outhead"><div><h3 id="jpRpTitle"></h3><span class="jp-hint" id="jpRpInfo"></span></div><span class="spacer"></span><button class="btn pri" id="jpRpPrint">Print order</button><button class="btn" id="jpRpDownload">Download</button></div><div class="jp-pages" id="jpRpPages"></div></section>
@@ -5375,22 +5382,24 @@ async function jdeDetectDate(file){
   }catch(e){ iso=''; }
   JDE_DATES[key]=iso; store(JDEKEY,JDE_DATES); return iso;
 }
-async function scanJde(){
-  const out=[]; if(!FOLDER.handle) return out;
-  const cs=await subDirIf(FOLDER.handle,['CHECK_SHEETS']); if(!cs) return out; const jde=await subDirIf(cs,['JDE']); if(!jde) return out;
+async function scanJde(sub){
+  const out=[]; if(!FOLDER.handle) return out; sub=sub||'JDE';
+  const cs=await subDirIf(FOLDER.handle,['CHECK_SHEETS']); if(!cs) return out; const jde=await subDirIf(cs,[sub]); if(!jde) return out;
   const walk=async(dir,prefix,depth)=>{ for await (const [name,h] of dir.entries()){ if(h.kind==='directory'){ if(depth<2) await walk(h,prefix+name+'/',depth+1); continue; }
-    if(!/\.pdf$/i.test(name)) continue; const f=await h.getFile(); const path='CHECK_SHEETS/JDE/'+prefix+name; try{ f.rpPath=path; }catch(e){}
+    if(!/\.pdf$/i.test(name)) continue; const f=await h.getFile(); const path='CHECK_SHEETS/'+jde.name+'/'+prefix+name; try{ f.rpPath=path; }catch(e){}
     out.push({name, path, dir:prefix.replace(/\/$/,''), fweek:weekOfPath(path), mod:f.lastModified, size:f.size, file:f}); } };
   await walk(jde,'',0); return out.sort((a,b)=>b.mod-a.mod);
 }
 const jdeDateOf = f => JDE_DATES[f.name+'|'+f.size+'|'+f.mod];
 const jdeWeek = f => { const d=jdeDateOf(f); return d?isoWeek(d):f.fweek; };
-function jdeStatus(f){ const h=JB.hash[f.path]; const L=(JS.org?JS.org.sources:[]); if(h && L.some(x=>x.hash===h)) return 'loaded'; if(L.some(x=>x.path&&x.path===f.path)) return 'changed'; return 'new'; }
+function jdeStatus(f){ const h=JB.hash[f.path]; const L=JB.mode==='upl'?JU.sources:(JS.org?JS.org.sources:[]); if(h && L.some(x=>x.hash===h)) return 'loaded'; if(L.some(x=>x.path&&x.path===f.path)) return 'changed'; return 'new'; }
 const JDE_FLAG={loaded:'<span class="flag ad" title="This exact file is imported">✓ loaded</span>', changed:'<span class="flag dup" title="A file with this name was imported, but its content is different now">⚠ changed since loaded</span>', new:'<span class="flag" style="background:#eef1f4;color:#4b5563">not loaded</span>'};
-async function openJdeBrowser(){
+// mode 'del' = CHECK_SHEETS › JDE (delivery check sheets) · 'upl' = CHECK_SHEETS › UPLIFTS (uplift dockets)
+async function openJdeBrowser(mode){
   if(FOLDER.status!=='ok' || !FOLDER.handle){ toast('Choose your user first'); return; }
-  openModal(`<div class="mh"><h2>📁 CHECK_SHEETS › JDE</h2><div class="muted small">Reading the folder…</div></div><div class="mb"></div>`); $('modal').classList.add('wide');
-  let files=[]; try{ files=await scanJde(); }catch(e){ return manualAlert('Folder not available','Could not read CHECK_SHEETS › JDE: '+esc(e&&e.message||e)); }
+  JB.mode=mode==='upl'?'upl':'del'; const dir=JB.mode==='upl'?'UPLIFTS':'JDE';
+  openModal(`<div class="mh"><h2>📁 CHECK_SHEETS › ${dir}</h2><div class="muted small">Reading the folder…</div></div><div class="mb"></div>`); $('modal').classList.add('wide');
+  let files=[]; try{ files=await scanJde(dir); }catch(e){ return manualAlert('Folder not available','Could not read CHECK_SHEETS › '+dir+': '+esc(e&&e.message||e)); }
   JB.files=files; JB.sel.clear(); const run=++JB.run; renderJde();
   JB.busy=true;
   for(const f of files){ if(run!==JB.run) return; if(JDE_DATES[f.name+'|'+f.size+'|'+f.mod]==null || !JB.hash[f.path]){ await jdeDetectDate(f.file); try{ JB.hash[f.path]=await fileHash(f.file); }catch(e){} }
@@ -5406,12 +5415,13 @@ function renderJde(){
   const fmtD=ms=>{ const d=new Date(ms); return d.toLocaleDateString('en-IE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}); };
   const shown=files.filter(inView);
   const chips=(wks.length||files.some(f=>!jdeWeek(f)))?`<div class="chips" data-jdewk="1">${wks.map(w=>`<button class="chip ${String(w)===JB.week?'on':''}" data-act="w:${w}">Week ${w}</button>`).join('')}${files.some(f=>!jdeWeek(f))?`<button class="chip ${JB.week==='other'?'on':''}" data-act="w:other">No date yet</button>`:''}<button class="chip ${JB.week==='all'?'on':''}" data-act="w:all">All</button></div>`:'';
-  const rows=shown.length?shown.map(f=>`<label class="fbrow"><input type="checkbox" name="jde" value="${esc(f.path)}" ${JB.sel.has(f.path)?'checked':''}><span class="fn">${esc(f.name)} <span data-jd="${esc(f.path)}">${jdeDayHtml(f)}</span> <span data-js="${esc(f.path)}">${JDE_FLAG[jdeStatus(f)]}</span> <span class="muted small">${esc(f.dir)}</span></span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`).join(''):`<div class="muted small" style="padding:8px">${files.length?'None in this week.':'No PDF found in CHECK_SHEETS › JDE (week folders such as week_46 are fine).'}</div>`;
-  openModal(`<div class="mh"><h2>📁 CHECK_SHEETS › JDE</h2><div class="muted small">The day of each PDF is read from its first 3 pages, not from the file name · newest first · <b>✓ loaded</b> = this exact file is imported</div></div>
+  const dir=JB.mode==='upl'?'UPLIFTS':'JDE';
+  const rows=shown.length?shown.map(f=>`<label class="fbrow"><input type="checkbox" name="jde" value="${esc(f.path)}" ${JB.sel.has(f.path)?'checked':''}><span class="fn">${esc(f.name)} <span data-jd="${esc(f.path)}">${jdeDayHtml(f)}</span> <span data-js="${esc(f.path)}">${JDE_FLAG[jdeStatus(f)]}</span> <span class="muted small">${esc(f.dir)}</span></span><span class="muted small">${fmtD(f.mod)}</span><span class="muted small" style="width:60px;text-align:right">${Math.max(1,Math.round(f.size/1024))} KB</span></label>`).join(''):`<div class="muted small" style="padding:8px">${files.length?'None in this week.':'No PDF found in CHECK_SHEETS › '+dir+' (week folders such as week_46 are fine).'}</div>`;
+  openModal(`<div class="mh"><h2>📁 CHECK_SHEETS › ${dir}</h2><div class="muted small">The day of each PDF is read from its first 3 pages, not from the file name · newest first · <b>✓ loaded</b> = this exact file is imported</div></div>
    <div class="mb">${chips}<div class="mlist fblist" style="max-height:340px">${rows}</div>${JB.busy?'<div class="muted small">Reading the first pages of each PDF to find its day…</div>':''}</div>
    <div class="mf"><button class="btn" data-act="refresh" style="margin-right:auto">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="jdeOk" ${JB.sel.size?'':'disabled'}>Import selected</button></div>`,
-   {onAct:a=>{ if(a.startsWith('w:')){ JB.week=a.slice(2); JB.sel.clear(); renderJde(); return; } if(a==='refresh') return openJdeBrowser();
-     if(a==='import'){ const fs_=JB.files.filter(f=>JB.sel.has(f.path)).map(f=>f.file); if(!fs_.length) return; JB.run++; closeModal(); jpAddFiles(fs_); } }});
+   {onAct:a=>{ if(a.startsWith('w:')){ JB.week=a.slice(2); JB.sel.clear(); renderJde(); return; } if(a==='refresh') return openJdeBrowser(JB.mode);
+     if(a==='import'){ const fs_=JB.files.filter(f=>JB.sel.has(f.path)).map(f=>f.file); if(!fs_.length) return; JB.run++; closeModal(); (JB.mode==='upl'?upAddFiles:jpAddFiles)(fs_); } }});
   $('modal').classList.add('wide');
   $('modal').querySelectorAll('input[name=jde]').forEach(i=>i.addEventListener('change',()=>{ i.checked?JB.sel.add(i.value):JB.sel.delete(i.value); $('jdeOk').disabled=!JB.sel.size; }));
 }
@@ -5422,14 +5432,16 @@ async function jpAddFiles(fileList){
   const prog=$('jpReadProgress');
   try{ jpProgress(prog,0,'Loading the PDF reader…'); await loadPdfLibs(); }catch(e){ prog.hidden=true; toast(e.message); return; }
   if(!JS.org) JS.org=new JP.Organiser();
-  const added=[], skipped=[];
+  const added=[], skipped=[], upl=[];
   for(const f of files){ jpProgress(prog,0,'Reading '+f.name);
+    if(await uplIsDocketPdf(f)){ upl.push(f); continue; }   // ***UPLIFT*** dockets are never mixed with the deliveries
     try{
       let h=''; try{ h=await fileHash(f); }catch(e){} const iso=await jdeDetectDate(f);
       if(h && JS.org.sources.some(x=>x.hash===h)){ skipped.push(`“${f.name}” is already imported`); continue; }
       const same=iso && JS.org.sources.find(x=>x.date===iso); if(same){ skipped.push(`a PDF for ${dayLbl(iso)} is already imported (“${same.name}”) — remove it first to import another one for that day`); continue; }
       const bytes=new Uint8Array(await f.arrayBuffer()); const src=await JS.org.addFile({name:f.name,bytes},(d,t)=>jpProgress(prog,d/t,'Reading '+f.name+': page '+d+' of '+t)); src.hash=h; src.path=f.rpPath||''; src.date=iso||''; added.push(iso);
     }catch(e){ toast('Could not read “'+f.name+'”: '+(e&&e.message||e)); } }
+  if(upl.length){ const sk=await upAddFiles(upl,true); toast(upl.map(f=>'“'+f.name+'”').join(', ')+(upl.length>1?' hold':' holds')+' uplift dockets: imported in the Uplift section, not with the deliveries'+(sk&&sk.length?' ('+sk.join(' · ')+')':'')); }
   if(skipped.length) toast('Not imported: '+skipped.join(' · '));
   if(!added.length){ prog.hidden=true; return; }
   // the day of the PDF comes from its own first pages: the Printing day follows it
@@ -5531,11 +5543,65 @@ function jpRenderUplift(){
   const sig=JSON.stringify([dk,groups.map(g=>[g.name,g.items.map(x=>x.no)])]); if(sig!==JU.sig){ JU.sig=sig; JU.dk=dk; jpUplClear(); }
   if(!dk){ box.innerHTML='<p class="jp-empty">Load a planning day first.</p>'; $('jpUpGo').disabled=true; $('jpUpHint').textContent=''; return; }
   box.innerHTML=groups.length?groups.map(g=>`<div class="ugrp"><h3>${esc(g.name)}<span class="muted small" style="font-weight:400">${[g.driver&&'Driver: '+g.driver,g.helper&&'Helper: '+g.helper,g.truck&&'Truck: '+g.truck,g.load&&'Load '+g.load].filter(Boolean).map(esc).join(' · ')||(g.none?'not on a route yet — allocate them in Uplift Control':'')}</span><span class="spacer"></span><b class="upl-no">${g.items.length}</b></h3>
-     <table><thead><tr><th>Uplift</th><th>Customer</th><th>Ship To</th><th>Products</th><th>Reason</th><th>Planned</th></tr></thead><tbody>${g.items.map(x=>`<tr><td><span class="upl-no">${esc(x.no)}</span></td><td><b>${esc(x.u.name)}</b></td><td>${esc(x.u.ship)}</td><td>${esc(uplProducts(x.u))}</td><td>${esc(x.u.reason||'—')}</td><td>${x.manual?'by hand':'with the delivery'}</td></tr>`).join('')}</tbody></table></div>`).join('')
+     <table class="jp-up-tbl"><thead><tr><th>Uplift</th><th>Customer</th><th>Ship To</th><th>Products</th><th>Planned</th><th>Docket</th></tr></thead><tbody>${g.items.map(x=>{ const d=uplDocketOf(x.no);
+       return `<tr><td><span class="upl-no">${esc(x.no)}</span></td><td><b>${esc(x.u.name)}</b>${x.u.po?`<div class="muted small">PO ${esc(x.u.po)}</div>`:''}</td><td>${esc(x.u.ship)}</td><td>${esc(uplProducts(x.u))}</td><td>${x.manual?'by hand':'with the delivery'}</td><td>${d?`<span class="${d.diffs.length?'warn':'ok'}">${d.diffs.length?'⚠':'✓'} JDE docket</span><div class="muted small">${esc(d.src.name)} · page ${d.pages.map(p=>p+1).join(', ')}</div>${d.diffs.map(t=>`<div class="small warn">${esc(t)}</div>`).join('')}`:'<span class="muted">not in the PDFs · made by the planner</span>'}</td></tr>`; }).join('')}</tbody></table></div>`).join('')
     : `<div class="note info">No uplifts planned for ${esc(dayLabel(dk))}. Load the uplifts outstanding report, or allocate uplifts in <b>Uplift Control</b>.</div>`;
-  $('jpUpGo').disabled=!n; $('jpUpHint').textContent=n?`${n} uplift${n>1?'s':''} on ${groups.length} route${groups.length>1?'s':''}: ${groups.length} cover${groups.length>1?'s':''} and ${n} docket${n>1?'s':''}.`:'';
+  const nd=groups.reduce((s,g)=>s+g.items.filter(x=>uplDocketOf(x.no)).length,0);
+  $('jpUpGo').disabled=!n; $('jpUpHint').textContent=n?`${n} uplift${n>1?'s':''} on ${groups.length} route${groups.length>1?'s':''}: ${groups.length} cover${groups.length>1?'s':''} and ${n} docket${n>1?'s':''} (${nd} from the JDE PDF${nd!==n?`, ${n-nd} made by the planner`:''}).`:'';
+  jpUpRenderFiles(dk);
 }
 function jpUplClear(){ if(JU.result&&JU.result.doc) JU.result.doc.destroy(); JU.result=null; if($('jpUpOut')){ $('jpUpOut').hidden=true; $('jpUpPages').textContent=''; } }
+
+// ---- uplift docket PDFs (v0.12.0): read in the browser, matched with the report by Order No ----
+JU.sources=[];
+function uplLines(tc){ const by=[]; tc.items.forEach(t=>{ const s=String(t.str||'').trim(); if(!s) return; const y=t.transform[5], x=t.transform[4]; let l=by.find(b=>Math.abs(b.y-y)<2.5); if(!l){ l={y,c:[]}; by.push(l); } l.c.push([x,s]); });
+  return by.sort((a,b)=>b.y-a.y).map(l=>l.c.sort((a,b)=>a[0]-b[0]).map(c=>c[1])); }
+function uplParseDocket(lines){
+  const txt=lines.map(c=>c.join(' | ')).join('\n'); const g=re=>{ const m=txt.match(re); return m?m[1]:''; };
+  const p={uplift:/\*+\s*UPLIFT\s*\*+/i.test(txt), order:g(/Order\s*No\.?[\s|:]*(\d{5,})/i), load:g(/Load\s*No\.?[\s|:]*(\d{5,})/i), date:g(/Delivery\s*Date[\s|:]*(\d{1,2}\/\d{1,2}\/\d{2,4})/i), cust:'', po:'', products:[]};
+  const ci=lines.findIndex(c=>c.some(s=>/Customer\s*Number/i.test(s))); if(ci>=0 && lines[ci+1]){ const nx=lines[ci+1]; p.cust=(nx.find(s=>/^\d{5,}$/.test(s))||''); const pi=nx.indexOf(p.cust); if(pi>=0 && nx[pi+1] && nx[pi+1]!=='--') p.po=nx[pi+1]; }
+  lines.forEach(c=>{ if(c.length>=4 && /^[A-Z0-9]{3,}$/.test(c[0]) && /^(EA|CS|KEG|KG|LT|BT|CA|PK)$/i.test(c[2]||'')) p.products.push({code:c[0], desc:c[1], uom:c[2], qty:toNum(c[3])}); });
+  return p;
+}
+async function uplReadPdf(file){
+  await loadPdfLibs(); const bytes=new Uint8Array(await file.arrayBuffer()); const doc=await pdfjsLib.getDocument({data:bytes.slice(),isEvalSupported:false}).promise; const pages=[];
+  for(let i=1;i<=doc.numPages;i++){ const p=uplParseDocket(uplLines(await (await doc.getPage(i)).getTextContent())); p.index=i-1;
+    if(!p.order && pages.length) p.cont=pages[pages.length-1].order||pages[pages.length-1].cont;   // a second page of the same docket
+    pages.push(p); }
+  return {name:file.name, path:file.rpPath||'', bytes, doc, pages};
+}
+async function uplIsDocketPdf(file){ try{ await loadPdfLibs(); const doc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise; const tc=await (await doc.getPage(1)).getTextContent(); doc.destroy(); return /\*+\s*UPLIFT\s*\*+/i.test(tc.items.map(x=>x.str).join(' ')); }catch(e){ return false; } }
+// the docket of an uplift: its pages and how it matches the report
+function uplDocketOf(no){
+  for(const src of JU.sources){ const pages=src.pages.filter(p=>(p.order||p.cont)===String(no)).map(p=>p.index); if(!pages.length) continue;
+    const pg=src.pages.find(p=>p.order===String(no)); const u=S.upl.items[no]; return {src, pages, pg, diffs:u&&pg?uplDiffs(pg,u):[]}; }
+  return null;
+}
+function uplDiffs(pg,u){ const d=[]; const norm=s=>String(s||'').replace(/\s+/g,'').toUpperCase();
+  if(pg.load && u.shipment && pg.load!==String(u.shipment)) d.push(`Load No ${pg.load} ≠ shipment ${u.shipment} in the report`);
+  if(pg.cust && u.ship && pg.cust!==String(u.ship)) d.push(`Customer Number ${pg.cust} ≠ Ship To ${u.ship}`);
+  if(pg.po && u.po && norm(pg.po)!==norm(u.po)) d.push(`PO ${pg.po} ≠ ${u.po}`);
+  const codes=new Set((u.lines||[]).map(l=>norm(l.product)).filter(Boolean)); const extra=pg.products.filter(p=>codes.size && !codes.has(norm(p.code)));
+  if(extra.length) d.push('Products not in the report: '+extra.map(p=>p.code).join(', '));
+  return d; }
+async function upAddFiles(fileList, quiet){
+  const files=Array.from(fileList).filter(f=>/\.pdf$/i.test(f.name)||f.type==='application/pdf'); if(!files.length) return; const prog=$('jpUpReadProgress'); const skipped=[];
+  try{ jpProgress(prog,0,'Loading the PDF reader…'); await loadPdfLibs(); }catch(e){ prog.hidden=true; toast(e.message); return; }
+  for(const f of files){ jpProgress(prog,.3,'Reading '+f.name); let h=''; try{ h=await fileHash(f); }catch(e){}
+    if(h && JU.sources.some(s=>s.hash===h)){ skipped.push(`“${f.name}” is already imported`); continue; }
+    try{ const src=await uplReadPdf(f); src.hash=h; if(!src.pages.some(p=>p.order)){ skipped.push(`“${f.name}”: no Order No found — is it an uplift docket?`); src.doc.destroy(); continue; } JU.sources.push(src); }
+    catch(e){ toast('Could not read “'+f.name+'”: '+(e&&e.message||e)); } }
+  prog.hidden=true; if(skipped.length && !quiet) toast('Not imported: '+skipped.join(' · ')); JU.sig=''; jpRenderUplift(); if(JS.mode==='reprint') jpRenderReprint(); return skipped;
+}
+function jpUpRenderFiles(dk){
+  const box=$('jpUpFiles'); if(!box) return; if(!JU.sources.length){ box.innerHTML=''; return; }
+  const pl=uplPlan(), d=dayMap[dk]; const all=JU.sources.flatMap((s,si)=>s.pages.filter(p=>p.order).map(p=>({s,si,p})));
+  const row=({s,p})=>{ const u=S.upl.items[p.order], x=pl[p.order]; const diffs=u?uplDiffs(p,u):[];
+    const st=!u?'<span class="bad">✗ not in the uplifts report</span>':u.closed?`<span class="warn">completed — not in the report of ${esc(fmtAt(u.closed.at))}</span>`:!x?'<span class="warn">outstanding · not planned</span>':(d&&x.date===d.date)?`<span class="ok">✓ ${esc(dayLbl(x.date))} · ${esc(uplBayTxt(x))}</span>`:`<span class="muted">planned ${esc(uplWhenTxt(x))} · ${esc(uplRouteTxt(x))}</span>`;
+    return `<tr><td><span class="upl-no">${esc(p.order)}</span><div class="muted small">${esc(s.name)} · p.${p.index+1}</div></td><td>${esc(p.cust||'—')}${u?`<div class="muted small">${esc(u.name)}</div>`:''}</td><td>${esc(p.load||'—')}</td><td>${esc(p.po||'—')}</td><td>${p.products.map(x=>esc(x.code+' ×'+(x.qty==null?'?':x.qty))).join('<br>')||'—'}</td><td>${st}${diffs.map(t=>`<div class="small warn">⚠ ${esc(t)}</div>`).join('')}</td></tr>`; };
+  box.innerHTML=`<div class="jp-files" style="margin-top:8px">${JU.sources.map((s,i)=>`<div class="row" style="gap:8px"><b>${esc(s.name)}</b><span class="muted small">${s.pages.length} page${s.pages.length!==1?'s':''} · ${s.pages.filter(p=>p.order).length} docket${s.pages.filter(p=>p.order).length!==1?'s':''}</span><button class="btn sm" data-uprm="${i}">Remove</button></div>`).join('')}</div>
+   <table class="jp-up-tbl" style="margin-top:8px"><thead><tr><th>Order No</th><th>Customer Number</th><th>Load No</th><th>Customer PO</th><th>Products</th><th>Match with the report · where to collect</th></tr></thead><tbody>${all.map(row).join('')}</tbody></table>`;
+}
 async function uplPdf(dk, groups){
   const {PDFDocument, StandardFonts, rgb}=window.PDFLib; const doc=await PDFDocument.create(); doc.setTitle('Uplifts '+dayLabel(dk)); doc.setCreator('Route Planner v'+APP_VERSION);
   const f=await doc.embedFont(StandardFonts.Helvetica), b=await doc.embedFont(StandardFonts.HelveticaBold);
@@ -5543,7 +5609,7 @@ async function uplPdf(dk, groups){
   const safe=s=>String(s==null?'':s).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-').replace(/[·•]/g,'-').replace(/[^\x20-\x7E -ÿ]/g,'?');
   const fit=(s,font,size,w)=>{ s=safe(s); if(font.widthOfTextAtSize(s,size)<=w) return s; while(s.length>1 && font.widthOfTextAtSize(s+'...',size)>w) s=s.slice(0,-1); return s+'...'; };
   const txt=(p,s,x,y,o)=>p.drawText(fit(s,o&&o.bold?b:f,(o&&o.size)||10,(o&&o.w)||W-M-x),{x,y,size:(o&&o.size)||10,font:o&&o.bold?b:f,color:(o&&o.color)||INK});
-  const stamp=new Date(), manifest=[]; const foot=(p,label)=>{ p.drawLine({start:{x:M,y:34},end:{x:W-M,y:34},thickness:.5,color:LINE}); txt(p,'Route Planner v'+APP_VERSION+'  -  uplifts of '+dayLabel(dk)+'  -  '+label,M,22,{size:7.5,color:MUT}); txt(p,'Printed '+stamp.toLocaleString('en-IE'),W-M-150,22,{size:7.5,color:MUT,w:150}); };
+  const stamp=new Date(), manifest=[], srcDocs=new Map(); const foot=(p,label)=>{ p.drawLine({start:{x:M,y:34},end:{x:W-M,y:34},thickness:.5,color:LINE}); txt(p,'Route Planner v'+APP_VERSION+'  -  uplifts of '+dayLabel(dk)+'  -  '+label,M,22,{size:7.5,color:MUT}); txt(p,'Printed '+stamp.toLocaleString('en-IE'),W-M-150,22,{size:7.5,color:MUT,w:150}); };
   for(const g of groups){
     // cover of the route
     let p=doc.addPage([W,H]); let y=H-M-6;
@@ -5551,15 +5617,19 @@ async function uplPdf(dk, groups){
     txt(p,g.name,M,y,{bold:true,size:26}); y-=22;
     txt(p,[g.driver&&'Driver: '+g.driver,g.helper&&'Helper: '+g.helper,g.truck&&'Truck: '+g.truck,g.load&&'Load '+g.load].filter(Boolean).join('   -   ')||(g.none?'Not on a route yet':''),M,y,{size:11,color:MUT}); y-=16;
     txt(p,g.items.length+' uplift'+(g.items.length>1?'s':'')+' to collect - a docket for each follows this cover. Not mixed with the delivery check sheets.',M,y,{size:9,color:MUT}); y-=26;
-    const cols=[['#',22],['Uplift',62],['Customer',170],['Ship To',62],['Products',138],['Reason',61]];
+    const cols=[['#',22],['Uplift',62],['Customer',170],['Ship To',62],['Products',138],['Docket',61]];
     const head=()=>{ p.drawRectangle({x:M,y:y-5,width:W-2*M,height:18,color:SOFT}); let x=M+4; cols.forEach(([t,w])=>{ txt(p,t,x,y,{bold:true,size:8.5,color:MUT,w:w-4}); x+=w; }); y-=20; };
     head();
     g.items.forEach((it,i)=>{ if(y<70){ foot(p,g.name+' (cover)'); p=doc.addPage([W,H]); y=H-M-6; txt(p,g.name+' (continued)',M,y,{bold:true,size:13}); y-=26; head(); }
-      const vals=[String(i+1),it.no,it.u.name,it.u.ship,uplProducts(it.u),it.u.reason||'-']; let x=M+4;
+      const vals=[String(i+1),it.no,it.u.name,it.u.ship,uplProducts(it.u),uplDocketOf(it.no)?'JDE':'made here']; let x=M+4;
       cols.forEach(([t,w],ci)=>{ txt(p,vals[ci],x,y,{size:9,bold:ci===1,color:ci===1?RED:INK,w:w-6}); x+=w; }); y-=6; p.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.4,color:LINE}); y-=12; });
     foot(p,g.name+' (cover)'); manifest.push({route:g.name,type:'cover'});
     // one docket per uplift
-    for(const it of g.items){ const u=it.u, c=custMap[u.ship]||{}; const q=doc.addPage([W,H]); let yy=H-M-6;
+    for(const it of g.items){ const u=it.u, c=custMap[u.ship]||{};
+      const dk_=uplDocketOf(it.no); if(dk_){   // the original JDE page(s) of this uplift
+        let src=srcDocs.get(dk_.src); if(!src){ src=await PDFDocument.load(dk_.src.bytes,{ignoreEncryption:true,updateMetadata:false}); srcDocs.set(dk_.src,src); }
+        (await doc.copyPages(src,dk_.pages)).forEach(pg=>{ doc.addPage(pg); manifest.push({route:g.name,type:'docket',no:u.no,jde:true}); }); continue; }
+      const q=doc.addPage([W,H]); let yy=H-M-6;
       txt(q,'UPLIFT DOCKET',M,yy,{bold:true,size:12,color:RED}); txt(q,g.name+(g.load?'  -  Load '+g.load:''),W-M-220,yy,{size:10,color:MUT,w:220}); yy-=40;
       txt(q,'Uplift '+u.no,M,yy,{bold:true,size:28,color:RED}); yy-=30;
       txt(q,u.name,M,yy,{bold:true,size:16}); yy-=18;
@@ -5584,8 +5654,8 @@ async function jpUplOrganise(){
     res.doc=await pdfjsLib.getDocument({data:res.bytes.slice(),isEvalSupported:false}).promise; JU.result=res;
     $('jpUpOut').hidden=false; $('jpUpTitle').textContent='Uplifts · '+dayLabel(dk);
     const n=groups.reduce((s,x)=>s+x.items.length,0);
-    $('jpUpInfo').textContent=res.pages+' pages: '+groups.length+' cover'+(groups.length>1?'s':'')+' and '+n+' docket'+(n>1?'s':'')+'.'+(res.savedAs?' Saved: '+res.savedAs:(res.saveErr?' Not saved to the folder: '+res.saveErr:''));
-    jpPageGrid($('jpUpPages'), res.manifest.map((m,i)=>({doc:res.doc,index:i,key:'upl:'+JU.sig+':'+res.name+':'+i,caption:(m.type==='cover'?'Cover · ':'Uplift '+m.no+' · ')+m.route})), 'Uplifts · '+dayLabel(dk));
+    const nj=res.manifest.filter(m=>m.jde).length; $('jpUpInfo').textContent=res.pages+' pages: '+groups.length+' cover'+(groups.length>1?'s':'')+' and '+n+' docket'+(n>1?'s':'')+(nj?' ('+nj+' JDE page'+(nj>1?'s':'')+')':'')+'.'+(res.savedAs?' Saved: '+res.savedAs:(res.saveErr?' Not saved to the folder: '+res.saveErr:''));
+    jpPageGrid($('jpUpPages'), res.manifest.map((m,i)=>({doc:res.doc,index:i,key:'upl:'+JU.sig+':'+res.name+':'+i,caption:(m.type==='cover'?'Cover · ':'Uplift '+m.no+(m.jde?' (JDE)':'')+' · ')+m.route})), 'Uplifts · '+dayLabel(dk));
     $('jpUpOut').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){ toast('Could not make the uplift PDF: '+(e&&e.message||e)); }
   finally{ prog.hidden=true; btn.disabled=false; }
@@ -5610,14 +5680,15 @@ function jpRenderLoads(){
     grp.appendChild(chips); box.appendChild(grp); });
 }
 function jpRenderReprint(){
-  const has=!!(JS.org&&JS.org.pages.length); const q=$('jpQuery').value.trim(); const list=$('jpRpList'); list.textContent=''; jpRenderLoads();
-  if(!has){ $('jpRpCount').textContent='Import the check-sheet PDF in Organise first.'; $('jpRpPreview').hidden=true; return; }
-  const orders=jpAllOrders();
+  const hasD=!!(JS.org&&JS.org.pages.length), hasU=JU.sources.length>0; const q=$('jpQuery').value.trim(); const list=$('jpRpList'); list.textContent=''; jpRenderLoads();
+  if(!hasD && !hasU){ $('jpRpCount').textContent='Import the check-sheet PDF in Delivery, or the uplift dockets in Uplift, first.'; $('jpRpPreview').hidden=true; return; }
+  const orders=hasD?jpAllOrders():[];
+  if(q && jpRpUplifts(q, list)) return;
   if(!q && JS.rpLoad){ const [ld,sh]=[JS.rpLoad.split('|')[0],JS.rpLoad.split('|').slice(1).join('|')]; const m=orders.filter(o=>jpOrderDay(o)===ld && (o.shipment||'—')===sh).sort((a,b)=>a.order.localeCompare(b.order));
     $('jpRpCount').textContent=`Loading ${sh}${ld?' · '+dayLbl(ld):''}: ${m.length} order${m.length!==1?'s':''}. Click one to preview it.`;
     m.forEach(o=>list.appendChild(jh('li',null, jh('button',{class:JS.reprintKey===o.key?'on':'',onclick:()=>jpSelectReprint(o.key)}, jh('span',{class:'o',text:o.order}), jh('span',{class:'c',text:o.customer||'(customer not found)'}), jh('span',{class:'m',text:o.pages.length+' page(s)'})))));
     if(!m.some(o=>o.key===JS.reprintKey)){ JS.reprintKey=null; $('jpRpPreview').hidden=true; } return; }
-  if(!q){ $('jpRpCount').textContent=jfmt(orders.length)+' orders in the loaded PDFs.'; $('jpRpPreview').hidden=true; return; }
+  if(!q){ const nu=JU.sources.reduce((s,x)=>s+x.pages.filter(p=>p.order).length,0); $('jpRpCount').textContent=jfmt(orders.length)+' orders in the loaded PDFs'+(nu?' · '+nu+' uplift docket'+(nu>1?'s':''):'')+'.'; $('jpRpPreview').hidden=true; return; }
   const qu=q.toUpperCase(), digits=/^\d+$/.test(q);
   const m=orders.filter(o=>o.order.indexOf(q)>=0||(!digits&&(o.customer||'').toUpperCase().indexOf(qu)>=0));
   const score=o=>o.order===q?0:(o.order.indexOf(q)===0?1:2); m.sort((a,b)=>(score(a)-score(b))||a.order.localeCompare(b.order));
@@ -5633,7 +5704,29 @@ function jpSelectReprint(key){
   $('jpRpInfo').textContent=(o.customer||'(customer not found)')+'  |  Shipment '+o.shipment+'  |  '+o.route+'  |  '+o.pages.length+' page(s)';
   jpPageGrid($('jpRpPages'), o.pages.map((pg,i)=>{ const src=JS.org.sources[pg.fileIndex]; return {doc:src.doc,index:pg.pageIndex,key:pg.fileIndex+':'+src.name+':'+pg.pageIndex,caption:'Page '+(i+1)+' of '+o.pages.length}; }), 'Order '+o.order);
 }
-const jpRpOrder=()=>jpAllOrders().find(x=>x.key===JS.reprintKey);
+const jpRpOrder=()=>JS.reprintKey&&!String(JS.reprintKey).startsWith('upl:')?jpAllOrders().find(x=>x.key===JS.reprintKey):null;
+// v0.12.0: Reprint a Docket also finds the uplift dockets (by order number, customer number or name); returns true when it listed them on their own
+function jpRpUplifts(q, list){
+  if(!JU.sources.length) return false; const qu=q.toUpperCase(), digits=/^\d+$/.test(q);
+  const hits=[]; JU.sources.forEach(s=>s.pages.forEach(p=>{ if(!p.order) return; const u=S.upl.items[p.order]; const name=u?u.name:'';
+    if(p.order.indexOf(q)>=0 || (p.cust||'').indexOf(q)>=0 || (!digits && name.toUpperCase().indexOf(qu)>=0)) hits.push({s,p,u}); }));
+  if(!hits.length) return false;
+  const delivery=JS.org&&JS.org.pages.length?jpAllOrders().filter(o=>o.order.indexOf(q)>=0||(!digits&&(o.customer||'').toUpperCase().indexOf(qu)>=0)):[];
+  delivery.slice(0,20).forEach(o=>list.appendChild(jh('li',null, jh('button',{class:JS.reprintKey===o.key?'on':'',onclick:()=>jpSelectReprint(o.key)}, jh('span',{class:'o',text:o.order}), jh('span',{class:'c',text:o.customer||'(customer not found)'}), jh('span',{class:'m',text:'Shipment '+o.shipment+'  |  '+o.route+'  |  '+o.pages.length+' page(s)'})))));
+  hits.slice(0,20).forEach(({s,p,u})=>{ const d=uplDocketOf(p.order), k='upl:'+p.order;
+    list.appendChild(jh('li',null, jh('button',{class:JS.reprintKey===k?'on':'',onclick:()=>jpSelectUplReprint(p.order)}, jh('span',{class:'o',text:p.order}), jh('span',{class:'c'}, jh('span',{class:'flag upl',text:'UPLIFT'}), ' '+(u?u.name:'(not in the uplifts report)')), jh('span',{class:'m',text:'Customer '+(p.cust||'?')+'  |  Load '+(p.load||'?')+'  |  '+(d?d.pages.length:1)+' page(s)'})))); });
+  $('jpRpCount').textContent=(delivery.length+hits.length)+' match(es)'+(hits.length?' · '+hits.length+' uplift docket'+(hits.length>1?'s':''):'')+'.';
+  if(!delivery.length && hits.length===1 && JS.reprintKey!=='upl:'+hits[0].p.order) jpSelectUplReprint(hits[0].p.order);
+  return true;
+}
+function jpSelectUplReprint(no){
+  const d=uplDocketOf(no); if(!d) return; JS.reprintKey='upl:'+no; const u=S.upl.items[no];
+  $('jpRpList').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.querySelector('.o').textContent===String(no) && !!b.querySelector('.flag.upl')));
+  $('jpRpPreview').hidden=false; $('jpRpTitle').textContent='Uplift docket '+no;
+  $('jpRpInfo').textContent=(u?u.name:'(not in the uplifts report)')+'  |  Customer '+(d.pg.cust||'?')+'  |  Load '+(d.pg.load||'?')+'  |  '+d.pages.length+' page(s)';
+  jpPageGrid($('jpRpPages'), d.pages.map((ix,i)=>({doc:d.src.doc,index:ix,key:'upsrc:'+d.src.name+':'+ix,caption:'Page '+(i+1)+' of '+d.pages.length})), 'Uplift docket '+no);
+}
+const jpRpUplBytes=async()=>{ const no=String(JS.reprintKey||'').startsWith('upl:')?JS.reprintKey.slice(4):null; const d=no&&uplDocketOf(no); return d?{no, bytes:await JP.exporter.extractPages([{bytes:d.src.bytes,pageIndices:d.pages}],'Uplift docket '+no)}:null; };
 function jpMode(m){ JS.mode=m; $('jpOrganise').hidden=m!=='organise'; $('jpReprint').hidden=m!=='reprint'; $('jpUplift').hidden=m!=='uplift'; document.querySelectorAll('[data-jpmode]').forEach(b=>b.classList.toggle('on',b.dataset.jpmode===m)); if(m==='reprint'){ jpRenderReprint(); $('jpQuery').focus(); } if(m==='uplift') jpRenderUplift(); }
 // ---------- wiring ----------
 function jpWire(){
@@ -5644,7 +5737,12 @@ function jpWire(){
   dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
   dz.addEventListener('drop',e=>{ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer&&e.dataTransfer.files.length) jpAddFiles(e.dataTransfer.files); });
   $('jpDay').addEventListener('change',e=>{ jpSetDay(e.target.value); jpReplan(); });
-  $('jpJde').addEventListener('click',openJdeBrowser);
+  $('jpJde').addEventListener('click',()=>openJdeBrowser('del'));
+  $('jpUpJde').addEventListener('click',()=>openJdeBrowser('upl'));
+  { const ud=$('jpUpDrop'), uf=$('jpUpFile'); uf.addEventListener('change',()=>{ const f=Array.from(uf.files); uf.value=''; upAddFiles(f); });
+    ud.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); uf.click(); } }); ud.addEventListener('dragover',e=>{ e.preventDefault(); ud.classList.add('over'); }); ud.addEventListener('dragleave',()=>ud.classList.remove('over'));
+    ud.addEventListener('drop',e=>{ e.preventDefault(); ud.classList.remove('over'); if(e.dataTransfer&&e.dataTransfer.files.length) upAddFiles(e.dataTransfer.files); });
+    $('jpUpFiles').addEventListener('click',e=>{ const b=e.target.closest('[data-uprm]'); if(!b) return; const s=JU.sources.splice(+b.dataset.uprm,1)[0]; if(s&&s.doc) s.doc.destroy(); JU.sig=''; jpRenderUplift(); }); }
   document.querySelectorAll('[data-jpmode]').forEach(b=>b.addEventListener('click',()=>jpMode(b.dataset.jpmode)));
   $('tab-print').addEventListener('click',e=>{ const g=e.target.closest('[data-jpgo]'); if(g) showTab(g.dataset.jpgo); });
   $('jpExport').addEventListener('click',jpOrganise);
@@ -5661,8 +5759,8 @@ function jpWire(){
   $('jpUpPrint').addEventListener('click',()=>{ if(JU.result) jpPrintBytes(JU.result.bytes); });
   $('jpUpDownload').addEventListener('click',()=>{ if(JU.result) jpDownload(JU.result.bytes,JU.result.name); });
   $('jpQuery').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('jpRpList').querySelector('button'); if(b) b.click(); } });
-  $('jpRpPrint').addEventListener('click',e=>{ const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpPrintBytes(await JS.org.orderPdf(o))); });
-  $('jpRpDownload').addEventListener('click',e=>{ const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpDownload(await JS.org.orderPdf(o),'Reprint_'+o.order+'.pdf')); });
+  $('jpRpPrint').addEventListener('click',e=>{ if(String(JS.reprintKey||'').startsWith('upl:')) return jpBusy(e.currentTarget,'Preparing…',async()=>{ const r=await jpRpUplBytes(); if(r) jpPrintBytes(r.bytes); }); const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpPrintBytes(await JS.org.orderPdf(o))); });
+  $('jpRpDownload').addEventListener('click',e=>{ if(String(JS.reprintKey||'').startsWith('upl:')) return jpBusy(e.currentTarget,'Preparing…',async()=>{ const r=await jpRpUplBytes(); if(r) jpDownload(r.bytes,'Reprint_uplift_'+r.no+'.pdf'); }); const o=jpRpOrder(); if(o) jpBusy(e.currentTarget,'Preparing…',async()=>jpDownload(await JS.org.orderPdf(o),'Reprint_'+o.order+'.pdf')); });
   $('jpDiscardBox').addEventListener('toggle',()=>{ if($('jpDiscardBox').open) (JS.discardThumbs||[]).forEach(f=>f()); });
   $('jpViewerClose').addEventListener('click',()=>$('jpViewer').close());
   $('jpViewer').addEventListener('click',e=>{ if(e.target===$('jpViewer')) $('jpViewer').close(); });

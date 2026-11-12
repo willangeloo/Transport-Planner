@@ -8,7 +8,7 @@ const pick=a=>a[Math.floor(rnd()*a.length)];
 // a second generator for the check sheets, products, uplifts and POD: it doesn't touch the first one, so the plans and customers stay identical
 let seed2=2046; const rnd2=()=>{ seed2=(seed2*1103515245+12345)%2147483648; return seed2/2147483648; };
 const pick2=a=>a[Math.floor(rnd2()*a.length)];
-const {checkSheetPdf, makeLines, JDE_NAMES, CATALOGUE}=require('../lib/checksheet');
+const {checkSheetPdf, upliftDocketPdf, makeLines, JDE_NAMES, CATALOGUE}=require('../lib/checksheet');
 // a third generator for the uplift reports (raised dates, products): the plans, PDFs and other reports stay identical
 let seed3=3046; const rnd3=()=>{ seed3=(seed3*1103515245+12345)%2147483648; return seed3/2147483648; };
 const write=(rel,sheet,rows)=>{ const f=path.join(OUT,rel); fs.mkdirSync(path.dirname(f),{recursive:true}); const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(rows); ws['!cols']=rows[0].map(()=>({wch:16})); XLSX.utils.book_append_sheet(wb,ws,sheet); XLSX.writeFile(wb,f); };
@@ -98,6 +98,13 @@ WEEK.forEach(([wd,date],di)=>{
     out.push([null,null,null,null,null,null,null,null,null,Math.round(tot*100)/100,null,null]); return out; };
   WEEK.forEach(([wd],d)=>{ write(`REPORTS/week_46/UPLIFTS_${wd}_AM.xlsx`,'CU_Rep',rows(UPL.filter(u=>u.r<d && u.k>=d)));
     write(`REPORTS/week_46/UPLIFTS_${wd}_PM.xlsx`,'CU_Rep',rows(UPL.filter(u=>u.r<=d && u.k>d))); });
+  // the uplift dockets JDE prints for Wednesday (CHECK_SHEETS/UPLIFTS/week_46): the uplifts of the Wednesday-morning report,
+  // one docket whose Load No doesn't match the report (to show the check) and one for an order that isn't in the report at all
+  { const wed=UPL.filter(u=>u.r<2 && u.k>=2); const dd=x=>dateOf(x).replace(/\/(\d{2})(\d{2})$/,'/$2');
+    const list=wed.map((u,i)=>({order:u.no, load:i===1?'10599999':u.ship, cust:String(u.c.id), po:u.po, name:u.c.name, addrLines:[u.c.name,...u.c.addr.split(', ').map(a=>a.toUpperCase())], orderDate:dd(u.r), date:dd(2),
+      lines:u.lines.filter(l=>l[0]!=='CG').map(l=>({code:l[4], desc:l[5], uom:/KEG/.test(l[5])?'EA':'CS', qty:-u.qty, price:l[3]}))}));
+    const x=customers[3]; list.push({order:'7799901', load:'10599990', cust:String(x.id), po:'', name:x.name, addrLines:[x.name], orderDate:dd(0), date:dd(2), lines:[{code:'KEG501', desc:'ULLAGE HARBOURSIDE LAGER 4.5% 50L KEG', uom:'EA', qty:-1, price:-80}]});
+    upliftDocketPdf(list).then(b=>{ const f=path.join(OUT,'CHECK_SHEETS','UPLIFTS','week_46','Uplift_dockets_Wed.pdf'); fs.mkdirSync(path.dirname(f),{recursive:true}); fs.writeFileSync(f,b); console.log('Uplift dockets: CHECK_SHEETS/UPLIFTS/week_46/Uplift_dockets_Wed.pdf ('+list.length+')'); }); }
   console.log(`Uplifts: ${UPL.length} (${UPL.filter(u=>u.k===Infinity).length} with no delivery after them), in 10 reports UPLIFTS_<wd>_AM / _PM`); }
 console.log(`Demo data written to ${OUT}: ${customers.length} customers, ${order-5600001} orders, ${load-74600001} loads over 5 days`);
 // ---- fake check-sheet PDFs (JDE Offloading Sheet layout), one per day, in CHECK_SHEETS/JDE/week_46 (the Printing tab imports them).

@@ -10,6 +10,7 @@ demo/Route_planning/
 │   └── users.json                   Alex (Master), Sam (Manager), Jordan + Casey (User), Warehouse (Viewer)
 ├── REPORTS/week_46/                 Mon 09.11 – Fri 13.11.2026
 │   └── DIPS_Plan_<wd>.xlsx  RES_<wd>.xlsx  PROD_<wd>.xlsx  UPLIFTS_<wd>_AM.xlsx  UPLIFTS_<wd>_PM.xlsx  POD_<wd>.xlsx
+├── CHECK_SHEETS/UPLIFTS/week_46/    Uplift_dockets_Wed.pdf: invented uplift dockets for Wednesday (one with a wrong Load No, one not in the report)
 ├── CHECK_SHEETS/JDE/week_46/        five fake check-sheet PDFs, one per day, in the JDE Offloading Sheet Report layout; the file names don't say the day, the app reads it from the pages
 └── PLANS/week_46/                   five plans (one per day, each based on the previous one) + one snapshot
 ```
