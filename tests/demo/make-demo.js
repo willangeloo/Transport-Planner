@@ -88,9 +88,16 @@ WEEK.forEach(([wd,date],di)=>{
   const late=customers.filter(c=>Math.max(...c.days)<=2 && !UPL.some(u=>u.c===c)); for(let i=0;i<3 && late.length;i++){ const c=late.splice(Math.floor(rnd3()*late.length),1)[0];
     UPL.push({c, k:Infinity, r:Math.max(...c.days)+1+Math.floor(rnd3()*(4-Math.max(...c.days))), qty:1+Math.floor(rnd3()*4), reason:'Empty kegs'}); }
   UPL.sort((a,b)=>a.r-b.r||a.c.id-b.c.id).forEach((u,i)=>{ u.no=String(7700101+i); const p=u.reason==='Empty kegs'?KEGS[Math.floor(rnd3()*KEGS.length)]:CS[Math.floor(rnd3()*CS.length)]; u.sku=p[0]; u.desc=p[1]+(u.reason==='Empty kegs'?' (empty)':''); });
-  const head=['Uplift Number','Date Raised','Ship To','Name','Product','Description','Quantity','Reason'], row=u=>[u.no,dateOf(u.r),u.c.id,u.c.name,u.sku,u.desc,u.qty,u.reason];
-  WEEK.forEach(([wd],d)=>{ write(`REPORTS/week_46/UPLIFTS_${wd}_AM.xlsx`,'Sheet1',[head].concat(UPL.filter(u=>u.r<d && u.k>=d).map(row)));
-    write(`REPORTS/week_46/UPLIFTS_${wd}_PM.xlsx`,'Sheet1',[head].concat(UPL.filter(u=>u.r<=d && u.k>d).map(row))); });
+  // the layout of the JDE CU report (the CU_Rep sheet of the Uplift control workbook): one row per order LINE, a totals row at the bottom
+  const head=['Order Number','Shipment Number','Ship To','Ship To Name','Customer PO','Scheduled Pick','Ln Ty','Last Status','Next Status','Extended Amount','2nd Item Number','Description 1'];
+  const serial=x=>{ const [dd,mm,yy]=dateOf(x).split('/').map(Number); return Math.round((Date.UTC(yy,mm-1,dd)-Date.UTC(1899,11,30))/864e5); };
+  UPL.forEach((u,i)=>{ u.ship=String(10575600+i*7); u.po=rnd3()<.6?'YA0'+(61000+Math.floor(rnd3()*900)):''; const amt=-(40+Math.round(rnd3()*20000)/100);
+    u.lines=[['CU','550',i===4?'540':'560',amt,u.sku,(u.reason==='Empty kegs'?'ULLAGE ':'RB CREDIT ')+u.desc.replace(' (empty)','').toUpperCase()]];
+    if(u.reason==='Empty kegs' && rnd3()<.5) u.lines.push(['CG','910','573',null,'OTH712','50L KEG DEPOSIT ITEM']); });
+  const rows=list=>{ const out=[head]; let tot=0; list.forEach(u=>u.lines.forEach(l=>{ out.push([+u.no,+u.ship,u.c.id,u.c.name,u.po,serial(u.r),l[0],l[1],l[2],l[3],l[4],l[5]]); tot+=l[3]||0; }));
+    out.push([null,null,null,null,null,null,null,null,null,Math.round(tot*100)/100,null,null]); return out; };
+  WEEK.forEach(([wd],d)=>{ write(`REPORTS/week_46/UPLIFTS_${wd}_AM.xlsx`,'CU_Rep',rows(UPL.filter(u=>u.r<d && u.k>=d)));
+    write(`REPORTS/week_46/UPLIFTS_${wd}_PM.xlsx`,'CU_Rep',rows(UPL.filter(u=>u.r<=d && u.k>d))); });
   console.log(`Uplifts: ${UPL.length} (${UPL.filter(u=>u.k===Infinity).length} with no delivery after them), in 10 reports UPLIFTS_<wd>_AM / _PM`); }
 console.log(`Demo data written to ${OUT}: ${customers.length} customers, ${order-5600001} orders, ${load-74600001} loads over 5 days`);
 // ---- fake check-sheet PDFs (JDE Offloading Sheet layout), one per day, in CHECK_SHEETS/JDE/week_46 (the Printing tab imports them).

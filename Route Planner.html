@@ -548,7 +548,7 @@ html[data-theme=dark] .uplbtn{background:#cbd5e1;color:#111827;border-color:#e2e
 html[data-theme=dark] .uplbtn.off{background:transparent;color:#cbd5e1}
 .upl-ic{background:none!important;border:0!important}.upl-ic svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
 .legend .tri{width:0!important;height:0!important;border-radius:0!important;background:none!important;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #4b5563}
-.uc-tbl td{vertical-align:top}.uc-tbl .muted{font-size:11.5px}
+.uc-tbl td{vertical-align:top}.ucnote{width:130px;font-size:12px;padding:3px 6px}.uc-tbl .muted{font-size:11.5px}
 .uc-f{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .jp-uplift{display:grid;gap:14px;padding:0 18px 18px}
 .jp-uplift table{width:100%;border-collapse:collapse;font-size:12.5px}.jp-uplift th,.jp-uplift td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -2186,14 +2186,17 @@ function dayView(dayKey){
 }
 
 // ---------- uplifts (v0.12.0) ----------
-// The "uplifts outstanding" report is exported at least twice a day. An uplift is outstanding while the newest report lists it, and
-// completed when a newer report no longer lists it. It is planned automatically on the customer's first delivery from the day it can
-// still be collected; a planner can put any outstanding uplift on any planned route by hand (that choice wins).
+// The uplifts outstanding report is the JDE "CU" report (the CU_Rep sheet of the Uplift control workbook): one line per order line.
+// It is summarised to one uplift per Order Number (details of the first line, lowest Next Status, Extended Amount added up; lines with
+// no order number, such as the totals row, are skipped). An uplift is outstanding while the newest report lists it; when a newer report
+// doesn't list it any more it is charged / completed and moved to the archive with its notes; if it comes back it is restored with its
+// notes and First seen. It is planned with the customer's next delivery on the loaded planning (see uplFrom), or by hand.
 const uplList = () => Object.values(uplState().items).sort((a,b)=>String(a.no).localeCompare(String(b.no),'en',{numeric:true}));
 const uplOpenList = () => uplList().filter(u=>!u.closed);
 const fmtAt = at => at ? dayLbl(at.slice(0,10))+' '+at.slice(11,16) : '';
-// the first day the uplift can still be collected: a morning report = that day, an afternoon report (12:00 or later) = the next day
-function uplFrom(u){ const at=u.lastAt||''; let d=at.slice(0,10); if(d && +at.slice(11,13)>=12) d=addDays(d,1); if(u.raised && (!d || u.raised>d)) d=u.raised; return d||''; }
+// the first day the uplift can be planned, from the newest report that lists it: a morning report (before 12:00) = that day's planning
+// onwards (the routes going out next); an afternoon report = the next day
+function uplFrom(u){ const at=u.lastAt||''; let d=at.slice(0,10); if(d && +at.slice(11,13)>=12) d=addDays(d,1); return d||''; }
 // plan of every outstanding uplift: {no: {date, day (key, null if the day isn't loaded), load, manual}}
 function uplPlan(){
   const out={}, by={};
@@ -2209,12 +2212,15 @@ function uplPlan(){
 }
 function uplOnDay(dk, plan){ const d=dayMap[dk]; if(!d) return []; const pl=plan||uplPlan(); return Object.values(pl).filter(x=>x.date===d.date && S.upl.items[x.no]).map(x=>Object.assign({u:S.upl.items[x.no]},x)); }
 const uplProducts = u => (u.lines||[]).map(l=>`${l.product||l.desc||'?'}${l.qty!=null?' ×'+l.qty:''}`).join(', ');
+const money = v => v==null||v==='' ? '' : (+v).toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2});
+// "BAY004 - Junior + Lukas": the route and crew, as the Bay column of the Uplift control workbook
+function uplBayTxt(x){ if(!x||!x.day||!x.load) return x?uplRouteTxt(x):''; const li=loadInfo(x.day,x.load); const crew=[li.driver,li.helper].filter(Boolean).join(' + '); return routeName(x.day,x.load)+(crew?' - '+crew:''); }
 const uplNoHtml = nos => nos.map(n=>`<span class="upl-no">${esc(n)}</span>`).join('<br>');
 function uplRouteTxt(x){ if(!x) return ''; if(!x.day) return 'day not loaded'; if(!x.load) return 'not on a route yet'; return loadMap[x.day+'|'+x.load] ? routeName(x.day,x.load) : 'Load '+x.load+' (not on the day)'; }
 function uplWhenTxt(x){ return x ? (x.day?dayLabel(x.day):dayLbl(x.date)+' (not loaded)') : ''; }
 // the time of a report: from its name (…_AM = 08:00, …_PM = 15:00, or a time like 0800 / 14h30), else when the file was saved
 function uplReportAt(name, week, mod){
-  const nd=nameDate(name, week); const s=String(name).replace(/\.[a-z]+$/i,''); let hm=null;
+  const s=String(name).replace(/\.[a-z]+$/i,'').replace(/(^|[^a-z])v\d+(\.\d+)+/ig,'$1'); const nd=nameDate(s, week); let hm=null;   // "Uplift_v2.5" is a version, not a date
   const ap=s.match(/(?:^|[^A-Z])(AM|PM)(?:[^A-Z]|$)/i); if(ap) hm=ap[1].toUpperCase()==='AM'?'08:00':'15:00';
   const t=s.match(/(?:^|[_ -])([01]\d|2[0-3])[:h]?([0-5]\d)(?:$|[_ -])/i); if(t) hm=t[1]+':'+t[2];
   const md=mod?new Date(mod):null, z=n=>String(n).padStart(2,'0');
@@ -2222,9 +2228,38 @@ function uplReportAt(name, week, mod){
   if(!hm) hm=md?z(md.getHours())+':'+z(md.getMinutes()):'12:00';
   return date+'T'+hm;
 }
-function uplHeader(rows){ return findHeader(rows,['UPLIFT NUMBER','SHIP TO']) || findHeader(rows,['UPLIFT ORDER NUMBER','SHIP TO']) || findHeader(rows,['SHIP TO','REASON','QUANTITY']); }
+// the JDE CU report (CU_Rep): Order Number, Shipment Number, Ship To, Ship To Name, Customer PO, Scheduled Pick, Ln Ty, Last Status, Next Status, Extended Amount, 2nd Item Number, Description 1
+const cuHeader = rows => findHeader(rows,['ORDER NUMBER','SHIP TO','NEXT STATUS','EXTENDED AMOUNT']) || findHeader(rows,['ORDER NUMBER','SHIP TO','LN TY']);
+function uplHeader(rows){ return cuHeader(rows) || findHeader(rows,['UPLIFT NUMBER','SHIP TO']) || findHeader(rows,['UPLIFT ORDER NUMBER','SHIP TO']) || findHeader(rows,['SHIP TO','REASON','QUANTITY']); }
+function parseCuRep(rows, h){
+  const col=(...ks)=>{ for(const k of ks) if(h.idx[k]!=null) return h.idx[k]; return null; }, gv=(r,c)=>c==null?null:r[c];
+  const c={no:col('ORDER NUMBER'), sh:col('SHIPMENT NUMBER','SHIPMENT'), ship:col('SHIP TO','ADDRESS NUMBER SHIP TO'), name:col('SHIP TO NAME','NAME'), po:col('CUSTOMER PO','CUSTOMER PO NO'), pick:col('SCHEDULED PICK'),
+    ty:col('LN TY','LINE TYPE'), next:col('NEXT STATUS'), last:col('LAST STATUS'), amt:col('EXTENDED AMOUNT'), item:col('2ND ITEM NUMBER','ITEM NUMBER','2ND ITEM NO'), desc:col('DESCRIPTION 1','DESCRIPTION')};
+  const items={}, order=[]; let lines=0, skipped=0;
+  rows.slice(h.row+1).forEach(r=>{ const no=toId(gv(r,c.no)); if(!no){ if(r.some(v=>v!=null&&v!=='')) skipped++; return; }   // the totals row and blank lines
+    lines++; const amt=toNum(gv(r,c.amt)), nx=toNum(gv(r,c.next));
+    let it=items[no]; if(!it){ const ship=toId(gv(r,c.ship))||'';
+      it=items[no]={no, ship, name:cleanStr(gv(r,c.name))||((custMap[ship]||{}).name)||ship, shipment:toId(gv(r,c.sh))||'', po:cleanStr(gv(r,c.po))||'', raised:parseDateCell(gv(r,c.pick)), reason:'', status:nx, value:0, lines:[]}; order.push(no); }
+    if(nx!=null && (it.status==null || nx<it.status)) it.status=nx;                       // lowest Next Status
+    if(amt!=null) it.value=Math.round((it.value+amt)*100)/100;                             // Extended Amount added up
+    it.lines.push({product:cleanStr(gv(r,c.item))||'', desc:cleanStr(gv(r,c.desc))||'', qty:null, type:cleanStr(gv(r,c.ty))||'', amount:amt}); });
+  return {items:order.map(o=>items[o]), lines, skipped};
+}
+// the Summary and Archive sheets of the Uplift control workbook: the notes kept until now (Bay, Reschedule, Status / Comments, First seen …)
+function parseUplControl(wb){
+  const out={summary:[], archive:[]}; const xd=v=>parseDateCell(v);
+  wb.SheetNames.forEach(n=>{ const rows=sheetRows(wb.Sheets[n]); const h=findHeader(rows,['ORDER NO','FIRST SEEN']); if(!h) return; const arch=h.idx['ARCHIVED ON']!=null;
+    const g=(r,...ks)=>{ for(const k of ks) if(h.idx[k]!=null) return r[h.idx[k]]; return null; };
+    rows.slice(h.row+1).forEach(r=>{ const no=toId(g(r,'ORDER NO')); if(!no) return;
+      const o={no, shipment:toId(g(r,'SHIPMENT NO'))||'', ship:toId(g(r,'SHIP TO'))||'', name:cleanStr(g(r,'SHIP TO NAME'))||'', po:cleanStr(g(r,'CUSTOMER PO'))||'', raised:xd(g(r,'SCHEDULED PICK')), status:toNum(g(r,'NEXT STATUS')), value:toNum(g(r,'ORDER VALUE')),
+        bay:cleanStr(arch?g(r,'STATUS','BAY'):g(r,'BAY'))||'', resched:xd(g(r,'RESCHEDULE')), note:cleanStr(arch?g(r,'COMMENTS'):g(r,'STATUS','COMMENTS'))||'', first:xd(g(r,'FIRST SEEN')), last:xd(g(r,'LAST SEEN')), archived:arch?xd(g(r,'ARCHIVED ON')):null};
+      (arch?out.archive:out.summary).push(o); }); });
+  return (out.summary.length||out.archive.length)?out:null;
+}
 function parseUplifts(f){
-  for(const n of f.wb.SheetNames){ const rows=sheetRows(f.wb.Sheets[n]); const h=uplHeader(rows); if(!h) continue;
+  for(const n of f.wb.SheetNames){ const rows=sheetRows(f.wb.Sheets[n]); const ch=cuHeader(rows);
+    if(ch){ const r=parseCuRep(rows,ch); return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(f.name,f.week,f.mod), items:r.items, lines:r.lines, skipped:r.skipped, sheet:n, cu:true, control:parseUplControl(f.wb)}; }
+    const h=uplHeader(rows); if(!h) continue;
     const col=(...ks)=>{ for(const k of ks) if(h.idx[k]!=null) return h.idx[k]; return null; }, gv=(r,c)=>c==null?null:r[c];
     const cNo=col('UPLIFT NUMBER','UPLIFT ORDER NUMBER','UPLIFT NO','UPLIFT'), cShip=col('SHIP TO','ADDRESS NUMBER SHIP TO'), cName=col('NAME','SHIP TO NAME','CUSTOMER NAME','CUSTOMER'),
       cProd=col('PRODUCT','ITEM','ITEM NUMBER'), cDesc=col('DESCRIPTION'), cQty=col('QUANTITY','QTY'), cReason=col('REASON'), cRaised=col('DATE RAISED','RAISED','ORDER DATE','DATE');
@@ -2247,11 +2282,25 @@ function uplApply(rep){
   rep.items.forEach(x=>{ seen.add(x.no); let u=U.items[x.no];
     if(!u){ u=U.items[x.no]={no:x.no, firstAt:rep.at, firstFile:rep.file, hist:[]}; rec.added++; }
     else if(u.closed){ (u.hist=u.hist||[]).push({ts:rep.at, what:'Listed again in '+rep.file}); u.closed=null; rec.reopened++; }
-    Object.assign(u,{ship:x.ship, name:x.name, reason:x.reason, raised:x.raised||u.raised||null, lines:x.lines, lastAt:rep.at, lastFile:rep.file}); });
+    Object.assign(u,{ship:x.ship, name:x.name, reason:x.reason||'', raised:x.raised||u.raised||null, lines:x.lines, lastAt:rep.at, lastFile:rep.file, po:x.po||'', shipment:x.shipment||'', status:x.status!=null?x.status:null, value:x.value!=null?x.value:null}); });
   Object.values(U.items).forEach(u=>{ if(u.closed || seen.has(u.no)) return; const p=before[u.no];
     u.closed={at:rep.at, file:rep.file, date:p?p.date:'', load:p?p.load:'', route:p?uplRouteTxt(p):'', driver:p&&p.day&&p.load?loadInfo(p.day,p.load).driver:'', truck:p&&p.day&&p.load?loadInfo(p.day,p.load).truck:'', manual:!!(p&&p.manual)};
     delete U.man[u.no]; rec.closed++; });
+  if(rep.control) rec.notes=uplControlApply(rep.control, rep);
   U.reports.push(rec); return rec;
+}
+// first import of the Uplift control workbook: keep its notes (Status / Comments), First seen, the Bay / Reschedule written before, and its Archive
+function uplControlApply(ctl, rep){
+  const U=uplState(); let n=0; const iso=d=>d?d+'T00:00':'';
+  ctl.summary.forEach(s=>{ const u=U.items[s.no]; if(!u) return; n++;
+    if(s.note && !u.note) u.note=s.note; if(s.first && (!u.firstAt || iso(s.first)<u.firstAt)) u.firstAt=iso(s.first);
+    if(s.bay || s.resched) u.prev={route:s.bay, date:s.resched||''}; });
+  const inSum=new Set(ctl.summary.map(s=>s.no));
+  ctl.archive.forEach(a=>{ let u=U.items[a.no]; if(inSum.has(a.no)) return;   // the Summary row wins (restored orders keep the notes shown there)
+    if(u){ if(a.note && !u.note) u.note=a.note; if(!u.closed && a.first && (!u.firstAt || iso(a.first)<u.firstAt)) u.firstAt=iso(a.first); return; }
+    n++; U.items[a.no]={no:a.no, ship:a.ship, name:a.name, po:a.po, shipment:a.shipment, raised:a.raised, status:a.status, value:a.value, reason:'', lines:[], note:a.note, hist:[], firstAt:iso(a.first), firstFile:rep.file, lastAt:iso(a.last), lastFile:rep.file,
+      closed:{at:iso(a.archived||a.last), file:'Archive of '+rep.file, date:a.resched||'', load:'', route:a.bay||'', driver:'', truck:'', manual:false}}; });
+  return n;
 }
 // ---------- products (v0.12.0): quantities per order and unit, from the Products report (PROD_<wd>) ----------
 const PROD_UNITS=['CS','EA','KEG'];
@@ -2344,6 +2393,19 @@ $('tab-home').addEventListener('click',e=>{
   const b=e.target.closest('[data-hday]'); if(b){ showTab('plan'); selectDay(b.dataset.hday); return; }
   const c=e.target.closest('[data-hdate]'); if(c) openDayPlan(c.dataset.hdate, k=>{ HM.browse=true; showTab('plan'); selectDay(k); });
 });
+// Summary + Archive in the layout of the Uplift control workbook (Bay = route - driver + helper, Reschedule = the day planned)
+function uplExportWorkbook(){
+  if(typeof XLSX==='undefined') return toast('Excel export needs an internet connection');
+  const pl=uplPlan(), all=uplList(); if(!all.length) return toast('Nothing to export');
+  const D=d=>{ if(!d) return null; const [y,m,dd]=d.slice(0,10).split('-').map(Number); return new Date(y,m-1,dd); };
+  const base=u=>[u.no, u.shipment||'', u.ship, u.name, u.po||'', D(u.raised), u.status, u.value];
+  const sum=[['Order No','Shipment No','Ship To','Ship To Name','Customer PO','Scheduled Pick','Next Status','Order Value','Bay','Reschedule','Status','First seen','Last seen']]
+    .concat(all.filter(u=>!u.closed).map(u=>{ const x=pl[u.no]; return base(u).concat([x?uplBayTxt(x):(u.prev&&u.prev.route)||'', D(x?x.date:(u.prev&&u.prev.date)), u.note||'', D(u.firstAt), D(u.lastAt)]); }));
+  const arc=[['Order No','Shipment No','Ship To','Ship To Name','Customer PO','Scheduled Pick','Next Status','Order Value','Status','Reschedule','Comments','First seen','Last seen','Archived on']]
+    .concat(all.filter(u=>u.closed).map(u=>base(u).concat([[u.closed.route,[u.closed.driver,u.closed.truck].filter(Boolean).join(' + ')].filter(Boolean).join(' - '), D(u.closed.date), u.note||'', D(u.firstAt), D(u.lastAt), D(u.closed.at)])));
+  const wb=XLSX.utils.book_new(); [['Summary',sum],['Archive',arc]].forEach(([n,rows])=>{ const ws=XLSX.utils.aoa_to_sheet(rows,{cellDates:true,dateNF:'dd/mm/yyyy'}); ws['!cols']=rows[0].map((h,i)=>({wch:[11,11,10,30,12,12,8,10,28,11,22,11,11,11][i]||12})); XLSX.utils.book_append_sheet(wb,ws,n); });
+  XLSX.writeFile(wb,`Uplift_${todayStr()}.xlsx`); toast(`Exported Uplift_${todayStr()}.xlsx (Summary ${sum.length-1} · Archive ${arc.length-1})`);
+}
 // ---------- Uplift Control (v0.12.0): every uplift outstanding and the records of completed ones, with the day and route planned ----------
 const UC={f:'open', q:''};
 function renderUplCtl(){
@@ -2352,7 +2414,7 @@ function renderUplCtl(){
   const nAuto=open.filter(u=>pl[u.no]&&!pl[u.no].manual).length, nHand=open.filter(u=>pl[u.no]&&pl[u.no].manual).length, nNone=open.filter(u=>!pl[u.no]).length;
   const reps=U.reports.slice().sort((a,b)=>b.at.localeCompare(a.at)||b.loadedAt.localeCompare(a.loadedAt)); const last=reps.find(r=>!r.old);
   const F={open:u=>!u.closed, none:u=>!u.closed&&!pl[u.no], hand:u=>!u.closed&&pl[u.no]&&pl[u.no].manual, done:u=>!!u.closed, all:()=>true};
-  const q=UC.q.toLowerCase(); const rows=all.filter(F[UC.f]||F.open).filter(u=>!q||[u.no,u.ship,u.name,u.reason,uplProducts(u),(custMap[u.ship]||{}).bay].some(v=>String(v||'').toLowerCase().includes(q)));
+  const q=UC.q.toLowerCase(); const rows=all.filter(F[UC.f]||F.open).filter(u=>!q||[u.no,u.ship,u.name,u.reason,u.note,u.po,u.shipment,uplProducts(u),(custMap[u.ship]||{}).bay].some(v=>String(v||'').toLowerCase().includes(q)));
   const kpi=(f,n,t)=>`<div class="kpi click ${UC.f===f?'on2':''}" data-ucf="${f}"><b>${n}</b><span>${t}</span></div>`;
   const tr=u=>{ const x=pl[u.no], c=custMap[u.ship], cl=u.closed;
     const when = cl ? (cl.date?`${esc(dayLbl(cl.date))}`:'<span class="muted">—</span>') : x ? (x.day?`<button class="btn sm" data-uact="goday" data-no="${esc(u.no)}" data-day="${esc(x.day)}" title="Open this day in Planning">${esc(dayLabel(x.day))}</button>`:esc(uplWhenTxt(x))) : '<b style="color:var(--danger)">not planned</b>';
@@ -2362,21 +2424,25 @@ function renderUplCtl(){
     const how = cl ? `<span class="flag ad">completed</span><div class="muted">not in the report of ${esc(fmtAt(cl.at))}${cl.date?' · was planned '+(cl.manual?'by hand':'with the delivery'):''}</div>`
       : x ? (x.manual?`<span class="flag mv">by hand</span>${x.by?`<div class="muted">${esc(x.by)}</div>`:''}`:'<span class="flag">with the delivery</span>') : '<span class="flag upl">not planned</span>';
     const acts = cl||ro ? '' : `<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate…</button>${x&&x.manual?` <button class="btn sm" data-uact="auto" data-no="${esc(u.no)}">Automatic</button>`:''}`;
-    return `<tr><td><span class="upl-no">${esc(u.no)}</span></td><td data-s="${esc(u.raised||'')}">${u.raised?esc(dayLbl(u.raised)):'—'}<div class="muted">seen ${esc(fmtAt(u.firstAt))}</div></td><td><b>${esc(u.name)}</b><div class="muted">${esc(u.ship)}${c&&c.bay?' · '+esc(c.bay):''}${c&&c.days&&c.days.length?' · delivered '+esc(daysTxt(c.days)):''}</div></td><td>${(u.lines||[]).map(l=>`${esc(l.product)} ×${esc(l.qty==null?'?':l.qty)}${l.desc?`<div class="muted">${esc(l.desc)}</div>`:''}`).join('')}</td><td>${esc(u.reason||'—')}</td><td>${when}</td><td>${route}</td><td>${how}</td><td class="no-print">${acts}</td></tr>`; };
+    const prev=u.prev&&(u.prev.route||u.prev.date)?`<div class="muted" title="Bay / Reschedule kept from the Uplift control workbook">before: ${esc(u.prev.route||'')}${u.prev.date?' · '+esc(dayLbl(u.prev.date)):''}</div>`:'';
+    const note=ro?esc(u.note||'—'):`<input type="text" class="ucnote" data-ucnote="${esc(u.no)}" value="${esc(u.note||'')}" placeholder="printed, try again…" title="Your note (the Status column of the workbook) — kept when the uplift is archived or comes back">`;
+    return `<tr><td><span class="upl-no">${esc(u.no)}</span>${u.shipment?`<div class="muted">Shipment ${esc(u.shipment)}</div>`:''}</td><td data-s="${esc(u.raised||'')}">${u.raised?esc(dayLbl(u.raised)):'—'}<div class="muted">${u.raised?esc(u.raised.slice(0,4))+' · ':''}first seen ${esc(fmtAt(u.firstAt).slice(0,9))}</div></td><td><b>${esc(u.name)}</b><div class="muted">${esc(u.ship)}${c&&c.bay?' · '+esc(c.bay):''}${u.po?' · PO '+esc(u.po):''}${c&&c.days&&c.days.length?' · delivered '+esc(daysTxt(c.days)):''}</div></td><td>${(u.lines||[]).map(l=>`${esc(l.product)}${l.qty!=null?' ×'+esc(l.qty):''}${l.type?` <span class="muted">${esc(l.type)}</span>`:''}${l.desc?`<div class="muted">${esc(l.desc)}</div>`:''}`).join('')}${u.value!=null?`<div><b>${esc(money(u.value))}</b>${u.status!=null?` <span class="muted">· next status ${esc(u.status)}</span>`:''}</div>`:''}${u.reason?`<div class="muted">${esc(u.reason)}</div>`:''}</td><td>${note}</td><td>${when}${cl?'':prev}</td><td>${route}</td><td>${how}</td><td class="no-print">${acts}</td></tr>`; };
   el.innerHTML=`<div class="rep"><div class="rep-head"><div><div class="muted small">Uplifts outstanding (from the newest report) and the records of completed ones · planned with the customer's next delivery, or by hand</div><h1>Uplift Control</h1></div><div class="spacer"></div>
-    <button class="btn no-viewer" data-uc="load" title="Load an uplifts outstanding report from REPORTS › week_XX">⤒ Load uplifts report</button><button class="btn" data-uc="export">⤓ Export Excel</button></div>
+    <button class="btn no-viewer" data-uc="load" title="Load an uplifts outstanding report from REPORTS › week_XX">⤒ Load uplifts report</button><button class="btn" data-uc="export" title="Summary and Archive sheets, in the layout of the Uplift control workbook">⤓ Export Excel (Summary + Archive)</button></div>
     <div class="kpis">${kpi('open',open.length,'outstanding')}${kpi('none',nNone,'not planned')}${kpi('hand',nHand,'allocated by hand')}<div class="kpi"><b>${nAuto}</b><span>with a delivery</span></div>${kpi('done',done.length,'completed (records)')}${kpi('all',all.length,'all uplifts')}</div>
     ${last?`<div class="note info" style="margin-bottom:12px">Outstanding as of the report of <b>${esc(fmtAt(last.at))}</b> (${esc(last.file)}). Load the next report (at least twice a day): uplifts it doesn't list any more are completed.</div>`:'<div class="note warn" style="margin-bottom:12px">No uplifts report loaded yet. Load the newest <b>UPLIFTS</b> report from REPORTS › week_XX (📁 Reports or ⤒ Load uplifts report).</div>'}
     <div class="card"><h2>↩ Uplifts <span class="muted" style="font-weight:400">(${rows.length})</span><span class="spacer"></span><input type="search" id="ucQ" class="secf" placeholder="Search uplift, customer, product, bay…" value="${esc(UC.q)}"></h2>
-     ${rows.length?`<table class="uc-tbl" data-tbl="upl"><thead><tr><th>Uplift</th><th>Raised</th><th>Customer</th><th>Products</th><th>Reason</th><th>Day planned</th><th>Route</th><th>Status</th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:'<div class="empty small">No uplifts here.</div>'}</div>
+     ${rows.length?`<table class="uc-tbl" data-tbl="upl"><thead><tr><th>Uplift (order)</th><th>Scheduled pick</th><th>Customer</th><th>Lines · value</th><th>Note</th><th>Day planned</th><th>Route</th><th>Status</th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:'<div class="empty small">No uplifts here.</div>'}</div>
     <div class="card"><h2>📥 Reports loaded <span class="muted" style="font-weight:400">(${reps.length})</span></h2>${reps.length?`<table><thead><tr><th>Report time</th><th>File</th><th>Uplifts</th><th>New</th><th>Completed</th><th>Loaded</th></tr></thead><tbody>${reps.map(r=>`<tr><td><b>${esc(fmtAt(r.at))}</b>${r.old?'<div class="muted">older than the newest — record only</div>':''}</td><td class="muted">${esc(r.path||r.file)}</td><td>${r.n}</td><td>${r.old?'—':r.added}</td><td>${r.old?'—':r.closed}</td><td class="muted">${esc(fmtTime(r.loadedAt))}${r.by?' · '+esc(r.by):''}</td></tr>`).join('')}</tbody></table>`:'<div class="empty small">None yet.</div>'}</div></div>`;
+  el.querySelectorAll('[data-ucnote]').forEach(i=>i.onchange=()=>{ if(!guard('edit','write notes')) return; const u=S.upl.items[i.dataset.ucnote]; if(!u) return; u.note=i.value.trim(); save(); toast('Note saved'); });
   const qi=$('ucQ'); if(qi) qi.oninput=e=>{ UC.q=e.target.value; const pos=e.target.selectionStart; renderUplCtl(); const n=$('ucQ'); n.focus(); n.setSelectionRange(pos,pos); };
 }
 $('tab-upl').addEventListener('click',e=>{
   const f=e.target.closest('[data-ucf]'); if(f){ UC.f=f.dataset.ucf; return renderUplCtl(); }
   const b=e.target.closest('[data-uc]'); if(!b) return;
   if(b.dataset.uc==='load'){ if(!guard('edit','load reports')) return; return openFolderBrowser('data'); }
-  if(b.dataset.uc==='export'){ const pl=uplPlan(); writeXlsx(uplList().map(u=>{ const x=pl[u.no], cl=u.closed; return {'Uplift Number':u.no,'Raised':u.raised||'','Ship To':u.ship,'Customer':u.name,'Products':uplProducts(u),'Reason':u.reason||'','Status':cl?'Completed':'Outstanding','Day planned':cl?(cl.date?dayLbl(cl.date):''):x?uplWhenTxt(x):'not planned','Route':cl?cl.route:x?uplRouteTxt(x):'','Planned':cl?(cl.manual?'by hand':''):x?(x.manual?'by hand':'with the delivery'):'','Completed (report)':cl?fmtAt(cl.at):''}; }),`Uplifts_${todayStr()}.xlsx`,[12,11,10,28,24,14,12,16,22,16,18]); }
+  if(b.dataset.uc==='export') return uplExportWorkbook();
+  if(b.dataset.uc==='exportlist'){ const pl=uplPlan(); writeXlsx(uplList().map(u=>{ const x=pl[u.no], cl=u.closed; return {'Uplift Number':u.no,'Raised':u.raised||'','Ship To':u.ship,'Customer':u.name,'Products':uplProducts(u),'Reason':u.reason||'','Status':cl?'Completed':'Outstanding','Day planned':cl?(cl.date?dayLbl(cl.date):''):x?uplWhenTxt(x):'not planned','Route':cl?cl.route:x?uplRouteTxt(x):'','Planned':cl?(cl.manual?'by hand':''):x?(x.manual?'by hand':'with the delivery'):'','Completed (report)':cl?fmtAt(cl.at):''}; }),`Uplifts_${todayStr()}.xlsx`,[12,11,10,28,24,14,12,16,22,16,18]); }
 });
 // ---------- Delivery Shortages (v0.11.4): the Power BI report, embedded; it opens with the account signed in to the browser ----------
 const BI={src:''};
@@ -3352,7 +3418,7 @@ function classifyWorkbook(wb){
     else if(prodHeader(rows)) prod++;
     else if(findHeader(rows,['LOAD NUMBER','ORDER NUMBER'])) plan++;
     else if(findHeader(rows,['SHIPMENT','BAY'])) res++; });
-  return cust ? 'cust' : fixed ? 'fixed' : plan>res ? 'plan' : res>0 ? 'res' : upl ? 'upl' : prod ? 'prod' : null;
+  return cust ? 'cust' : fixed ? 'fixed' : upl ? 'upl' : plan>res ? 'plan' : res>0 ? 'res' : prod ? 'prod' : null;   // the Uplift control workbook also has Planning / Resources sheets: its CU_Rep wins
 }
 function resLoads(r){
   const loads={}; const ri=r.h.idx, gv=(row,k)=>ri[k]!=null?row[ri[k]]:null;
@@ -3604,7 +3670,7 @@ function renderUpload(){
     if(p.cust){ const cu=p.cust, nb=new Set(cu.list.map(c=>c.bay).filter(Boolean)).size;
       body+=`<div class="note ${cu.noLoc?'warn':'info'}">👥 <b>Customer master:</b> ${cu.list.length} customers from ${esc(cu.file)} › ${esc(cu.sheet)} · ${nb} bays${cu.noLoc?` · <b>${cu.noLoc}</b> without coordinates (not on the map)`:''}.${MASTER?` Replaces the current master (${MASTER.list.length} customers from ${esc(MASTER.file)}). Customer edits made in the planner are kept.`:''} The page reloads after loading it.</div>`; }
     if(p.upl&&p.upl.length){ const latest=uplState().reports.filter(r=>!r.old).reduce((m,r)=>r.at>m?r.at:m,'');
-      body+=`<div class="note info">↩ <b>Uplifts outstanding:</b> ${p.upl.map(r=>`${esc(r.file)} <span class="muted">(${esc(fmtAt(r.at))})</span>: <b>${r.items.length}</b> uplift${r.items.length!==1?'s':''}${latest&&r.at<latest?' <span class="muted">· older than the report already loaded, kept as a record only</span>':''}`).join('<br>')}<div class="muted small" style="margin-top:4px">The newest report says which uplifts are outstanding; the ones it doesn't list any more are marked completed. Uplifts are planned with the customer's next delivery, or by hand in Uplift Control.</div></div>`; }
+      body+=`<div class="note info">↩ <b>Uplifts outstanding:</b> ${p.upl.map(r=>`${esc(r.file)}${r.sheet&&r.cu?' › '+esc(r.sheet):''} <span class="muted">(${esc(fmtAt(r.at))})</span>: <b>${r.items.length}</b> order${r.items.length!==1?'s':''} from ${r.lines} line${r.lines!==1?'s':''}${r.skipped?` <span class="muted">· ${r.skipped} line${r.skipped>1?'s':''} without an order number left out (totals row)</span>`:''}${r.control?` · <b>notes of ${r.control.summary.length} uplifts and ${r.control.archive.length} archived</b> from the Summary / Archive sheets`:''}${latest&&r.at<latest?' <span class="muted">· older than the report already loaded, kept as a record only</span>':''}`).join('<br>')}<div class="muted small" style="margin-top:4px">One uplift per order: the first line's details, the lowest Next Status, the Extended Amount added up. The newest report says what is outstanding; an order it doesn't list any more is completed (archived with its notes). Uplifts are planned with the customer's delivery on the next day, or by hand in Uplift Control.</div></div>`; }
     if(p.prod&&p.prod.length) body+=`<div class="note info">📦 <b>Products:</b> ${p.prod.map(r=>`${esc(r.file)}: ${Object.keys(r.orders).length} orders, ${r.lines} lines`).join(' · ')} — the CS / EA / KEG totals on the Home page.</div>`;
     const nAct=p.days.length+(p.resDays?p.resDays.length:0)+(p.fixed?1:0)+(p.cust?1:0)+(p.upl?p.upl.length:0)+(p.prod?p.prod.length:0);
     const lbl=[p.days.length?`Add ${p.days.length} day${p.days.length>1?'s':''}`:'', p.resDays&&p.resDays.length?'Apply RESOURCES':'', p.upl&&p.upl.length?'Load uplifts':'', p.prod&&p.prod.length?'Load products':'', p.fixed?'Apply fixed routes':'', p.cust?'Load customer master':''].filter(Boolean).join(' + ');
@@ -4419,7 +4485,7 @@ function fileKind(n, top){
   if(!/\.(xlsx|xls|xlsm)$/.test(s)) return null;
   if(t==='MASTER_DATA'){ if(s.includes('fixed_routes')||s.includes('fixed routes')) return 'fixed'; if(s.includes('master_del')||s.includes('master del')) return 'cust'; return null; }
   if(t==='REPORTS'||t==='REPORT'){
-    if(/(^|[^a-z])uplift/.test(s)) return 'upl'; if(/^pod[ _-]|[ _-]pod[ _.-]/.test(s)) return 'pod'; if(/^prod[ _-]|product/.test(s)) return 'prod'; if(/^res[ _-]|resource/.test(s)) return 'res';
+    if(/(^|[^a-z])uplift/.test(s) || /(^|[^a-z])cu[ _-]?rep/.test(s)) return 'upl'; if(/^pod[ _-]|[ _-]pod[ _.-]/.test(s)) return 'pod'; if(/^prod[ _-]|product/.test(s)) return 'prod'; if(/^res[ _-]|resource/.test(s)) return 'res';
     if(/^dips[ _-]?plan/.test(s) || /^(mon|tue|wed|thu|fri|sat|sun)[^a-z].*\d{1,2}\s*\.\s*\d{1,2}/.test(s)) return 'planning';
   }
   return null;

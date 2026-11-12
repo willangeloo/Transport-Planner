@@ -7,12 +7,14 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 ## v0.12.0 — 2026-11-12
 
 ### Features
-- **Uplifts.** The *uplifts outstanding* report (`REPORTS/week_XX/UPLIFTS_…`, exported at least twice a day) can be imported. The time of a report is read from its name (`…_AM` = 08:00, `…_PM` = 15:00, or a time such as `0800`), else from the file. The newest report says which uplifts are outstanding; an uplift it no longer lists is **completed**, and its record keeps the day and route it was planned on.
-  - **Planned automatically** with the customer's first delivery from the day it can still be collected (a morning report = that day, an afternoon report = the next day).
+- **Uplifts.** The JDE **CU report** (the `CU_Rep` layout of the Uplift control workbook, file name with *UPLIFT* or *CU_Rep* in `REPORTS/week_XX`, at least twice a day) can be imported. It replaces the two scripts of the workbook:
+  - **Script 1 — summary:** one uplift per Order Number (first line's details, lowest Next Status, Extended Amount added up; the totals row and lines with no order number are left out). The newest report says what is outstanding; an order it no longer lists is **archived** with its notes and the day and route it was planned on, and is restored (notes and First seen) if it comes back. The time of a report is read from its name (`…_AM` = 08:00, `…_PM` = 15:00, or a time such as `0800`), else from the file.
+  - **The Uplift control workbook** can be imported once: its `CU_Rep` is the report and its **Summary** / **Archive** notes (Bay, Reschedule, Status, First seen) are kept. Checked against a real workbook: the 90 Summary rows came out identical (value, next status, ship to, shipment, note).
+  - **Script 2 — planned automatically** by Ship To with the customer's next delivery on the loaded planning (a morning report = that day's planning onwards, an afternoon report = the next day). Checked against the same workbook's Planning and Resources: the same 8 orders on the same bays and crews.
   - **Allocated by hand** to any route of any loaded day (Uplift Control, the map or the route list); **Back to automatic** undoes it.
   - **Planning:** new **UPLIFT** column between Orders and Kg, with the uplift numbers in red; an uplift put on a route with no delivery for that customer is an *uplift only* stop; each route counts its uplifts.
   - **Map:** outstanding uplifts are **triangles** next to the customer (route colour = planned that day, grey = not planned). A new **▲ Uplifts** button under the bay buttons in *Show on map* hides or shows them (dark grey in the light theme, light grey in the dark theme).
-- **Uplift Control** (new sub heading of Resources): every uplift outstanding and the records of completed ones, with the day and route planned (driver, helper, truck, load), filters (outstanding, not planned, by hand, completed, all), search, the reports loaded and an Excel export.
+- **Uplift Control** (new sub heading of Resources): every uplift outstanding and the records of completed ones, with the day and route planned (driver, helper, truck, load), **your note** (the workbook's Status column), filters (outstanding, not planned, by hand, completed, all), search and the reports loaded. **Export Excel** writes **Summary** and **Archive** sheets in the layout of the Uplift control workbook (Bay = `route - driver + helper`, Reschedule = day planned).
 - **Printing › Uplift** (new section): the uplift dockets of the day organised like the deliveries — a cover per route in the order of the plan, then one docket per uplift (products, quantity to collect, boxes for the quantity collected and signatures). It is its own PDF, never mixed with the delivery check sheets, saved as `CHECK_SHEETS/Organised/date_time_user_UPLIFTS.pdf`. In **Delivery**, the orders of a customer with an uplift that day are tagged **UPLIFT &lt;number&gt;** (route list and cover).
 - **Change report › Uplifts planned:** the uplifts planned for the day (or all days), with route, driver and truck, and an export.
 - **Home page** (new first tab, where the planner opens): the days of a week as balloons. A planned day shows Bays, Drops, Orders, Kgs, Km, Pallets, Products (CS / EA / KEG) and Uplifts, and opens in Planning; a day with no plan is greyed out and opens the window to create it.
@@ -21,7 +23,7 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 ### Edits
 - **Printing** sections renamed: **Organise → Delivery**, **Reprint an order → Reprint a Docket**.
 - **Reports window:** Products and Uplifts are no longer blocked (only POD is).
-- **Demo:** the uplifts are now outstanding reports, two per day (`UPLIFTS_<wd>_AM` / `_PM`), with an uplift number, the date raised and a description; three are raised after the customer's last delivery of the week, so a planner allocates them by hand.
+- **Demo:** the uplifts are now CU reports (CU_Rep layout, one row per order line, a totals row), two per day (`UPLIFTS_<wd>_AM` / `_PM`); three are raised after the customer's last delivery of the week, so a planner allocates them by hand.
 
 ## v0.11.7 — 2026-11-12
 

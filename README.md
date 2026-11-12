@@ -34,7 +34,7 @@ The app reads everything at runtime from files the planner chooses. The only spr
 | `MASTER_DEL_DETAILS.xlsx` (customer master) | Read from `MASTER_DATA` when the shared folder is linked (or **Load day** → drop the file). It's kept in the browser and copied into saved plans and snapshots |
 | `FIXED_ROUTES_DIPSDATA.xls` | Same as the customer master |
 | Planning + RESOURCES (`DIPS_Plan_<wd>.xlsx`, `RES_<wd>.xlsx`) | **Load day**, or **Resources → Upload sheet** for RESOURCES |
-| Uplifts outstanding (`UPLIFTS_<wd>_AM.xlsx`, `UPLIFTS_<wd>_PM.xlsx`) and Products (`PROD_<wd>.xlsx`) | **Load day** / **📁 Reports**. The uplifts report is exported at least twice a day: the newest one says what is outstanding. Products give the CS / EA / KEG totals on the Home page |
+| Uplifts outstanding: the JDE CU report (`CU_Rep` layout; name with *UPLIFT* or *CU_Rep*, e.g. `UPLIFTS_<wd>_AM.xlsx`) and Products (`PROD_<wd>.xlsx`) | **Load day** / **📁 Reports**. The uplifts report is exported at least twice a day: the newest one says what is outstanding (it replaces the two scripts of the Uplift control workbook). Products give the CS / EA / KEG totals on the Home page |
 | Check-sheet PDF (JDE Offloading Sheet / Delivery Docket) | `CHECK_SHEETS/JDE/week_XX`, imported from **Printing → Import PDF**. The day is read from the first 3 pages of the PDF, not from its name. Read in the browser only, never saved with the plan. Organised PDFs are saved in `CHECK_SHEETS/Organised` as `date_time_user.pdf`. PDFs are git-ignored (except the demo week's fake ones) |
 
 ## Shared folder
