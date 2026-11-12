@@ -3,7 +3,14 @@
   "private": true,
   "scripts": {
     "test": "node run.js",
-    "demo": "node demo/make-demo.js && node demo/walkthrough.js"
+    "demo": "node demo/make-month.js && node demo/make-plans.js",
+    "screenshots": "node demo/screenshots.js"
   },
-  "devDependencies": { "leaflet": "1.9.4", "xlsx": "0.18.5", "pdfjs-dist": "3.11.174", "pdf-lib": "1.17.1", "playwright": "^1.47.0" }
+  "devDependencies": {
+    "leaflet": "1.9.4",
+    "xlsx": "0.18.5",
+    "pdfjs-dist": "3.11.174",
+    "pdf-lib": "1.17.1",
+    "playwright": "^1.47.0"
+  }
 }
