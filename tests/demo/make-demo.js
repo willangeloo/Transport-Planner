@@ -9,7 +9,9 @@ const pick=a=>a[Math.floor(rnd()*a.length)];
 // a second generator for the check sheets, products, uplifts and POD: it doesn't touch the first one, so the plans and customers stay identical
 let seed2=2046; const rnd2=()=>{ seed2=(seed2*1103515245+12345)%2147483648; return seed2/2147483648; };
 const pick2=a=>a[Math.floor(rnd2()*a.length)];
-const {checkSheetPdf, makeLines, JDE_NAMES}=require('../lib/checksheet');
+const {checkSheetPdf, upliftDocketPdf, makeLines, JDE_NAMES, CATALOGUE}=require('../lib/checksheet');
+// a third generator for the uplift reports (raised dates, products): the plans, PDFs and other reports stay identical
+let seed3=3046; const rnd3=()=>{ seed3=(seed3*1103515245+12345)%2147483648; return seed3/2147483648; };
 const write=(rel,sheet,rows)=>{ const f=path.join(OUT,rel); fs.mkdirSync(path.dirname(f),{recursive:true}); const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(rows); ws['!cols']=rows[0].map(()=>({wch:16})); XLSX.utils.book_append_sheet(wb,ws,sheet); XLSX.writeFile(wb,f); };
 fs.rmSync(path.join(OUT,'MASTER_DATA'),{recursive:true,force:true}); fs.rmSync(path.join(OUT,'REPORTS'),{recursive:true,force:true}); fs.rmSync(path.join(OUT,'CHECK_SHEETS'),{recursive:true,force:true});
 
@@ -49,10 +51,11 @@ fs.writeFileSync(path.join(OUT,'MASTER_DATA','users.json'),JSON.stringify({compa
 const WEEK=[['Mon','09/11/2026'],['Tue','10/11/2026'],['Wed','11/11/2026'],['Thu','12/11/2026'],['Fri','13/11/2026']];
 let load=74600001, order=5600001;
 const SHEETS={};   // orders per weekday, for the fake check-sheet PDFs
+const UPL=[];      // uplifts (pick-ups of empty kegs or damaged stock), with the day they are collected (k, 0 = Mon)
 WEEK.forEach(([wd,date],di)=>{
   const plan=[['Load Number','Order Number','Address Number Ship To','Ship To Name','Address Line 2','Address Line 3','Date Promised Shipment','Weight','Route Code']];
   const res=[['Shipment','Bay','Driver','Helper','Vehicle','Number of Pallets','DIPS Total KM','General Area','Drops','Kgs']];
-  const prod=[['Order Number','Product','Description','Quantity','Unit']], upl=[['Ship To','Name','Product','Quantity','Reason']];
+  const prod=[['Order Number','Product','Description','Quantity','Unit']];
   const loads={};
   customers.filter(c=>c.days.includes(di)).forEach(c=>{
     const b=BAYS.find(x=>x.bay===c.bay); const lk=c.bay; if(!loads[lk]) loads[lk]={id:load++, bay:c.bay, area:b.area, drops:0, kg:0};
@@ -63,18 +66,47 @@ WEEK.forEach(([wd,date],di)=>{
       (SHEETS[wd]=SHEETS[wd]||[]).push({load:String(L.id), order:String(o), name:c.name, customerNo:String(c.id), addrLines:[...(rnd2()<.35?[`${pick2(N1).toUpperCase()} ${pick2(['TRADING','HOSPITALITY','HOLDINGS'])} LTD`]:[]), ...c.addr.split(', ').map(a=>a.toUpperCase())], po:rnd2()<.8?String(10600000+Math.floor(rnd2()*99999)):'', empties:rnd2()<.6, lines, date, orderDate:(()=>{ const [dd,mm,yy]=date.split('/').map(Number); const od=new Date(Date.UTC(yy,mm-1,dd-3)); const z=n=>String(n).padStart(2,'0'); return z(od.getUTCDate())+'/'+z(od.getUTCMonth()+1)+'/'+od.getUTCFullYear(); })()});
       for(let q=0;q<4;q++) rnd();   // the old random products drew 4 numbers here; kept so the plans stay identical
       lines.forEach(l=>prod.push([o,l.sku,l.desc,l.qty,l.uom])); }
-    if(rnd()<.15) upl.push([c.id,c.name,'KEG501',1+Math.floor(rnd()*3),pick(['Empty kegs','Damaged stock'])]);
+    if(rnd()<.15) UPL.push({c, k:di, qty:1+Math.floor(rnd()*3), reason:pick(['Empty kegs','Damaged stock'])});
   });
   Object.values(loads).forEach((L,i)=>res.push([L.id,L.bay,`Driver ${String(i+1+di*10).padStart(2,'0')}`,i%2?`Helper ${String(i+1+di*10).padStart(2,'0')}`:'',`TRK-${String(i+1).padStart(2,'0')}`,Math.ceil(L.kg/400),Math.round(30+rnd()*120),L.area,L.drops,L.kg]));
   write(`REPORTS/week_46/DIPS_Plan_${wd}.xlsx`,'Sheet1',plan); write(`REPORTS/week_46/RES_${wd}.xlsx`,'Sheet1',res);
-  // every day has at least one uplift (a pick-up of empty kegs or damaged stock), so the Uplifts report can be shown on any day
-  if(upl.length<2){ const c=pick2(customers.filter(x=>x.days.includes(di))); upl.push([c.id,c.name,'KEG501',1+Math.floor(rnd2()*3),pick2(['Empty kegs','Damaged stock'])]); }
+  // every day has at least one uplift to collect (a pick-up of empty kegs or damaged stock)
+  if(!UPL.some(u=>u.k===di)){ const c=pick2(customers.filter(x=>x.days.includes(di))); UPL.push({c, k:di, qty:1+Math.floor(rnd2()*3), reason:pick2(['Empty kegs','Damaged stock'])}); }
   // proof of delivery: one row per order, as the drivers hand them back (a few short or refused, to show exceptions)
   const pod=[['Order Number','Ship To','Customer Name','Delivery Date','Delivered At','Received By','Status','Notes']];
   SHEETS[wd].forEach(x=>{ const r=rnd2(), t=450+Math.floor(rnd2()*540), z=n=>String(n).padStart(2,'0');
     pod.push([x.order,x.customerNo,x.name,date,`${z(Math.floor(t/60))}:${z(t%60)}`,pick2(['J. Murphy','A. Byrne','K. Walsh','M. Doyle','Manager on duty']),r<.04?'Refused':r<.12?'Delivered short':'Delivered',r<.04?'Customer closed':r<.12?'2 cases not on the truck':'']); });
-  write(`REPORTS/week_46/PROD_${wd}.xlsx`,'Sheet1',prod); write(`REPORTS/week_46/UPLIFTS_${wd}.xlsx`,'Sheet1',upl); write(`REPORTS/week_46/POD_${wd}.xlsx`,'Sheet1',pod);
+  write(`REPORTS/week_46/PROD_${wd}.xlsx`,'Sheet1',prod); write(`REPORTS/week_46/POD_${wd}.xlsx`,'Sheet1',pod);
 });
+// ---- uplifts outstanding: the report of the uplifts not collected yet, exported twice a day (UPLIFTS_<wd>_AM before the trucks leave,
+// UPLIFTS_<wd>_PM after they are back). An uplift is raised on a working day (x, 0 = Mon 09.11, negative = week 45) and collected with the
+// customer's first delivery after that day (k). Three are raised after the customer's last delivery of the week, so nobody collects them:
+// they stay outstanding and show how a planner allocates one by hand.
+{ const delivered=(c,x)=>c.days.includes(((x%5)+5)%5);
+  const dateOf=x=>{ const d=new Date(Date.UTC(2026,10,9+Math.floor(x/5)*7+((x%5)+5)%5)); const z=n=>String(n).padStart(2,'0'); return z(d.getUTCDate())+'/'+z(d.getUTCMonth()+1)+'/'+d.getUTCFullYear(); };
+  const CS=CATALOGUE.filter(p=>p[2]==='CS'), KEGS=CATALOGUE.filter(p=>p[2]==='EA');
+  UPL.forEach(u=>{ let prev=u.k-1; while(!delivered(u.c,prev)) prev--; u.r=prev+Math.floor(rnd3()*(u.k-prev)); });
+  const late=customers.filter(c=>Math.max(...c.days)<=2 && !UPL.some(u=>u.c===c)); for(let i=0;i<3 && late.length;i++){ const c=late.splice(Math.floor(rnd3()*late.length),1)[0];
+    UPL.push({c, k:Infinity, r:Math.max(...c.days)+1+Math.floor(rnd3()*(4-Math.max(...c.days))), qty:1+Math.floor(rnd3()*4), reason:'Empty kegs'}); }
+  UPL.sort((a,b)=>a.r-b.r||a.c.id-b.c.id).forEach((u,i)=>{ u.no=String(7700101+i); const p=u.reason==='Empty kegs'?KEGS[Math.floor(rnd3()*KEGS.length)]:CS[Math.floor(rnd3()*CS.length)]; u.sku=p[0]; u.desc=p[1]+(u.reason==='Empty kegs'?' (empty)':''); });
+  // the layout of the JDE CU report (the CU_Rep sheet of the Uplift control workbook): one row per order LINE, a totals row at the bottom
+  const head=['Order Number','Shipment Number','Ship To','Ship To Name','Customer PO','Scheduled Pick','Ln Ty','Last Status','Next Status','Extended Amount','2nd Item Number','Description 1'];
+  const serial=x=>{ const [dd,mm,yy]=dateOf(x).split('/').map(Number); return Math.round((Date.UTC(yy,mm-1,dd)-Date.UTC(1899,11,30))/864e5); };
+  UPL.forEach((u,i)=>{ u.ship=String(10575600+i*7); u.po=rnd3()<.6?'YA0'+(61000+Math.floor(rnd3()*900)):''; const amt=-(40+Math.round(rnd3()*20000)/100);
+    u.lines=[['CU','550',i===4?'540':'560',amt,u.sku,(u.reason==='Empty kegs'?'ULLAGE ':'RB CREDIT ')+u.desc.replace(' (empty)','').toUpperCase()]];
+    if(u.reason==='Empty kegs' && rnd3()<.5) u.lines.push(['CG','910','573',null,'OTH712','50L KEG DEPOSIT ITEM']); });
+  const rows=list=>{ const out=[head]; let tot=0; list.forEach(u=>u.lines.forEach(l=>{ out.push([+u.no,+u.ship,u.c.id,u.c.name,u.po,serial(u.r),l[0],l[1],l[2],l[3],l[4],l[5]]); tot+=l[3]||0; }));
+    out.push([null,null,null,null,null,null,null,null,null,Math.round(tot*100)/100,null,null]); return out; };
+  WEEK.forEach(([wd],d)=>{ write(`REPORTS/week_46/UPLIFTS_${wd}_AM.xlsx`,'CU_Rep',rows(UPL.filter(u=>u.r<d && u.k>=d)));
+    write(`REPORTS/week_46/UPLIFTS_${wd}_PM.xlsx`,'CU_Rep',rows(UPL.filter(u=>u.r<=d && u.k>d))); });
+  // the uplift dockets JDE prints for Wednesday (CHECK_SHEETS/UPLIFTS/week_46): the uplifts of the Wednesday-morning report,
+  // one docket whose Load No doesn't match the report (to show the check) and one for an order that isn't in the report at all
+  { const wed=UPL.filter(u=>u.r<2 && u.k>=2); const dd=x=>dateOf(x).replace(/\/(\d{2})(\d{2})$/,'/$2');
+    const list=wed.map((u,i)=>({order:u.no, load:i===1?'10599999':u.ship, cust:String(u.c.id), po:u.po, name:u.c.name, addrLines:[u.c.name,...u.c.addr.split(', ').map(a=>a.toUpperCase())], orderDate:dd(u.r), date:dd(2),
+      lines:u.lines.filter(l=>l[0]!=='CG').map(l=>({code:l[4], desc:l[5], uom:/KEG/.test(l[5])?'EA':'CS', qty:-u.qty, price:l[3]}))}));
+    const x=customers[3]; list.push({order:'7799901', load:'10599990', cust:String(x.id), po:'', name:x.name, addrLines:[x.name], orderDate:dd(0), date:dd(2), lines:[{code:'KEG501', desc:'ULLAGE HARBOURSIDE LAGER 4.5% 50L KEG', uom:'EA', qty:-1, price:-80}]});
+    upliftDocketPdf(list).then(b=>{ const f=path.join(OUT,'CHECK_SHEETS','UPLIFTS','week_46','Uplift_dockets_Wed.pdf'); fs.mkdirSync(path.dirname(f),{recursive:true}); fs.writeFileSync(f,b); console.log('Uplift dockets: CHECK_SHEETS/UPLIFTS/week_46/Uplift_dockets_Wed.pdf ('+list.length+')'); }); }
+  console.log(`Uplifts: ${UPL.length} (${UPL.filter(u=>u.k===Infinity).length} with no delivery after them), in 10 reports UPLIFTS_<wd>_AM / _PM`); }
 console.log(`Demo data written to ${OUT}: ${customers.length} customers, ${order-5600001} orders, ${load-74600001} loads over 5 days`);
 // ---- fake check-sheet PDFs (JDE Offloading Sheet layout), one per day, in CHECK_SHEETS/JDE/week_46 (the Printing tab imports them).
 // The file names do NOT say the day: the app reads the day from the first pages of each PDF.

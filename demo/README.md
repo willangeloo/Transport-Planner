@@ -34,8 +34,8 @@ Each weekly plan has one planning change (a drop moved to another route) on the 
 | File | Content |
 |---|---|
 | `DIPS_Plan_<wd>`, `RES_<wd>` | The planning and the routes, crews and trucks of each day |
-| `PROD_<wd>` | Products: one row per order line, in cases (**CS**) and kegs (**EA**). Products can't be imported yet |
-| `UPLIFTS_<wd>` | Pick-ups of empty kegs or damaged stock; every day has at least one. Uplifts can't be imported yet |
+| `PROD_<wd>` | Products: one row per order line, in cases (**CS**) and kegs (**EA**): the Products totals on the Home page |
+| `UPLIFTS_<wd>` | Pick-ups of empty kegs or damaged stock; every day has at least one (a simple layout: Ship To, Name, Product, Quantity, Reason — the app also reads the JDE CU report layout, see the [user guide](../docs/user-guide.md#20-uplifts)) |
 | `POD_<wd>` (week 37) | Proof of delivery: one row per order with time and receiver; a few are short or refused. POD can't be imported yet |
 | `CHECK_SHEETS/JDE/week_37/*.pdf` | One page per order, in the layout of the JDE Offloading Sheet Report: load, customer PO (some empty), order and delivery date, customer number and address, products with weights, empties, totals. Every order's weight adds up to the weight in the planning file. Everything is invented: no real customer, product, brand or logo. Upload one in **Printing** to try it |
 
@@ -74,8 +74,9 @@ Try the same plan as **Warehouse** (Viewer) or **Casey** (User) to show how role
 7. **Customize:** dark / light theme and a bay colour.
 8. **Resources:** rename a route (Route / Bay), add a comment, copy and paste a block, export to Excel.
 9. **Printing** (load week 37 first): choose the Monday PDF from **CHECK_SHEETS › JDE** (the window shows the day it read from each PDF: Mon 07.09) and click **Organise PDFs**: a cover per route in plan order, moved orders on their new route, deferred orders apart. Then import **Thursday's** PDF to show the exceptions: a load that is not in Resources (**UNASSIGNED**), a page nobody can read (**REVIEW**) and a signature-only page that is left out.
-10. **Save** (into `PLANS/week_XX`, the week of the day you are planning), then **Open plan**, then a snapshot.
-11. Switch to **Warehouse**: view-only.
+10. **Uplifts and Home:** load a day's `UPLIFTS` report; in **Planning › Uplift Control › Planned days** confirm the matches with the deliveries, then see them in red in the **UPLIFT** column, as triangles on the map and on the **Home** balloons.
+11. **Save** (into `PLANS/week_XX`, the week of the day you are planning), then **Open plan**, then a snapshot.
+12. Switch to **Warehouse**: view-only.
 
 ## Rebuild it
 

@@ -67,14 +67,14 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   for(let i=0;i<100 && !(await p.isVisible('#modal [data-act=dgo]').catch(()=>false));i++){ if(await p.isVisible('#modal [data-act=link]').catch(()=>false)) await p.click('#modal [data-act=link]').catch(()=>{}); await p.waitForTimeout(300); }   // the app reloads once (customer master); the mock folder is linked again
   await p.waitForSelector('#modal [data-act=dgo]',{timeout:30000}); await p.waitForTimeout(500); const dw=await modalText();
   ok(dw.includes('Demo Transport Ltd') && dw.includes('Master data') && dw.includes('Reports') && /MASTER_DEL_DETAILS\.xlsx\s*✓ loaded/.test(dw) && /FIXED_ROUTES_DIPSDATA\.xlsx\s*✓ loaded/.test(dw) && dw.includes('master data in the planner is the version found in the folder'),'after choosing the user: master data window, both files ✓ loaded (same as the folder)');
-  ok(/DIPS_Plan_Mon\.xlsx\s*not loaded/.test(dw) && /0 of 10 loaded/.test(dw),'reports side lists week 46 (nothing loaded yet)'); await shot('data-window');
+  ok(/DIPS_Plan_Mon\.xlsx\s*not loaded/.test(dw) && /0 of 25 loaded/.test(dw) && /UPLIFTS_Mon_AM\.xlsx\s*not loaded/.test(dw),'reports side lists week 46 — DIPS Plan, RES, Products and Uplifts (nothing loaded yet)'); await shot('data-window');
   await p.click('#modal [data-act=dgo]'); await p.waitForSelector('#modal [data-act=sskip]'); { const sw=await modalText(); ok(/Load a saved plan/.test(sw) && /New week/.test(sw),'after the master data window: a window to load a saved plan or start a new week'); } await shot('start-window');
   await enter('Alex');
   ok((await p.textContent('#cBay')).includes('All bays (58)'),'customer master read from MASTER_DATA automatically (58 customers)');
   ok((await p.textContent('#userBtn')).replace(/\s+/g,'')==='👤Alex' && /Master/.test(await p.getAttribute('#userBtn','title')),'the user button shows just the name (role and folder are in its tooltip)');
   ok(!(await p.$('#shareBtn')) && /Save/.test(await p.textContent('#saveBtn')) && /💾/.test(await p.textContent('#saveBtn')) && await p.isVisible('#reportsBtn'),'header: one Save button (with an emoji) and a Reports button');
   await p.click('#userBtn'); ok((await p.$$eval('#modal .mf button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Switch user|My folder…','user menu: only Switch user and My folder'); await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Planning|Resources|Change report|Printing|Options' && await p.evaluate(()=>document.getElementById('tab-plan').classList.contains('on') && document.getElementById('subnav').hidden),'tab order: Plan the day (home), Resources, Change report, Check Sheet Print, Options, Customers');
+  ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Home|Planning|Resources|Change report|Printing|Options' && await p.evaluate(()=>document.getElementById('tab-home').classList.contains('on') && document.getElementById('subnav').hidden),'tab order: Home (opens first), Planning, Resources, Change report, Printing, Options');
   ok((await p.$$eval('nav button.hl',b=>b.map(x=>x.dataset.tab).join()))==='report,print','Change report and Printing tabs are highlighted in the header');
   await p.click('nav [data-tab=res]'); ok(await p.isVisible('#subnav') && (await p.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Resources sheet|Customers' && await p.$eval('nav [data-tab=res]',e=>e.classList.contains('on')),'sub heading under Resources: Resources sheet | Customers');
   await p.click('.subnav [data-tab=customers]'); ok(await p.$eval('nav [data-tab=res]',e=>e.classList.contains('on')) && await p.$eval('.subnav [data-tab=customers]',e=>e.classList.contains('on')),'Customers is a sub heading of Resources (the parent stays highlighted)'); await p.waitForTimeout(500);
@@ -91,14 +91,16 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   // the Reports window: Master Data | Planning Data (by week) | Saved Plans (by week)
   { await p.click('#reportsBtn'); await p.waitForSelector('.fbmain'); const labels=async()=>p.$$eval('#modal .mb > div > label',x=>x.map(e=>e.textContent.replace(/\s+/g,' ').trim()));
     ok((await p.$$eval('.fbmain .fbtab',x=>x.map(e=>e.textContent.trim()))).join('|')==='Master Data|Planning Data|Saved Plans','Reports: three main groups on top (Master Data, Planning Data, Saved Plans)');
-    ok(/Week 46/.test(await p.textContent('#modal .chips')) && (await labels()).join('|')==='📋 DIPS Plan|🚚 Resources|📦 Products — not used yet|↩ Uplifts — not used yet|✍ POD — not used yet' && await p.$$eval('#modal .fbrow.dis input',x=>x.length>0 && x.every(i=>i.disabled)),'Planning Data: grouped by weeks; sections DIPS Plan, Resources, Products, Uplifts, POD — the ones not used yet are blocked');
+    ok(/Week 46/.test(await p.textContent('#modal .chips')) && (await labels()).join('|')==='📋 DIPS Plan|🚚 Resources|📦 Products|↩ Uplifts outstanding|✍ POD — not used yet' && await p.$$eval('#modal .fbrow.dis input',x=>x.length>0 && x.every(i=>i.disabled && /POD_/.test(i.value))),'Planning Data: grouped by weeks; sections DIPS Plan, Resources, Products, Uplifts, POD — only POD (not used yet) is blocked');
     await p.click('#modal [data-act="m:master"]'); ok((await labels()).join('|')==='👥 Customer Master|🗓 Fixed Routes' && !(await p.$('#modal .chips')),'Master Data: sections Customer Master and Fixed Routes');
     await p.click('#modal [data-act="m:plan"]'); ok((await labels()).join('|')==='📄 Saved plans (.json) — to keep working|📸 Snapshots (.html) — read-only copies','Saved Plans: sections Saved plans and Snapshots'); await shot('reports'); await p.click('#modal [data-act=close]'); }
 
   // 2. LOAD THE WEEK from REPORTS/week_46
   await p.click('nav [data-tab=plan]'); await p.click('#uploadBtn'); await p.waitForSelector('input[name=fb]');
   ok((await modalText()).includes('Week 46'),'Load day opens on week 46'); await shot('load-day');
-  for(const wd of ['Mon','Tue','Wed','Thu','Fri']) for(const k of ['DIPS_Plan','RES']) await p.check(`input[value="REPORTS/week_46/${k}_${wd}.xlsx"]`);
+  for(const wd of ['Mon','Tue','Wed','Thu','Fri']) for(const k of ['DIPS_Plan','RES','PROD']) await p.check(`input[value="REPORTS/week_46/${k}_${wd}.xlsx"]`);
+  // the uplifts outstanding: the reports up to Wednesday morning (the newest one decides what is outstanding)
+  for(const f of ['Mon_AM','Mon_PM','Tue_AM','Tue_PM','Wed_AM']) await p.check(`input[value="REPORTS/week_46/UPLIFTS_${f}.xlsx"]`);
   await p.click('#fbOk'); await p.waitForSelector('[data-act=add]'); await shot('load-preview');
   await p.click('[data-act=add]'); await p.waitForTimeout(400);
   await p.click('#uploadBtn'); await p.waitForSelector('input[name=fb]');
@@ -179,7 +181,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
 
   // 10. CHANGE REPORT — the deferred group is allocated later: it stays one line in "Deferred orders"
   await p.click('nav [data-tab=report]'); await p.waitForSelector('[data-pa=one]'); await shot('report');
-  { const secs=await p.$$eval('#rBody [data-sec]',x=>x.map(e=>e.dataset.sec)); ok(secs.length>0 && secs.every(x=>['defer','pend','move','add','route','dock','cust'].includes(x)),'change report shows only deferred, reallocated, inserted, new routes, docket and customer changes: '+secs.join(', '));
+  { const secs=await p.$$eval('#rBody [data-sec]',x=>x.map(e=>e.dataset.sec)); ok(secs.length>0 && secs.every(x=>['defer','pend','move','add','route','dock','cust','upl'].includes(x)),'change report shows only deferred, reallocated, inserted, new routes, docket and customer changes (and the uplifts planned): '+secs.join(', '));
     const n0=await p.$$eval('#rBody tbody tr',x=>x.length); await p.click('[data-pw]'); const n1=await p.$$eval('#rBody tbody tr',x=>x.length);
     ok(n1>0 && n1<n0 && !(await p.$('[data-sec=route]')) && /P&W/.test(await p.textContent('[data-pw]')),`P&W balloon filters the report to Pink & White orders (${n0} → ${n1} rows)`); await shot('report-pw'); await p.click('[data-pw]'); ok(await p.$$eval('#rBody tbody tr',x=>x.length)===n0,'clicking the P&W balloon again shows everything'); }
   await p.click('[data-pa=all]'); await p.click('[data-pa=bulk]'); await p.waitForSelector('#aDay');
@@ -195,7 +197,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   // sort by customer (click the heading)
   await p.click('[data-sec=move] th[data-sort="move:1"]'); const names=await p.$$eval('[data-sec=move] tbody tr td:nth-child(2) b',x=>x.map(e=>e.textContent));
   ok(names.join('|')===[...names].sort((a,b)=>a.localeCompare(b,'en',{sensitivity:'base'})).join('|'),'clicking a heading sorts the section A→Z');
-  ok(await p.$$eval('#rBody table:not([data-tbl=pend]) tbody tr',rs=>rs.length>0 && rs.every(r=>/👤 Alex/.test(r.textContent))),'every change in the report shows who made it (👤 Alex) in the Logged column');
+  ok(await p.$$eval('#rBody table:not([data-tbl=pend]):not([data-tbl=uplr]) tbody tr',rs=>rs.length>0 && rs.every(r=>/👤 Alex/.test(r.textContent))),'every change in the report shows who made it (👤 Alex) in the Logged column');
   await shot('report-after');
   const [dl]=await Promise.all([p.waitForEvent('download'), p.click('#xlsBtn')]); ok(/Route changes .*\.xlsx$/.test(dl.suggestedFilename()),'full report exported to Excel: '+dl.suggestedFilename());
 
@@ -244,6 +246,25 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   const [pdl]=await Promise.all([p.waitForEvent('download'), p.click('#jpDownloadAll')]); ok(/^\d{4}-\d\d-\d\d_\d\d\.\d\d_Alex\.pdf$/.test(pdl.suggestedFilename()),'organised PDF named date_time_user: '+pdl.suggestedFilename());
   ok(await p.evaluate(()=>{ const o=((window.__TREE.CHECK_SHEETS||{}).Organised)||{}; return Object.keys(o).some(f=>/^\d{4}-\d\d-\d\d_\d\d\.\d\d_Alex\.pdf$/.test(f)); }),'the organised PDF is also saved in CHECK_SHEETS/Organised');
   await p.click('nav [data-tab=plan]');
+
+  // 11d. UPLIFTS and HOME (v0.12.0)
+  await p.clock.setFixedTime(new Date('2026-11-11T07:30:00'));   // “today” = Wed 11.11: matches today or later are to confirm
+  // Planning › Uplift Control: the matches with Wednesday's deliveries are confirmed in Planned days
+  await p.click('nav [data-tab=plan]'); await p.click('.subnav [data-tab=upl]'); await p.click('[data-ucv=days]'); await p.click('#dbUpl [data-dbwk="2026-11-09"]'); await p.click('#dbUpl [data-dbday="D2026-11-11"]');
+  ok(await p.$$eval('table[data-tbl=upld] .flag.dup',x=>x.length)===6,'Uplift Control › Planned days: Wednesday has 6 deliveries with an uplift to confirm'); await shot('uplift-days');
+  await p.click('[data-uc=confall]'); ok(Object.values(await p.evaluate(()=>__rpUpl.plan())).filter(x=>x.date==='2026-11-11'&&!x.manual).length===6,'… “Confirm all”: the 6 are planned (Auto)'); await p.click('[data-ucv=sum]');
+  await p.click('nav [data-tab=home]'); ok(await p.$$eval('.hball:not(.none)',x=>x.length)===5 && /Uplifts/.test(await p.textContent('.hball')),'Home: the five planned days as balloons with their totals'); await shot('home');
+  await p.click('[data-hday="D2026-11-11"]'); await p.click('#expAll'); ok(await p.$$eval('.drop .c-upl .upl-no',x=>x.length)===6 && (await p.evaluate(()=>__rpUpl.markers())).length>=5,'Planning: Wednesday shows its 6 uplifts in red and as triangles on the map'); await p.evaluate(()=>document.querySelector('.drop .c-upl .upl-no').closest('.drop').scrollIntoView({block:'center'})); await shot('plan-uplifts');
+  await p.click('nav [data-tab=plan]'); await p.click('.subnav [data-tab=upl]'); await shot('uplift-control');
+  { const no='7700108'; await p.click(`#tab-upl [data-uact=alloc][data-no="${no}"]`); await p.waitForSelector('#uaDay'); await p.selectOption('#uaDay','D2026-11-12'); await p.waitForTimeout(100); await p.selectOption('#uaLoad',{index:0}); await shot('uplift-allocate'); await p.click('#modal [data-act=ok]');
+    ok((await p.evaluate(n=>__rpUpl.plan()[n],no)).manual,'Uplift Control: uplift '+no+' allocated by hand to Thursday'); }
+  await p.click('nav [data-tab=print]'); await p.click('#dbPrint [data-dbday="D2026-11-11"]'); await p.click('[data-jpmode=uplift]');
+  await p.click('#jpUpJde'); await p.waitForSelector('input[name=jde]'); await p.check('input[name=jde]'); await p.click('#jdeOk'); await p.waitForFunction(()=>document.querySelectorAll('#jpUpFiles tbody tr').length>0,null,{timeout:60000});
+  ok((await p.$$eval('#jpUpFiles tbody tr',x=>x.length))===7,'Printing › Uplift: the uplift dockets PDF (CHECK_SHEETS › UPLIFTS) is matched with the report, docket by docket'); await shot('uplift-dockets');
+  await p.click('#jpUpGo'); await p.waitForSelector('#jpUpOut:not([hidden])',{timeout:60000}); await p.waitForTimeout(1500);
+  ok(/5 covers and 5 dockets \(5 JDE pages\)/.test(await p.textContent('#jpUpInfo')),'Printing › Uplift: the uplift dockets of Wednesday, a cover per route, the JDE pages in plan order'); await shot('print-uplift');
+  await p.click('[data-jpmode=organise]'); await p.click('nav [data-tab=report]'); await p.click('#dbRep [data-dbwk="2026-11-09"]'); await p.click('#dbRep [data-dbday="D2026-11-11"]'); await p.evaluate(()=>document.querySelector('[data-sec=upl]').scrollIntoView()); await shot('report-uplifts');
+  await p.click('#dbRep [data-dball]'); await p.click('nav [data-tab=plan]');
 
   // 12. SAVE — straight into PLANS/week_46; then one plan per day of the week
   // each day's plan is saved the afternoon before (the browser clock is set for the save only)
