@@ -4,6 +4,19 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.12.1 — 2026-11-12
+
+### Features
+- **Uplift Control › Planned days:** the same week and day buttons as the other tabs. A day lists its deliveries that match an outstanding uplift (customer, route, driver, the delivery's orders); the planner confirms them (**Confirm**, **Confirm selected**, **Confirm all**; **Unconfirm**). Only a confirmed match is planned (tag **Auto**) and shown in Planning, Printing › Uplift, the Change report and Home; it follows the delivery if it is moved on that day.
+- **Uplift summary** (the first view of Uplift Control): Uplift Order, Customer Name (Ship To · address), Status (Next Status), Value, Route (bay and driver, or **Not Planned** with the match to confirm), Day Planned (tag **Auto** or **Manual · user**), First seen, Last seen, **ⓘ** and **Allocate**.
+- **ⓘ History** of an order: report snapshots (new / changed / archived / back), allocations and confirmations with who and when, and the note.
+- On the map, a match to confirm is a grey triangle whose popup has **Confirm with this delivery**.
+
+### Edits
+- **Uplift Control** moved from Resources to a sub heading of **Planning** (Planning | Uplift Control).
+- **Automatic matches are proposals** until confirmed (v0.12.0 planned them straight away).
+- **Planning:** order and uplift numbers of one customer are separated by commas, at most 3 per line.
+
 ## v0.12.0 — 2026-11-12
 
 ### Features

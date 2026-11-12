@@ -10,7 +10,7 @@
 - tag every order's docket (P&W / Check Sheet);
 - keep each day's routes, crews and trucks in an Excel-like **Resources** sheet;
 - organise the JDE check-sheet PDF by route, in the order of the day's plan (**Printing**);
-- plan the **uplifts** (pick-ups of empty kegs or damaged stock) from the outstanding report: with the customer's delivery or by hand, on the map as triangles, followed in **Uplift Control** and printed apart;
+- plan the **uplifts** (pick-ups of empty kegs or damaged stock) from the outstanding report: with the customer's delivery or by hand, on the map as triangles, confirmed and followed in **Planning › Uplift Control** and printed apart;
 - see the week at a glance on the **Home** page (one balloon per day with its totals);
 - give each person a role (Master, Manager, User, Viewer) from a users file.
 
@@ -71,7 +71,7 @@ Branch names, the PR flow and versioning are described in [CONTRIBUTING.md](CONT
 
 ## Versions
 
-There is one file name, `Route Planner.html`. The current version is **v0.12.0** (BETA). What changed in each version is in [docs/CHANGELOG.md](docs/CHANGELOG.md). The version shown in the app header comes from `APP_VERSION` in the file. Releases are tagged on `main` after merging (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+There is one file name, `Route Planner.html`. The current version is **v0.12.1** (BETA). What changed in each version is in [docs/CHANGELOG.md](docs/CHANGELOG.md). The version shown in the app header comes from `APP_VERSION` in the file. Releases are tagged on `main` after merging (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Customer master columns
 

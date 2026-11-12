@@ -76,7 +76,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('#userBtn'); ok((await p.$$eval('#modal .mf button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Switch user|My folder…','user menu: only Switch user and My folder'); await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   ok((await p.$$eval('header nav button',b=>b.map(x=>x.textContent.replace(/\s*\d+$/,'').trim()))).join('|')==='Home|Planning|Resources|Change report|Printing|Options' && await p.evaluate(()=>document.getElementById('tab-home').classList.contains('on') && document.getElementById('subnav').hidden),'tab order: Home (opens first), Planning, Resources, Change report, Printing, Options');
   ok((await p.$$eval('nav button.hl',b=>b.map(x=>x.dataset.tab).join()))==='report,print','Change report and Printing tabs are highlighted in the header');
-  await p.click('nav [data-tab=res]'); ok(await p.isVisible('#subnav') && (await p.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Resources sheet|Customers|Uplift Control' && await p.$eval('nav [data-tab=res]',e=>e.classList.contains('on')),'sub heading under Resources: Resources sheet | Customers | Uplift Control');
+  await p.click('nav [data-tab=res]'); ok(await p.isVisible('#subnav') && (await p.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Resources sheet|Customers' && await p.$eval('nav [data-tab=res]',e=>e.classList.contains('on')),'sub heading under Resources: Resources sheet | Customers');
   await p.click('.subnav [data-tab=customers]'); ok(await p.$eval('nav [data-tab=res]',e=>e.classList.contains('on')) && await p.$eval('.subnav [data-tab=customers]',e=>e.classList.contains('on')),'Customers is a sub heading of Resources (the parent stays highlighted)'); await p.waitForTimeout(500);
   ok(await p.evaluate(()=>{ const m=__rpMaps.cMap(); const b=m.getBounds(); return m.getSize().x>200 && b.contains([53.6,-6.65]) && b.contains([53.05,-6.15]) && b.contains([53.347,-6.262]); }),'Customers: the map opens fitted to all the customers (not blank)');
   await shot('customers');
@@ -248,9 +248,13 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=plan]');
 
   // 11d. UPLIFTS and HOME (v0.12.0)
+  // Planning › Uplift Control: the matches with Wednesday's deliveries are confirmed in Planned days
+  await p.click('nav [data-tab=plan]'); await p.click('.subnav [data-tab=upl]'); await p.click('[data-ucv=days]'); await p.click('#dbUpl [data-dbwk="2026-11-09"]'); await p.click('#dbUpl [data-dbday="D2026-11-11"]');
+  ok(await p.$$eval('table[data-tbl=upld] .flag.dup',x=>x.length)===6,'Uplift Control › Planned days: Wednesday has 6 deliveries with an uplift to confirm'); await shot('uplift-days');
+  await p.click('[data-uc=confall]'); ok(Object.values(await p.evaluate(()=>__rpUpl.plan())).filter(x=>x.date==='2026-11-11'&&!x.manual).length===6,'… “Confirm all”: the 6 are planned (Auto)'); await p.click('[data-ucv=sum]');
   await p.click('nav [data-tab=home]'); ok(await p.$$eval('.hball:not(.none)',x=>x.length)===5 && /Uplifts/.test(await p.textContent('.hball')),'Home: the five planned days as balloons with their totals'); await shot('home');
   await p.click('[data-hday="D2026-11-11"]'); await p.click('#expAll'); ok(await p.$$eval('.drop .c-upl .upl-no',x=>x.length)===6 && (await p.evaluate(()=>__rpUpl.markers())).length>=5,'Planning: Wednesday shows its 6 uplifts in red and as triangles on the map'); await p.evaluate(()=>document.querySelector('.drop .c-upl .upl-no').closest('.drop').scrollIntoView({block:'center'})); await shot('plan-uplifts');
-  await p.click('nav [data-tab=res]'); await p.click('.subnav [data-tab=upl]'); await shot('uplift-control');
+  await p.click('nav [data-tab=plan]'); await p.click('.subnav [data-tab=upl]'); await shot('uplift-control');
   { const no='7700108'; await p.click(`#tab-upl [data-uact=alloc][data-no="${no}"]`); await p.waitForSelector('#uaDay'); await p.selectOption('#uaDay','D2026-11-12'); await p.waitForTimeout(100); await p.selectOption('#uaLoad',{index:0}); await shot('uplift-allocate'); await p.click('#modal [data-act=ok]');
     ok((await p.evaluate(n=>__rpUpl.plan()[n],no)).manual,'Uplift Control: uplift '+no+' allocated by hand to Thursday'); }
   await p.click('nav [data-tab=print]'); await p.click('#dbPrint [data-dbday="D2026-11-11"]'); await p.click('[data-jpmode=uplift]');
