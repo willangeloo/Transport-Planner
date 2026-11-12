@@ -1,8 +1,9 @@
-// Builds the DEMO folder: a made-up company, one full week of reports (week 46, Mon 09.11 – Fri 13.11.2026),
-// the customer master, fixed routes and a users file. Everything is invented, so it is safe to commit and share.
-// Usage: node make-demo.js [outputFolder]   (default: ../../demo/Route_planning)
+// Builds the SMALL one-week fixture used by the tests and the screenshots in docs/img: a made-up company, one full week of reports
+// (week 46, Mon 09.11 – Fri 13.11.2026), the customer master, fixed routes and a users file. Everything is invented.
+// The published demo (a whole month, 1,500 customers) is made by make-month.js instead.
+// Usage: node make-demo.js [outputFolder]   (default: a temporary folder)
 const XLSX=require('xlsx'), fs=require('fs'), path=require('path');
-const OUT=path.resolve(process.argv[2]||path.join(__dirname,'..','..','demo','Route_planning'));
+const OUT=path.resolve(process.argv[2]||path.join(require('os').tmpdir(),'rp-small-demo'));
 let seed=46; const rnd=()=>{ seed=(seed*1103515245+12345)%2147483648; return seed/2147483648; };   // repeatable "random"
 const pick=a=>a[Math.floor(rnd()*a.length)];
 // a second generator for the check sheets, products, uplifts and POD: it doesn't touch the first one, so the plans and customers stay identical

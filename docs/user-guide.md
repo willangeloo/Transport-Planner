@@ -1,6 +1,6 @@
 # Route Planner — user guide
 
-How to do each task in the Route Planner (v0.11.7). The screenshots come from the **demo week** in [`demo/`](../demo/README.md), which is made-up data, so you can follow along and present it to the team without using company files.
+How to do each task in the Route Planner (v0.11.7). The screenshots come from a small made-up one-week data set (the demo folder in [`demo/`](../demo/README.md) holds a whole made-up month), so you can follow along and present it to the team without using company files.
 
 **Contents**
 

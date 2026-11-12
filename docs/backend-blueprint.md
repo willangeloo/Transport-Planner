@@ -127,4 +127,4 @@ A saved plan (`.json`) has: `app`, `fmt`, `version`, `fileName`, `history[]`, `s
 | `look` | `{colors:{bay:#hex}, names:{"dayKey|load": name}}` |
 | `log[]` | change events: `move`, `allocate`, `defer`, `add`, `route`, `resupd`, `cust`, `dock`, `load` (files loaded, with a summary of what changed), with `prev` / `next` placements for undo |
 
-An order uid is `D<date>#<row>` for file orders and `A<n>` for inserted ones. A one-off import script can load the demo plans (`demo/Route_planning/PLANS/week_46`) into the new database to check that the migration is lossless.
+An order uid is `D<date>#<row>` for file orders and `A<n>` for inserted ones. A one-off import script can load the demo plans (`demo/Route_planning/PLANS/week_40`) into the new database to check that the migration is lossless.
