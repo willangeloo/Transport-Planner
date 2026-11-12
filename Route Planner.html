@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.12.2</title>
+<title>Route Planner BETA v0.12.3</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -121,6 +121,9 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .drop .c-tw{font-size:12px}
 .drop .acts{justify-content:flex-end}
 .side-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+/* v0.12.3: Show on map sits under the KPIs, the search under the day buttons, and the whole left side scrolls as one page */
+.side-top .showmap{margin-top:12px}.side-top .psearch{margin-top:10px}.side-top .psearch input{width:100%}
+#tab-plan .side .list{flex:none;overflow:visible}
 .lhead{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);background:#fafbfc;position:sticky;top:0;z-index:2}
 .lhead h3{margin:0;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
 @media (max-width:1250px){ .drop{grid-template-columns:18px minmax(150px,2fr) 66px 66px 82px 205px} .drop .c-ord{display:none} .side-top{grid-template-columns:1fr} }
@@ -550,7 +553,8 @@ html[data-theme=dark] .uplbtn{background:#cbd5e1;color:#111827;border-color:#e2e
 html[data-theme=dark] .uplbtn.off{background:transparent;color:#cbd5e1}
 .upl-ic{background:none!important;border:0!important}.upl-ic svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
 .legend .tri{width:0!important;height:0!important;border-radius:0!important;background:none!important;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #4b5563}
-.uc-tbl td{vertical-align:top}.uc-cm{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uc-tbl td{vertical-align:top}.uc-tg{border:1px solid var(--line);background:var(--card,#fff);color:var(--muted);border-radius:6px;font-size:11px;padding:0 6px;margin-top:3px;cursor:pointer}.uc-tg.on{color:var(--ink);border-color:var(--muted)}
+.uc-lines>td{background:var(--soft,#fafbfc);padding-top:0}.uc-ltbl{width:100%;font-size:12px;border-collapse:collapse}.uc-ltbl th,.uc-ltbl td{padding:3px 8px;border-bottom:1px solid var(--line)}.uc-cm{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ibtn{border:0;background:none;color:var(--ink);cursor:pointer;padding:2px;border-radius:50%;line-height:0}.ibtn:hover{background:var(--hover,#eef1f4)}.ibtn .info-ic{display:block}
 .uplrow .uplbtn.pl{background:#1f2937}.uplrow .uplbtn.pl.off{background:transparent;color:#1f2937} html[data-theme=dark] .uplrow .uplbtn.pl{background:#e5e7eb;color:#111827} html[data-theme=dark] .uplrow .uplbtn.pl.off{background:transparent;color:#e5e7eb}
 .leaflet-overlay-pane svg{pointer-events:none}.ucnote{width:130px;font-size:12px;padding:3px 6px}.uc-tbl .muted{font-size:11.5px}
@@ -581,7 +585,7 @@ html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.2</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.3</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="home" class="on">Home</button>
     <button data-tab="plan">Planning</button>
@@ -638,23 +642,25 @@ html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:
           <div class="rs-daybar" id="dbPlan"></div>
           <div class="row"><select id="pDay" class="sr-only" tabindex="-1" aria-hidden="true"></select><button class="btn" id="uploadBtn" title="Load planning + RESOURCES files for one or more days" style="white-space:nowrap">⤒ Load day</button><button class="btn" id="newDayBtn" title="Create a planning day with its fixed bays, before any files arrive" style="white-space:nowrap">＋ Day</button></div>
           <div class="muted small" id="pSrc" style="margin-top:6px"></div>
+          <div class="psearch"><input type="search" id="pSearch" placeholder="Search order, Ship To, name, bay, driver, helper or truck…" autocomplete="off"><div id="pSearchN"></div></div>
         </div>
+        <div>
         <div class="kpis">
           <div class="kpi"><b id="pK1">–</b><span>routes</span></div>
           <div class="kpi"><b id="pK2">–</b><span>drops</span></div>
           <div class="kpi"><b id="pK3">–</b><span>kg</span></div>
         </div>
-      </div>
-      <div id="pBanner"></div>
-      <div class="sec">
+        <div class="showmap">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
           <h3 style="margin:0">Show on map</h3>
           <div class="row" style="gap:4px"><button class="btn sm" id="bayAll">All</button><button class="btn sm" id="bayNone">None</button></div>
         </div>
         <div class="chips" id="pBays"></div>
         <div class="uplrow"><button class="uplbtn" id="uplBtn" title="Every uplift outstanding (grey triangles): not planned on this day">▲ Uplifts <span id="uplN"></span></button><button class="uplbtn pl" id="uplPlBtn" title="Uplifts planned on this day (triangles in the route colour)">▲ Planned CU <span id="uplPlN"></span></button></div>
+        </div>
+        </div>
       </div>
-      <div class="sec" style="padding-top:10px;padding-bottom:10px"><input type="search" id="pSearch" placeholder="Search order, Ship To, name, bay, driver, helper or truck…" autocomplete="off"><div id="pSearchN"></div></div>
+      <div id="pBanner"></div>
       <div class="list"><div class="lhead"><h3>Routes &amp; orders</h3><div class="row" style="gap:4px"><button class="btn sm" id="newRouteBtn" title="Add a route (bay, loading number, crew, truck) to this day">+ New route</button><button class="btn sm pri" id="insBtn" title="Add an order that is not in the planning file">+ Insert order</button><button class="btn sm" id="expAll">Expand all</button><button class="btn sm" id="colAll">Collapse all</button></div></div><div id="pRoutes"></div></div>
     </aside>
     <div class="mapwrap">
@@ -1995,7 +2001,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.12.2';
+const APP_VERSION='0.12.3';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2214,7 +2220,7 @@ function uplHist(u, what, extra){ (u.hist=u.hist||[]).push(Object.assign({ts:new
 const normKey = v => String(v||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
 function addrKey(ship, fallback){ const c=custMap[ship]; const pc=normKey(c&&c.pc); if(pc.length>=5) return 'pc:'+pc; const a=normKey((c&&c.addr)||fallback); return a.length>=6?'ad:'+a:''; }
 function uplCalc(){
-  const out={}, prop={}, matches={}, bySh={}, byAd={};
+  const out={}, prop={}, matches={}, bySh={}, byAd={}, today=todayStr();
   Object.values(ORD).forEach(o=>{ const c=curOf(o.uid); const d=dayMap[c.day]; if(!d) return; const ld=c.load||'';
     const put=(m,k)=>{ if(!k) return; const day=(m[d.date]=m[d.date]||{}); const ls=(day[k]=day[k]||[]); if(!ls.some(x=>x.load===ld&&x.ship===o.s)) ls.push({load:ld, ship:o.s}); };
     put(bySh,o.s); put(byAd,addrKey(o.s,o.a)); });
@@ -2223,13 +2229,14 @@ function uplCalc(){
   const matchOn=(u,date)=>{ const s=(bySh[date]||{})[u.ship]; if(s&&s.length) return {date, load:(s.find(x=>x.load)||s[0]).load||null, how:'ship'};
     const k=addrKey(u.ship); const a=k&&(byAd[date]||{})[k]; if(a&&a.length){ const x=a.find(y=>y.load)||a[0]; return {date, load:x.load||null, how:'addr', ship2:x.ship}; } return null; };
   uplOpenList().forEach(u=>{
-    const ms=dates.map(dt=>matchOn(u,dt)).filter(Boolean).map(m=>Object.assign({no:u.no, day:dayKeyForDate(m.date), manual:false, prop:true},m)); matches[u.no]=ms;
+    const msAll=dates.map(dt=>matchOn(u,dt)).filter(Boolean).map(m=>Object.assign({no:u.no, day:dayKeyForDate(m.date), manual:false, prop:true},m));
+    const ms=msAll.filter(m=>m.date>=today); matches[u.no]=ms;   // v0.12.3: only a match today or later is flagged “to confirm”
     const man=S.upl.man[u.no];
     if(man){ const k=dayKeyForDate(man.date); out[u.no]={no:u.no, date:man.date, day:k, load:man.load||null, manual:true, by:man.by||''}; return; }
-    const cf=S.upl.conf[u.no], cm=cf&&ms.find(m=>m.date===cf.date);
+    const cf=S.upl.conf[u.no], cm=cf&&msAll.find(m=>m.date===cf.date);
     if(cm){ out[u.no]=Object.assign({},cm,{prop:false, conf:true, by:cf.by||''}); return; }
     if(!ms.length) return; const from=uplFrom(u);
-    prop[u.no]=ms.find(m=>m.date>=from)||ms[ms.length-1];   // the first delivery from the report on, else the latest one loaded
+    prop[u.no]=ms.find(m=>m.date>=from)||ms[0];   // the first delivery from the report on, else the first one from today
   });
   return {plan:out, prop, matches};
 }
@@ -2254,7 +2261,7 @@ function uplWhenTxt(x){ return x ? (x.day?dayLabel(x.day):dayLbl(x.date)+' (not 
 function uplReportAt(name, week, mod){
   const s=String(name).replace(/\.[a-z]+$/i,'').replace(/(^|[^a-z])v\d+(\.\d+)+/ig,'$1'); const nd=nameDate(s, week); let hm=null;   // "Uplift_v2.5" is a version, not a date
   const ap=s.match(/(?:^|[^A-Z])(AM|PM)(?:[^A-Z]|$)/i); if(ap) hm=ap[1].toUpperCase()==='AM'?'08:00':'15:00';
-  const t=s.match(/(?:^|[_ -])([01]\d|2[0-3])[:h]?([0-5]\d)(?:$|[_ -])/i); if(t) hm=t[1]+':'+t[2];
+  const ts=[...s.matchAll(/(?:^|[_ -])([01]\d|2[0-3])[:h.]?([0-5]\d)(?=$|[_ -])/ig)].filter(t=>!(t.index===0 && /^\d{1,2}\.\d{1,2}\s*-\s*[a-z]{3}\b/i.test(s))); const t=ts[ts.length-1]; if(t) hm=t[1]+':'+t[2];   // the last time in the name (not the MM.DD at the start)
   const md=mod?new Date(mod):null, z=n=>String(n).padStart(2,'0');
   const date=(nd&&nd.date)||(md?ymd(md.getFullYear(),md.getMonth()+1,md.getDate()):todayStr());
   if(!hm) hm=md?z(md.getHours())+':'+z(md.getMinutes()):'12:00';
@@ -2444,7 +2451,7 @@ function uplExportWorkbook(){
   XLSX.writeFile(wb,`Uplift_${todayStr()}.xlsx`); toast(`Exported Uplift_${todayStr()}.xlsx (Summary ${sum.length-1} · Archive ${arc.length-1})`);
 }
 // ---------- Uplift Control (v0.12.0): every uplift outstanding and the records of completed ones, with the day and route planned ----------
-const UC={view:'sum', f:'open', q:'', day:null, sel:new Set()};
+const UC={view:'sum', f:'open', q:'', day:null, sel:new Set(), open:new Set()};
 const ucDayKey = () => (UC.day && dayMap[UC.day]) ? UC.day : (dayMap[P.day] ? P.day : (DATA.days[0]?DATA.days[0].key:null));
 function ucCust(u){ const c=custMap[u.ship]; return `<b>${esc(u.name)}</b><div class="muted">${esc(u.ship)}${c&&c.addr?' · '+esc(c.addr):''}${c&&c.bay?' · '+esc(c.bay):''}</div>`; }
 // v0.12.2: the (i) icon (an italic i in a circle, drawn here — currentColor, so it follows the theme)
@@ -2452,6 +2459,9 @@ const INFO_SVG='<svg class="info-ic" width="18" height="18" viewBox="0 0 24 24" 
 const infoBtn = no => `<button class="ibtn" data-uact="hist" data-no="${esc(no)}" title="History of order ${esc(no)}" aria-label="History of ${esc(no)}">${INFO_SVG}</button>`;
 // the last comment of the history (the note), with who and when
 function ucComment(u){ if(!u.note) return '<span class="muted">—</span>'; const h=(u.hist||[]).slice().reverse().find(x=>x.note===u.note && /comment|note/i.test(x.what)); return `<div class="uc-cm" title="${esc(u.note)}">${esc(u.note)}</div>${h?`<div class="muted small">${esc(h.by||'')}${h.by?' · ':''}${esc(fmtAt(String(h.ts).slice(0,16)).slice(0,9))}</div>`:''}`; }
+// v0.12.3: the product lines of an order open under it (› under the order number; press again to close)
+const ucToggle = u => `<div><button class="uc-tg ${UC.open.has(u.no)?'on':''}" data-uctg="${esc(u.no)}" aria-expanded="${UC.open.has(u.no)}" title="${UC.open.has(u.no)?'Hide':'Show'} the product lines">${UC.open.has(u.no)?'▾':'›'} <span>${(u.lines||[]).length} line${(u.lines||[]).length!==1?'s':''}</span></button></div>`;
+const ucLines = (u,cols) => !UC.open.has(u.no) ? '' : `<tr class="uc-lines"><td></td><td colspan="${cols-1}"><table class="uc-ltbl"><thead><tr><th>Ln Ty</th><th>Product</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>${(u.lines||[]).map(l=>`<tr><td>${esc(l.type||'—')}</td><td><b>${esc(l.product||'—')}</b></td><td>${esc(l.desc||'')}${l.qty!=null?' · ×'+esc(l.qty):''}</td><td style="text-align:right">${esc(money(l.amount))}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No lines in the report.</td></tr>'}</tbody></table></td></tr>`;
 function ucTag(x){ return x.manual ? `<span class="flag mv">Manual${x.by?' · '+esc(x.by):''}</span>` : `<span class="flag ad">Auto${x.by?' · '+esc(x.by):''}</span>`; }
 function renderUplCtl(){
   const el=$('tab-upl'); const U=uplState(), cc=uplCalc(), pl=cc.plan, pr=cc.prop, all=uplList(), ro=!can('edit');
@@ -2469,9 +2479,9 @@ function renderUplCtl(){
     if(cl){ route=cl.route?`${esc(cl.route)}${cl.driver?`<div class="muted">${esc(cl.driver)}</div>`:''}`:'<span class="muted">—</span>'; day=`${cl.date?esc(dayLbl(cl.date)):'—'}<div><span class="flag">completed</span></div>`; }
     else if(x){ const li=x.day&&x.load?loadInfo(x.day,x.load):null; route=`<b>${esc(uplRouteTxt(x))}</b>${li?`<div class="muted">${esc([li.driver,li.helper].filter(Boolean).join(' + ')||'no driver')}</div>`:''}`;
       day=`${x.day?`<button class="btn sm" data-uact="goday" data-no="${esc(u.no)}" data-day="${esc(x.day)}" title="Open this day in Planning">${esc(dayLabel(x.day))}</button>`:esc(uplWhenTxt(x))}<div>${ucTag(x)}</div>`; }
-    else { const more=(cc.matches[u.no]||[]).length-1; route=`<b style="color:var(--danger)">Not Planned</b>${p?`<div class="muted small">matches ${esc(uplWhenTxt(p))} · ${esc(uplRouteTxt(p))}${p.how==='addr'?' (same address)':''}${more>0?` · +${more} other day${more>1?'s':''}`:''} — <a href="#" data-ucgo="${esc(p.day||'')}">confirm in Planned days</a></div>`:'<div class="muted small">no delivery on the loaded days</div>'}`; day='<span class="muted">—</span>'; }
+    else { route='<b style="color:var(--danger)">Not Planned</b>'; day='<span class="muted">—</span>'; }   // v0.12.3: the matches to confirm are flagged in Planned days only
     const acts=cl||ro?'':`<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate</button>`;
-    return `<tr><td><span class="upl-no">${esc(u.no)}</span></td><td>${ucCust(u)}</td><td>${u.status!=null?esc(u.status):'—'}</td><td data-s="${u.value==null?'':u.value}" style="text-align:right;white-space:nowrap">${esc(money(u.value))}</td><td>${route}</td><td>${day}</td><td data-s="${esc(u.firstAt||'')}">${esc((fmtAt(u.firstAt)||'').slice(0,9))}</td><td data-s="${esc(u.lastAt||'')}">${esc((fmtAt(u.lastAt)||'').slice(0,9))}</td><td>${ucComment(u)}</td><td>${infoBtn(u.no)}</td><td class="no-print">${acts}</td></tr>`; };
+    return `<tr><td><span class="upl-no">${esc(u.no)}</span>${ucToggle(u)}</td><td>${ucCust(u)}</td><td>${u.status!=null?esc(u.status):'—'}</td><td data-s="${u.value==null?'':u.value}" style="text-align:right;white-space:nowrap">${esc(money(u.value))}</td><td>${route}</td><td>${day}</td><td data-s="${esc(u.firstAt||'')}">${esc((fmtAt(u.firstAt)||'').slice(0,9))}</td><td data-s="${esc(u.lastAt||'')}">${esc((fmtAt(u.lastAt)||'').slice(0,9))}</td><td>${ucComment(u)}</td><td>${infoBtn(u.no)}</td><td class="no-print">${acts}</td></tr>${ucLines(u,11)}`; };
   el.innerHTML=`<div class="rep">${head}
     <div class="kpis">${kpi('open',open.length,'outstanding')}${kpi('conf',cnt('conf'),'to confirm')}${kpi('none',cnt('none'),'not planned · no delivery')}${kpi('auto',cnt('auto'),'planned · auto')}${kpi('hand',cnt('hand'),'planned · manual')}${kpi('done',done.length,'completed (archive)')}${kpi('all',all.length,'all')}</div>
     <div class="card"><h2>↩ Uplift summary <span class="muted" style="font-weight:400">(${rows.length})</span><span class="spacer"></span><input type="search" id="ucQ" class="secf" placeholder="Search uplift, customer, ship to, bay…" value="${esc(UC.q)}"></h2>
@@ -2490,9 +2500,9 @@ function ucDaysHtml(cc, ro){
   const tr=({u,x})=>{ const sh=x.ship2||u.ship; const drop=v.routes.flatMap(r=>r.drops.map(dr=>({r,dr}))).find(o=>o.dr.ship===sh && String(o.dr.load||'')===String(x.load||'')); const li=x.load?loadInfo(dk,x.load):null;
     const st=x.prop?'<span class="flag dup">to confirm</span>':ucTag(x);
     const act=ro?'':x.prop?`<button class="btn sm pri" data-ucc="${esc(u.no)}">Confirm</button>`:x.conf?`<button class="btn sm" data-ucu="${esc(u.no)}">Unconfirm</button>`:`<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate</button>`;
-    return `<tr><td>${x.prop&&!ro?`<input type="checkbox" data-ucs="${esc(u.no)}" ${UC.sel.has(u.no)?'checked':''}>`:''}</td><td><span class="upl-no">${esc(u.no)}</span><div class="muted small">${esc(uplProducts(u))}</div></td><td>${ucCust(u)}</td>
+    return `<tr><td>${x.prop&&!ro?`<input type="checkbox" data-ucs="${esc(u.no)}" ${UC.sel.has(u.no)?'checked':''}>`:''}</td><td><span class="upl-no">${esc(u.no)}</span>${ucToggle(u)}</td><td>${ucCust(u)}</td>
       <td><b>${esc(x.load?routeName(dk,x.load):'not on a route')}</b>${li?`<div class="muted">${esc([li.driver,li.helper].filter(Boolean).join(' + ')||'no driver')}${li.truck?' · '+esc(li.truck):''}</div>`:''}${drop?`<div class="muted small">delivery: ${drop.dr.uids.map(x2=>esc(ORD[x2].o)).join(', ')}${x.how==='addr'?` · <b>same address</b>, Ship To ${esc(drop.dr.ship)} ${esc(drop.dr.name)}`:''}</div>`:(x.manual?'<div class="muted small">no delivery to this customer on this route (by hand)</div>':'')}</td>
-      <td>${st}</td><td class="no-print">${act}</td></tr>`; };
+      <td>${st}</td><td class="no-print">${act}</td></tr>${ucLines(u,6)}`; };
   return `<div class="rs-daybar" id="dbUpl">${dayBarHtml('upl')}</div>
    <div class="kpis"><div class="kpi"><b style="color:var(--warn)">${nP}</b><span>to confirm</span></div><div class="kpi"><b>${nC}</b><span>confirmed · auto</span></div><div class="kpi"><b>${nM}</b><span>manual</span></div><div class="kpi"><b>${rows.length}</b><span>uplifts on ${esc(d.label)}</span></div></div>
    <div class="card"><h2>${esc(d.label)} · deliveries with an uplift <span class="spacer"></span>${ro||!nP?'':`<button class="btn sm" data-uc="confsel" ${UC.sel.size?'':'disabled'}>Confirm selected${UC.sel.size?' ('+UC.sel.size+')':''}</button><button class="btn sm pri" data-uc="confall">Confirm all (${nP})</button>`}</h2>
@@ -2516,6 +2526,7 @@ function openUplHist(no){
 }
 $('tab-upl').addEventListener('click',e=>{
   const v=e.target.closest('[data-ucv]'); if(v){ UC.view=v.dataset.ucv; return renderUplCtl(); }
+  const tg=e.target.closest('[data-uctg]'); if(tg){ const no=tg.dataset.uctg; UC.open.has(no)?UC.open.delete(no):UC.open.add(no); return renderUplCtl(); }
   const f=e.target.closest('[data-ucf]'); if(f){ UC.f=f.dataset.ucf; return renderUplCtl(); }
   const g=e.target.closest('[data-ucgo]'); if(g){ e.preventDefault(); UC.view='days'; if(g.dataset.ucgo) UC.day=g.dataset.ucgo; return renderUplCtl(); }
   const s_=e.target.closest('[data-ucs]'); if(s_){ s_.checked?UC.sel.add(s_.dataset.ucs):UC.sel.delete(s_.dataset.ucs); return renderUplCtl(); }
@@ -3483,7 +3494,11 @@ function guessYear(mm){
 // "Tue - 03.11", "Thu 29.10", "Tue - 03.11 RESOURCES.xlsx", "RES_Tue.xlsx" -> {dow, dm, date}
 // week: the ISO week of the folder the file came from (REPORTS/week_45) — gives the date when the name has no dd.mm
 function nameDate(name, week){
-  const n=String(name||'').trim(); let dow=DAY_PREFIX[n.slice(0,3).toUpperCase()];
+  const n=String(name||'').trim();
+  // v0.12.3: files saved by the app: "MM.DD - Wed - DIPS Plan - Alex - 16.35" (month first; the weekday confirms it)
+  { const k=n.match(/^(\d{1,2})\.(\d{1,2})\s*-\s*(MON|TUE|WED|THU|FRI|SAT|SUN)\b/i); if(k){ const M=+k[1], D=+k[2], w=DAY_PREFIX[k[3].toUpperCase()];
+    if(M>=1&&M<=12&&D>=1&&D<=31){ const mm=String(M).padStart(2,'0'), date=`${guessYear(mm)}-${mm}-${String(D).padStart(2,'0')}`; if(dateDow(date)===w) return {dow:w, dm:fmtDM(date), date}; } } }
+  let dow=DAY_PREFIX[n.slice(0,3).toUpperCase()];
   if(dow==null){ const w=n.toUpperCase().match(/(?:^|[^A-Z])(MON|TUE|WED|THU|FRI|SAT|SUN)(?:[^A-Z]|$)/); if(w) dow=DAY_PREFIX[w[1]]; }
   const m=n.match(/(\d{1,2})\s*[.\/-]\s*(\d{1,2})(?!\d)/);
   if(!m && dow==null) return null;
@@ -4572,6 +4587,49 @@ function openNewWeek(){
      toast(`Week ${isoWeek(NW.wk)} added — choose its reports`); openFolderBrowser('data',{week:isoWeek(NW.wk)}); }});
   $('modal').classList.add('wide');
 }
+
+// ---------- v0.12.3: a file uploaded from this computer is also saved in its place in the company folder ----------
+//   reports → REPORTS/week_XX · check sheets → CHECK_SHEETS/JDE/week_XX · uplift dockets → CHECK_SHEETS/UPLIFTS/week_XX
+//   name "MM.DD - Wed - DIPS Plan - Alex - 16.35.xlsx": MM.DD and weekday = the day of the report, then its type, who uploaded it and when
+const KEEP_TYPE={planning:'DIPS Plan', plan:'DIPS Plan', res:'Resources', upl:'Uplifts', prod:'Products', pod:'POD', jde:'Check Sheets', updock:'Uplift Dockets'};
+function keepName(type, date){ const d=date||todayStr(), n=new Date(), z=x=>String(x).padStart(2,'0');
+  return safeName(`${d.slice(5,7)}.${d.slice(8,10)} - ${DOW[dateDow(d)]} - ${KEEP_TYPE[type]||type} - ${(FOLDER.user||'user').replace(/[\\/:*?"<>|.]+/g,'-')} - ${z(n.getHours())}.${z(n.getMinutes())}`); }
+async function keepUpload(file, type, date){
+  if(!file || file.rpPath || file.__kept || EMB || !KEEP_TYPE[type] || !can('edit') || FOLDER.status!=='ok' || !FOLDER.handle) return null;
+  try{ file.__kept=true; }catch(e){}
+  try{ const d=date||todayStr(), w=String(isoWeek(d)).padStart(2,'0'), wk='week_'+w; const ext=((file.name.match(/\.[a-z0-9]+$/i)||['.xlsx'])[0]).toLowerCase();
+    const segs = type==='jde'?['CHECK_SHEETS','JDE',wk] : type==='updock'?['CHECK_SHEETS','UPLIFTS',wk] : ['REPORTS',wk]; let dir=FOLDER.handle, names=[];
+    for(const sg of segs){ dir=await subDir(dir, sg, sg===wk?['week '+w,'week'+w,'week_'+(+w)]:[]); names.push(dir.name); }
+    const nm=await saveToFolder(dir, keepName(type,d), ext, file, file.type||'application/octet-stream'); const path=names.join('/')+'/'+nm+ext;
+    try{ file.rpPath=path; }catch(e){} return {path, name:nm+ext};
+  }catch(e){ toast('Could not save “'+file.name+'” in the company folder: '+(e&&e.message||e)); return null; }
+}
+// the day a report is for: from its content (planning, resources, uplifts), else its name, else today
+function reportDay(kind, f, wb){
+  try{ if(kind==='plan'){ const p=parseDays([{name:f.name, wb, week:null}],[]); if(p.days.length) return p.days[0].date; }
+    if(kind==='res'){ for(const n of wb.SheetNames){ const d=nameDate(n); if(d&&d.date) return d.date; } }
+    if(kind==='prod'){ const pr=parseProducts({name:f.name, wb}); if(pr){ const o=Object.keys(pr.orders)[0]; const x=o&&Object.values(ORD).find(q=>String(q.o)===o); if(x&&dateOfKey(x.day0)) return dateOfKey(x.day0); } }
+  }catch(e){}
+  const nd=nameDate(f.name); if(nd&&nd.date) return nd.date;
+  if(kind==='res' && dayMap[P.day]) return dayMap[P.day].date;
+  return todayStr();
+}
+// Reports window › ⤒ Upload from this computer: recognise each file, save it in REPORTS/week_XX with its name, then import as usual
+async function uploadFromComputer(fileList){
+  if(!guard('edit','upload reports')) return; if(typeof XLSX==='undefined') return toast('The Excel library needs an internet connection');
+  const out=[], saved=[], errs=[];
+  for(const f of Array.from(fileList)){
+    if(!/\.xls[xm]?$/i.test(f.name)){ errs.push(`“${f.name}” is not an Excel file`); continue; }
+    let wb; try{ wb=await readWorkbook(f); }catch(e){ errs.push(`“${f.name}” could not be read`); continue; }
+    const kind=classifyWorkbook(wb); if(!kind){ errs.push(`“${f.name}” is not a recognised report`); continue; }
+    if(kind==='cust'||kind==='fixed'){ out.push(f); continue; }      // master data keeps its own names in MASTER_DATA
+    const r=await keepUpload(f, kind==='plan'?'planning':kind, reportDay(kind,f,wb));
+    if(r){ const nf=new File([f], r.name, {lastModified:Date.now(), type:f.type}); try{ nf.rpPath=r.path; nf.rpHash=await fileHash(nf); }catch(e){} out.push(nf); saved.push(r.path); } else out.push(f);
+  }
+  if(errs.length) toast(errs.join(' · '));
+  if(saved.length) setTimeout(()=>toast('Saved in the company folder: '+saved.join(' · ')),errs.length?2600:0);
+  if(!out.length) return; UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); await takeFiles(out);
+}
 // ---- folder browser (a window inside the app listing the files in the shared folder)
 // v0.10.1: every file type has its own folder (File_Arch) and only files there are listed:
 //   MASTER_DATA/  MASTER_DEL_DETAILS, FIXED_ROUTES_DIPSDATA (and users.json, on the start window)
@@ -4584,7 +4642,7 @@ function fileKind(n, top){
   if(t==='MASTER_DATA'){ if(s.includes('fixed_routes')||s.includes('fixed routes')) return 'fixed'; if(s.includes('master_del')||s.includes('master del')) return 'cust'; return null; }
   if(t==='REPORTS'||t==='REPORT'){
     if(/(^|[^a-z])uplift/.test(s) || /(^|[^a-z])cu[ _-]?rep/.test(s)) return 'upl'; if(/^pod[ _-]|[ _-]pod[ _.-]/.test(s)) return 'pod'; if(/^prod[ _-]|product/.test(s)) return 'prod'; if(/^res[ _-]|resource/.test(s)) return 'res';
-    if(/^dips[ _-]?plan/.test(s) || /^(mon|tue|wed|thu|fri|sat|sun)[^a-z].*\d{1,2}\s*\.\s*\d{1,2}/.test(s)) return 'planning';
+    if(/(^|[^a-z])dips[ _-]?plan/.test(s) || /^(mon|tue|wed|thu|fri|sat|sun)[^a-z].*\d{1,2}\s*\.\s*\d{1,2}/.test(s)) return 'planning';
   }
   return null;
 }
@@ -4650,7 +4708,7 @@ function renderFolderBrowser(){
    <div class="mb"><div class="fbmain">${['master','data','plan'].map(m=>`<button class="fbtab ${mode===m?'on':''}" data-act="m:${m}">${FB_TITLE[m]}</button>`).join('')}</div>
     ${weekChips}
     ${groups.map(([g,t])=>`<div><label>${t}</label><div class="mlist fblist" style="max-height:${off(g)?110:220}px">${rows(g)}</div>${off(g)?'<div class="muted small">Not used yet — blocked: it can\'t be uploaded.</div>':''}</div>`).join('')}</div>
-   <div class="mf">${plan?'':master?'<button class="btn" data-act="dmaster" style="margin-right:auto" title="Compare MASTER_DATA with what is loaded and load what is new or changed">Check master data…</button>':'<button class="btn" data-act="days" style="margin-right:auto">Days in the planner…</button>'}<button class="btn" data-act="refresh">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="fbOk" ${FB.sel.size&&(plan||can('edit'))?'':'disabled'} title="${plan||can('edit')?'':'View only for your role'}">${plan?'Open plan':'Import selected'}</button></div>`,
+   <div class="mf">${plan?'':master?'<button class="btn" data-act="dmaster" style="margin-right:auto" title="Compare MASTER_DATA with what is loaded and load what is new or changed">Check master data…</button>':'<button class="btn" data-act="days" style="margin-right:auto">Days in the planner…</button>'}${!plan&&!master&&can('edit')?'<label class="btn" title="Upload reports from this computer: they are recognised, saved in REPORTS › week_XX as “MM.DD - weekday - type - user - time” and imported">⤒ Upload from this computer<input type="file" id="fbUp" multiple accept=".xlsx,.xls,.xlsm" hidden></label>':''}<button class="btn" data-act="refresh">↻ Refresh</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="import" id="fbOk" ${FB.sel.size&&(plan||can('edit'))?'':'disabled'} title="${plan||can('edit')?'':'View only for your role'}">${plan?'Open plan':'Import selected'}</button></div>`,
    {onAct:a=>{
      if(a.startsWith('m:')){ const nm=a.slice(2); if(nm==='plan'||FB.mode==='plan') FB.sel.clear(); FB.mode=nm; const ws=fbWeeks(); FB.week=ws.length?String(ws[0]):''; renderFolderBrowser(); return; }   // ticks in Master Data and Planning Data are kept, so both can be imported together
      if(a.startsWith('w:')){ FB.week=a.slice(2); FB.sel.clear(); renderFolderBrowser(); return; }
@@ -4661,6 +4719,7 @@ function renderFolderBrowser(){
        if(FB.mode==='plan') handlePlanFile(fs[0]); else { UP.files=[]; UP.parsed=null; UP.err=''; renderUpload(); takeFiles(fs); } }
    }});
   $('modal').classList.add('wide');
+  { const up=$('fbUp'); if(up) up.addEventListener('change',()=>{ const fs_=Array.from(up.files); up.value=''; if(fs_.length) uploadFromComputer(fs_); }); }
   $('modal').querySelectorAll('input[name=fb]').forEach(i=>i.addEventListener('change',()=>{
     if(plan) FB.sel=new Set([i.value]); else i.checked?FB.sel.add(i.value):FB.sel.delete(i.value);
     $('fbOk').disabled=!FB.sel.size || (!plan && !can('edit')); }));
@@ -5097,6 +5156,7 @@ async function resUpload(file){
   const extra=h.names.map((n,j)=>({n,j})).filter(x=>x.n && !known.has(x.n));
   const fd=[nameDate(sheet), nameDate(file.name)].find(x=>x&&x.date);
   const dk=RS.day, d=dayMap[dk];
+  keepUpload(file,'res',(fd&&fd.date)||(d&&d.date)).then(r=>{ if(r) toast('Saved in the company folder: '+r.path); });   // v0.12.3
   const apply=()=>{
     const t=resMaterialize(dk); const oldRows=t.rows; const ts=new Date().toISOString();
     extra.forEach(x=>{ const orig=String(rows[h.row][x.j]).trim(); if(!S.resLayout.cols.some(c=>c.name.toUpperCase()===x.n)) S.resLayout.cols.push({key:'c'+Date.now().toString(36)+x.j, name:orig}); });
@@ -5536,6 +5596,7 @@ async function jpAddFiles(fileList){
       let h=''; try{ h=await fileHash(f); }catch(e){} const iso=await jdeDetectDate(f);
       if(h && JS.org.sources.some(x=>x.hash===h)){ skipped.push(`“${f.name}” is already imported`); continue; }
       const same=iso && JS.org.sources.find(x=>x.date===iso); if(same){ skipped.push(`a PDF for ${dayLbl(iso)} is already imported (“${same.name}”) — remove it first to import another one for that day`); continue; }
+      if(!f.rpPath){ const r=await keepUpload(f,'jde',iso||''); if(r) toast('Saved in the company folder: '+r.path); }
       const bytes=new Uint8Array(await f.arrayBuffer()); const src=await JS.org.addFile({name:f.name,bytes},(d,t)=>jpProgress(prog,d/t,'Reading '+f.name+': page '+d+' of '+t)); src.hash=h; src.path=f.rpPath||''; src.date=iso||''; added.push(iso);
     }catch(e){ toast('Could not read “'+f.name+'”: '+(e&&e.message||e)); } }
   if(upl.length){ const sk=await upAddFiles(upl,true); toast(upl.map(f=>'“'+f.name+'”').join(', ')+(upl.length>1?' hold':' holds')+' uplift dockets: imported in the Uplift section, not with the deliveries'+(sk&&sk.length?' ('+sk.join(' · ')+')':'')); }
@@ -5686,7 +5747,8 @@ async function upAddFiles(fileList, quiet){
   try{ jpProgress(prog,0,'Loading the PDF reader…'); await loadPdfLibs(); }catch(e){ prog.hidden=true; toast(e.message); return; }
   for(const f of files){ jpProgress(prog,.3,'Reading '+f.name); let h=''; try{ h=await fileHash(f); }catch(e){}
     if(h && JU.sources.some(s=>s.hash===h)){ skipped.push(`“${f.name}” is already imported`); continue; }
-    try{ const src=await uplReadPdf(f); src.hash=h; if(!src.pages.some(p=>p.order)){ skipped.push(`“${f.name}”: no Order No found — is it an uplift docket?`); src.doc.destroy(); continue; } JU.sources.push(src); }
+    try{ const src=await uplReadPdf(f); src.hash=h; if(!src.pages.some(p=>p.order)){ skipped.push(`“${f.name}”: no Order No found — is it an uplift docket?`); src.doc.destroy(); continue; } JU.sources.push(src);
+      if(!f.rpPath){ const dd=(src.pages.find(p=>p.date)||{}).date, m=dd&&dd.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); const r=await keepUpload(f,'updock',m?jdeIso(m[1],m[2],m[3]):''); if(r){ src.path=r.path; toast('Saved in the company folder: '+r.path); } } }
     catch(e){ toast('Could not read “'+f.name+'”: '+(e&&e.message||e)); } }
   prog.hidden=true; if(skipped.length && !quiet) toast('Not imported: '+skipped.join(' · ')); JU.sig=''; jpRenderUplift(); if(JS.mode==='reprint') jpRenderReprint(); return skipped;
 }

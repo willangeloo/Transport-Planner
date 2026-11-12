@@ -7,7 +7,7 @@ const readTree=d=>Object.fromEntries(fs.readdirSync(d,{withFileTypes:true}).filt
   return [e.name, e.isDirectory()?readTree(q):{b64:fs.readFileSync(q).toString('base64'),mod:Math.floor(fs.statSync(q).mtimeMs)}]; }));
 const MOCK=`(()=>{ const b2u=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0));
   const fileH=(name,node)=>({kind:'file',name,async getFile(){ const data=node.b64!=null?b2u(node.b64):new TextEncoder().encode(node.text||''); return new File([data],name,{lastModified:node.mod||Date.now()}); },
-    async createWritable(){ const parts=[]; return {async write(b){ parts.push(b); }, async close(){ node.text=await new Blob(parts).text(); delete node.b64; node.mod=Date.now(); }}; }});
+    async createWritable(){ const parts=[]; return {async write(b){ parts.push(b); }, async close(){ const u8=new Uint8Array(await new Blob(parts).arrayBuffer()); node.text=new TextDecoder().decode(u8); let b=''; for(let i=0;i<u8.length;i+=0x8000) b+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); node.b64=btoa(b); node.mod=Date.now(); }}; }});
   const isFile=n=>n.b64!==undefined||n.text!==undefined;
   const dirH=(name,node)=>({kind:'directory',name,
     async *entries(){ for(const k of Object.keys(node)) yield [k, isFile(node[k])?fileH(k,node[k]):dirH(k,node[k])]; },

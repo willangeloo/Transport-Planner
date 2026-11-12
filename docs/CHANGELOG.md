@@ -4,6 +4,17 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.12.3 — 2026-11-12
+
+### Features
+- **Upload from this computer** (Reports window › Planning Data): reports are recognised (DIPS Plan, Resources, Uplifts, Products, POD), **saved in their folder** and imported from there. Check-sheet PDFs dropped in Printing › Delivery, uplift docket PDFs dropped in Printing › Uplift and Resources sheets uploaded in Resources are saved the same way. Folders: `REPORTS/week_XX`, `CHECK_SHEETS/JDE/week_XX`, `CHECK_SHEETS/UPLIFTS/week_XX`. Name: **`MM.DD - weekday - type - user - time`** (e.g. `11.13 - Fri - DIPS Plan - Alex - 16.35.xlsx`; the day is the report's day). The app reads these names back (month first; the weekday confirms it).
+- **Uplift Control:** a **›** button under each order number opens its product lines (press again to close), in the summary and in Planned days.
+
+### Edits
+- **Planning:** Show on map moved under the routes / drops / kg boxes, the search box under the day buttons (same width); the whole left side scrolls as one page, giving more room to Routes & orders.
+- **Uplift summary:** an uplift not planned just shows **Not Planned** (no match message, no "no delivery on the loaded days").
+- **To confirm only today or later:** a match with a delivery on a day that has passed is not flagged.
+
 ## v0.12.2 — 2026-11-12
 
 ### Features

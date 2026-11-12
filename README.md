@@ -45,6 +45,7 @@ Each user links the shared **Route_planning** folder once (👤 button). After t
 - **Load day** lists the files by section (DIPS Plan, Resources, Products, Uplifts, POD, Customer master, Fixed routes), with one chip per `week_XX` folder. It opens on the week with the newest files.
 - **Dates:** a report named only with its weekday (`RES_Tue.xlsx`) gets its date from the week folder plus the weekday. For example, `REPORTS/week_45/RES_Tue.xlsx` is Tue 03.11. Planning files still take the date from the *Date Promised Shipment* column.
 - **Old names:** `Tue - 03.11.xlsx`, `Tue - 03.11 RESOURCES.xlsx` and `… - PRODUCTS.xlsx` are recognised too, and folder names are matched without case (`REPORT` / `REPORTS`, `Week_45` / `week_45`).
+- **Upload from this computer:** a report uploaded from outside the folder is saved in `REPORTS/week_XX` (PDFs in `CHECK_SHEETS/JDE` or `CHECK_SHEETS/UPLIFTS`) as `MM.DD - weekday - type - user - time`, then imported.
 - **Skipped:** `_ARCHIVE`, `_RESTORED` and `PROMPTS` are ignored. POD is listed but can't be imported yet.
 - **MASTER_DATA:** the customer master and fixed routes are read automatically, and read again only when those files change.
 - **💾 Save** saves into `PLANS/week_XX` (the ISO week of the day being planned) as `v<version>_<date>_<time>_<user>.json`, for example `v0.10.0_2026-11-06_16.05_Alex.json`. **Save as / share** lets you choose the place, or make a snapshot.
@@ -71,7 +72,7 @@ Branch names, the PR flow and versioning are described in [CONTRIBUTING.md](CONT
 
 ## Versions
 
-There is one file name, `Route Planner.html`. The current version is **v0.12.2** (BETA). What changed in each version is in [docs/CHANGELOG.md](docs/CHANGELOG.md). The version shown in the app header comes from `APP_VERSION` in the file. Releases are tagged on `main` after merging (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+There is one file name, `Route Planner.html`. The current version is **v0.12.3** (BETA). What changed in each version is in [docs/CHANGELOG.md](docs/CHANGELOG.md). The version shown in the app header comes from `APP_VERSION` in the file. Releases are tagged on `main` after merging (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Customer master columns
 

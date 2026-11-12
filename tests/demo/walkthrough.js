@@ -248,6 +248,7 @@ let fails=0, n=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c){ 
   await p.click('nav [data-tab=plan]');
 
   // 11d. UPLIFTS and HOME (v0.12.0)
+  await p.clock.setFixedTime(new Date('2026-11-11T07:30:00'));   // “today” = Wed 11.11: matches today or later are to confirm
   // Planning › Uplift Control: the matches with Wednesday's deliveries are confirmed in Planned days
   await p.click('nav [data-tab=plan]'); await p.click('.subnav [data-tab=upl]'); await p.click('[data-ucv=days]'); await p.click('#dbUpl [data-dbwk="2026-11-09"]'); await p.click('#dbUpl [data-dbday="D2026-11-11"]');
   ok(await p.$$eval('table[data-tbl=upld] .flag.dup',x=>x.length)===6,'Uplift Control › Planned days: Wednesday has 6 deliveries with an uplift to confirm'); await shot('uplift-days');
