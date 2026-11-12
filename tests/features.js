@@ -297,14 +297,18 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     // PLANNING › UPLIFT CONTROL (sub heading of Planning): summary, planned days (confirm), history
     await r.click('nav [data-tab=plan]'); ok((await r.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Planning|Uplift Control','Planning has a sub heading: Planning | Uplift Control');
     await r.click('.subnav [data-tab=upl]'); ok(await r.$eval('nav [data-tab=plan]',e=>e.classList.contains('on')),'Uplift Control is a sub heading of Planning (the parent stays highlighted)');
-    ok((await r.$$eval('table[data-tbl=upl] thead th',x=>x.map(e=>e.textContent.trim()).filter(Boolean))).join('|')==='Uplift Order|Customer Name|Status|Value|Route|Day Planned|First seen|Last seen','Uplift summary columns: Uplift Order, Customer Name, Status, Value, Route, Day Planned, First seen, Last seen (+ ⓘ and Allocate)');
+    ok((await r.$$eval('table[data-tbl=upl] thead th',x=>x.map(e=>e.textContent.trim()).filter(Boolean))).join('|')==='Uplift Order|Customer Name|Status|Value|Route|Day Planned|First seen|Last seen|Comments','Uplift summary columns: Uplift Order, Customer Name, Status, Value, Route, Day Planned, First seen, Last seen, Comments (+ (i) and Allocate)');
+    ok(await r.$$eval('table[data-tbl=upl] .ibtn svg.info-ic',x=>x.length)===6,'the history button is the (i) icon');
     ok((await r.$$eval('table[data-tbl=upl] tbody tr',x=>x.filter(t=>/Not Planned/.test(t.textContent) && /confirm in Planned days/.test(t.textContent)).length))===6 && await r.$$eval('table[data-tbl=upl] [data-uact=hist]',x=>x.length)===6 && await r.$$eval('table[data-tbl=upl] [data-uact=alloc]',x=>x.length)===6,'until confirmed, the summary says “Not Planned” and points to the match; each row has ⓘ and Allocate');
     await r.click('[data-ucv=days]'); await r.click('#dbUpl [data-dbwk="2026-11-09"]'); await r.click('#dbUpl [data-dbday="D2026-11-11"]');
     ok(await r.$$eval('table[data-tbl=upld] tbody tr',x=>x.length)===6 && /delivery: 5600/.test(await r.textContent('table[data-tbl=upld]')),'Planned days (same day buttons): Wednesday lists the deliveries with an uplift outstanding');
     await r.check('[data-ucs] >> nth=0'); await r.click('[data-uc=confsel]'); ok(Object.keys(await r.evaluate(()=>__rpUpl.plan())).length===1,'“Confirm selected” confirms one');
     await r.click('[data-uc=confall]'); const pl2=await r.evaluate(()=>__rpUpl.plan()); ok(Object.values(pl2).length===6 && Object.values(pl2).every(x=>x.date==='2026-11-11' && !x.manual),'“Confirm all”: every match is planned, status Auto');
     await r.click('[data-ucv=sum]'); ok((await r.$$eval('table[data-tbl=upl] tbody tr',x=>x.filter(t=>/Auto · Alex/.test(t.textContent)).length))===6,'Day Planned shows the tag “Auto” (and who confirmed)');
-    await r.click(`table[data-tbl=upl] [data-uact=hist][data-no="${st.open[0]}"]`); const hm=await r.textContent('#modal'); ok(/history/.test(hm) && /First seen in the report/.test(hm) && /Allocation confirmed \(auto\)/.test(hm) && /status 560/.test(hm),'ⓘ opens the history of the order: report snapshots and the confirmation'); await r.click('#modal [data-act=close]');
+    await r.click(`table[data-tbl=upl] [data-uact=hist][data-no="${st.open[0]}"]`); const hm=await r.textContent('#modal'); ok(/history/.test(hm) && /First seen in the report/.test(hm) && /Allocation confirmed \(auto\)/.test(hm) && /status 560/.test(hm),'(i) opens the history of the order: report snapshots and the confirmation');
+    await r.fill('#uhNote','printed, keys at the bar'); await r.click('#modal [data-act=save]'); await r.waitForTimeout(200);
+    ok(/printed, keys at the bar\s*Alex ·/.test(await r.textContent(`table[data-tbl=upl] tbody tr:has([data-no="${st.open[0]}"])`)),'Comments column: the last comment of the history, with who and when');
+    await r.click(`table[data-tbl=upl] [data-uact=hist][data-no="${st.open[0]}"]`); ok(/Comment\s*note: printed, keys at the bar/.test(await r.textContent('#modal')),'… the comment is in the history'); await r.click('#modal [data-act=close]');
     ok(await r.evaluate(()=>Object.values(__rpUpl.state().items).filter(u=>u.closed).every(u=>u.closed.date && u.closed.route)),'completed uplifts keep the day and route they were planned on (records)');
     // HOME: balloons with the totals
     await r.click('nav [data-tab=home]'); const balls=await r.$$eval('.hball',x=>x.map(e=>({cls:e.className, t:e.textContent.replace(/\s+/g,' ')})));
@@ -319,7 +323,12 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     ok(await r.$$eval('.drop .c-ord, .drop .c-upl',x=>x.every(e=>e.innerHTML.split('<br>').every(l=>l.split(', ').length<=3))),'orders and uplifts of one customer: separated by “, ”, at most 3 per line');
     const mk=await r.evaluate(()=>__rpUpl.markers()); ok(mk.length>=5 && await r.$$eval('.upl-ic polygon',x=>x.length)===mk.length,'Map: the outstanding uplifts are triangles ('+mk.length+')');
     ok(await r.evaluate(()=>{ const u=document.getElementById('uplBtn'), c=document.getElementById('pBays'); return u.getBoundingClientRect().top>=c.getBoundingClientRect().bottom-1 && getComputedStyle(u).backgroundColor==='rgb(75, 85, 99)'; }),'Show on map: the Uplifts button is below the bay buttons, dark grey in the light theme');
-    await r.click('#uplBtn'); ok((await r.evaluate(()=>__rpUpl.markers())).length===0 && await r.$$eval('.upl-ic',x=>x.length)===0,'the Uplifts button hides the triangles'); await r.click('#uplBtn');
+    ok(/Uplifts \(6\)/.test(await r.textContent('#uplBtn')) && /Planned CU \(6\)/.test(await r.textContent('#uplPlBtn')),'two buttons: Uplifts (6 outstanding) and Planned CU (6 allocated to Wednesday)');
+    { const nU=[]; for(const d of ['D2026-11-09','D2026-11-13']){ await r.click(`#dbPlan [data-dbday="${d}"]`); nU.push([await r.textContent('#uplBtn'), await r.textContent('#uplPlBtn')]); } await r.click('#dbPlan [data-dbday="D2026-11-11"]'); await r.click('#expAll');
+      ok(nU.every(x=>/Uplifts \(6\)/.test(x[0]) && /Planned CU \(0\)/.test(x[1])),'Uplifts (x) is the total outstanding on every day; Planned CU (x) counts the day ('+nU.map(x=>x.join(' / ')).join(' · ')+')'); }
+    await r.click('#uplPlBtn'); ok((await r.evaluate(()=>__rpUpl.markers())).length===0,'Planned CU hides the triangles of the uplifts planned on the day'); await r.click('#uplPlBtn');
+    ok(await r.evaluate(()=>{ const ic=document.querySelector('.upl-ic'); const pane=ic.closest('.leaflet-pane'); const ov=document.querySelector('#pMap .leaflet-overlay-pane'); return +getComputedStyle(pane).zIndex < +getComputedStyle(ov).zIndex && ic.getBoundingClientRect().width<=14; }),'the triangles are smaller and drawn under the delivery dots');
+    ok(await r.evaluate(()=>{ const ic=document.querySelector('.upl-ic'), b=ic.getBoundingClientRect(); const el=document.elementFromPoint(b.left+b.width/2+1,b.bottom-3); return !!el && !!el.closest('.upl-ic'); }),'… and they can still be clicked where no dot covers them');
     await r.evaluate(()=>{ document.documentElement.dataset.theme='dark'; }); ok(await r.$eval('#uplBtn',e=>getComputedStyle(e).backgroundColor==='rgb(203, 213, 225)'),'… light grey in the dark theme'); await r.evaluate(()=>{ document.documentElement.dataset.theme='light'; });
     // UPLIFT CONTROL (sub heading of Resources): allocate by hand to a route without a delivery for that customer
     await r.click('nav [data-tab=res]'); ok((await r.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Resources sheet|Customers','Resources sub heading: Resources sheet | Customers');
@@ -356,6 +365,21 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     const st2=await r.evaluate(()=>{ const it=Object.values(__rpUpl.state().items); return {open:it.filter(u=>!u.closed).length, man:Object.keys(__rpUpl.state().man).length}; });
     ok(st2.open===2 && st2.man===0,'the Wed 15:00 report: Wednesday\'s uplifts are completed, 2 new ones are outstanding; the one put on Thursday was collected too, so its allocation is closed');
     ok(!e8.length,'no script errors (uplifts)'+(e8.length?': '+e8.join(' | '):'')); await c8.close(); }
+  // ---------- UPLIFT MATCH BY ADDRESS (v0.12.2): same Eircode, another Ship To — any loaded planning day ----------
+  { const D3=path.join(TMP,'addr'); fs.cpSync(DEMO,D3,{recursive:true});
+    const rd=f=>XLSX.utils.sheet_to_json(XLSX.readFile(path.join(D3,f)).Sheets[XLSX.readFile(path.join(D3,f)).SheetNames[0]],{header:1});
+    const fri=rd('REPORTS/week_46/DIPS_Plan_Fri.xlsx').slice(1); const friShips=new Set(fri.map(x=>String(x[2]))); const upl=rd('REPORTS/week_46/UPLIFTS_Fri_PM.xlsx').slice(1).filter(x=>x[0]);
+    const u=upl.find(x=>!friShips.has(String(x[2]))); const y=String(fri[0][2]);
+    const mf=path.join(D3,'MASTER_DATA','MASTER_DEL_DETAILS.xlsx'); const wb=XLSX.readFile(mf); const n=wb.SheetNames[0]; const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1});
+    const pcY=rows.find(x=>String(x[0])===y)[2]; rows.find(x=>String(x[0])===String(u[2]))[2]=pcY; wb.Sheets[n]=XLSX.utils.aoa_to_sheet(rows); XLSX.writeFile(wb,mf);
+    const c9=await demoContext(b,D3); const q=await c9.newPage(); const e9=[]; q.on('pageerror',e=>e9.push(e.message)); await q.goto('file://'+APP); ok(await enter(q,'Alex'),'Alex is in (address match)');
+    await q.click('#reportsBtn'); await q.waitForSelector('input[name=fb]'); for(const f of ['DIPS_Plan_Fri','RES_Fri','UPLIFTS_Fri_PM']) await q.check(`input[value="REPORTS/week_46/${f}.xlsx"]`);
+    await q.click('#fbOk'); await q.waitForSelector('[data-act=add]'); await q.click('[data-act=add]'); await q.waitForTimeout(800);
+    const pr=await q.evaluate(()=>__rpUpl.prop()); const x=pr[String(u[0])];
+    ok(x && x.how==='addr' && x.date==='2026-11-13','an uplift whose Ship To has no delivery matches the delivery to the same address (same Eircode, Ship To '+y+') — even on a planning day before the report');
+    await q.click('nav [data-tab=plan]'); await q.click('.subnav [data-tab=upl]'); await q.click('[data-ucv=days]'); await q.click('#dbUpl [data-dbday="D2026-11-13"]');
+    ok(new RegExp(String(u[0])+'[\\s\\S]*same address').test(await q.textContent('table[data-tbl=upld]')),'Planned days shows the match “same address” for the planner to confirm');
+    ok(!e9.length,'no script errors (address match)'+(e9.length?': '+e9.join(' | '):'')); await c9.close(); }
   // ---------- DONEGAL is only on the Customers tab ----------
   { const D2=path.join(TMP,'donegal'); fs.cpSync(DEMO,D2,{recursive:true});
     const edit=(rel,fn)=>{ const f=path.join(D2,rel); const wb=XLSX.readFile(f); const n=wb.SheetNames[0]; const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1}); fn(rows); wb.Sheets[n]=XLSX.utils.aoa_to_sheet(rows); XLSX.writeFile(wb,f); };

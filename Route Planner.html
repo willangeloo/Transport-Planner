@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.12.1</title>
+<title>Route Planner BETA v0.12.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -112,10 +112,12 @@ input[type=search]{border:1px solid var(--line);border-radius:6px;padding:7px 9p
 .route.open .chev{transform:rotate(90deg)}
 .drops{display:none;background:#fafbfc;border-top:1px solid var(--line)}
 .route.open .drops{display:block}
-.drop{display:grid;grid-template-columns:18px minmax(150px,2fr) minmax(90px,1.1fr) 64px 62px 80px 205px;gap:10px;align-items:center;padding:7px 16px 7px 31px;border-bottom:1px dashed var(--line)}
+.drop{display:grid;grid-template-columns:18px minmax(120px,1.6fr) minmax(158px,1.2fr) 62px 58px 76px 184px;gap:8px;align-items:center;padding:7px 16px 7px 31px;border-bottom:1px dashed var(--line)}
 .drop.dh{padding-top:6px;padding-bottom:6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;background:#f1f3f5;border-bottom:1px solid var(--line)}
 .drop .c-kg{text-align:right;font-variant-numeric:tabular-nums}
-.drop .c-ord{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.45}
+.drop .c-ord{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;line-height:1.45;white-space:nowrap}
+.drop .c-upl{white-space:nowrap}
+.drop .acts .btn.sm{padding-left:7px;padding-right:7px}
 .drop .c-tw{font-size:12px}
 .drop .acts{justify-content:flex-end}
 .side-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
@@ -548,7 +550,10 @@ html[data-theme=dark] .uplbtn{background:#cbd5e1;color:#111827;border-color:#e2e
 html[data-theme=dark] .uplbtn.off{background:transparent;color:#cbd5e1}
 .upl-ic{background:none!important;border:0!important}.upl-ic svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
 .legend .tri{width:0!important;height:0!important;border-radius:0!important;background:none!important;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #4b5563}
-.uc-tbl td{vertical-align:top}.ucnote{width:130px;font-size:12px;padding:3px 6px}.uc-tbl .muted{font-size:11.5px}
+.uc-tbl td{vertical-align:top}.uc-cm{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ibtn{border:0;background:none;color:var(--ink);cursor:pointer;padding:2px;border-radius:50%;line-height:0}.ibtn:hover{background:var(--hover,#eef1f4)}.ibtn .info-ic{display:block}
+.uplrow .uplbtn.pl{background:#1f2937}.uplrow .uplbtn.pl.off{background:transparent;color:#1f2937} html[data-theme=dark] .uplrow .uplbtn.pl{background:#e5e7eb;color:#111827} html[data-theme=dark] .uplrow .uplbtn.pl.off{background:transparent;color:#e5e7eb}
+.leaflet-overlay-pane svg{pointer-events:none}.ucnote{width:130px;font-size:12px;padding:3px 6px}.uc-tbl .muted{font-size:11.5px}
 .uc-f{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .jp-uplift{display:grid;gap:14px;padding:0 18px 18px}.jp-uplift[hidden]{display:none}
 .jp-up-tbl .ok{color:var(--ok)}.jp-up-tbl .bad{color:var(--danger)}.jp-up-tbl .warn{color:var(--warn)}
@@ -576,7 +581,7 @@ html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.1</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.2</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="home" class="on">Home</button>
     <button data-tab="plan">Planning</button>
@@ -647,7 +652,7 @@ html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:
           <div class="row" style="gap:4px"><button class="btn sm" id="bayAll">All</button><button class="btn sm" id="bayNone">None</button></div>
         </div>
         <div class="chips" id="pBays"></div>
-        <div class="uplrow"><button class="uplbtn" id="uplBtn" title="Show or hide the outstanding uplifts (triangles) on the map">▲ Uplifts <span id="uplN"></span></button></div>
+        <div class="uplrow"><button class="uplbtn" id="uplBtn" title="Every uplift outstanding (grey triangles): not planned on this day">▲ Uplifts <span id="uplN"></span></button><button class="uplbtn pl" id="uplPlBtn" title="Uplifts planned on this day (triangles in the route colour)">▲ Planned CU <span id="uplPlN"></span></button></div>
       </div>
       <div class="sec" style="padding-top:10px;padding-bottom:10px"><input type="search" id="pSearch" placeholder="Search order, Ship To, name, bay, driver, helper or truck…" autocomplete="off"><div id="pSearchN"></div></div>
       <div class="list"><div class="lhead"><h3>Routes &amp; orders</h3><div class="row" style="gap:4px"><button class="btn sm" id="newRouteBtn" title="Add a route (bay, loading number, crew, truck) to this day">+ New route</button><button class="btn sm pri" id="insBtn" title="Add an order that is not in the planning file">+ Insert order</button><button class="btn sm" id="expAll">Expand all</button><button class="btn sm" id="colAll">Collapse all</button></div></div><div id="pRoutes"></div></div>
@@ -1990,7 +1995,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.12.1';
+const APP_VERSION='0.12.2';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2204,24 +2209,34 @@ function uplFrom(u){ const at=u.lastAt||''; let d=at.slice(0,10); if(d && +at.sl
 function uplPlan(){ return uplCalc().plan; }
 function uplProposals(){ return uplCalc().prop; }
 function uplHist(u, what, extra){ (u.hist=u.hist||[]).push(Object.assign({ts:new Date().toISOString(), by:FOLDER.user||'', what}, extra||{})); if(u.hist.length>300) u.hist.splice(0,u.hist.length-300); }
+// v0.12.2: the customer's address key — the Eircode / postal code when there is one, else the address — so an uplift also matches a
+// delivery to the same address under another Ship To number
+const normKey = v => String(v||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
+function addrKey(ship, fallback){ const c=custMap[ship]; const pc=normKey(c&&c.pc); if(pc.length>=5) return 'pc:'+pc; const a=normKey((c&&c.addr)||fallback); return a.length>=6?'ad:'+a:''; }
 function uplCalc(){
-  const out={}, prop={}, by={};
-  Object.values(ORD).forEach(o=>{ const c=curOf(o.uid); const d=dayMap[c.day]; if(!d) return; const m=(by[d.date]=by[d.date]||{}); const ls=(m[o.s]=m[o.s]||[]); const ld=c.load||''; if(!ls.includes(ld)) ls.push(ld); });
-  const dates=Object.keys(by).sort();
+  const out={}, prop={}, matches={}, bySh={}, byAd={};
+  Object.values(ORD).forEach(o=>{ const c=curOf(o.uid); const d=dayMap[c.day]; if(!d) return; const ld=c.load||'';
+    const put=(m,k)=>{ if(!k) return; const day=(m[d.date]=m[d.date]||{}); const ls=(day[k]=day[k]||[]); if(!ls.some(x=>x.load===ld&&x.ship===o.s)) ls.push({load:ld, ship:o.s}); };
+    put(bySh,o.s); put(byAd,addrKey(o.s,o.a)); });
+  const dates=Object.keys(bySh).sort();
+  // every loaded day where the customer (same Ship To, or same address) has a delivery — whatever day of planning is loaded: the planner approves
+  const matchOn=(u,date)=>{ const s=(bySh[date]||{})[u.ship]; if(s&&s.length) return {date, load:(s.find(x=>x.load)||s[0]).load||null, how:'ship'};
+    const k=addrKey(u.ship); const a=k&&(byAd[date]||{})[k]; if(a&&a.length){ const x=a.find(y=>y.load)||a[0]; return {date, load:x.load||null, how:'addr', ship2:x.ship}; } return null; };
   uplOpenList().forEach(u=>{
+    const ms=dates.map(dt=>matchOn(u,dt)).filter(Boolean).map(m=>Object.assign({no:u.no, day:dayKeyForDate(m.date), manual:false, prop:true},m)); matches[u.no]=ms;
     const man=S.upl.man[u.no];
     if(man){ const k=dayKeyForDate(man.date); out[u.no]={no:u.no, date:man.date, day:k, load:man.load||null, manual:true, by:man.by||''}; return; }
-    const cf=S.upl.conf[u.no];
-    if(cf && by[cf.date] && by[cf.date][u.ship]){ const ls=by[cf.date][u.ship]; out[u.no]={no:u.no, date:cf.date, day:dayKeyForDate(cf.date), load:ls.find(Boolean)||null, manual:false, conf:true, by:cf.by||''}; return; }
-    const from=uplFrom(u); const dt=dates.find(x=>x>=from && by[x][u.ship]); if(!dt) return;
-    const ls=by[dt][u.ship]; prop[u.no]={no:u.no, date:dt, day:dayKeyForDate(dt), load:ls.find(Boolean)||null, manual:false, prop:true};
+    const cf=S.upl.conf[u.no], cm=cf&&ms.find(m=>m.date===cf.date);
+    if(cm){ out[u.no]=Object.assign({},cm,{prop:false, conf:true, by:cf.by||''}); return; }
+    if(!ms.length) return; const from=uplFrom(u);
+    prop[u.no]=ms.find(m=>m.date>=from)||ms[ms.length-1];   // the first delivery from the report on, else the latest one loaded
   });
-  return {plan:out, prop};
+  return {plan:out, prop, matches};
 }
-function uplConfirm(nos, on){
-  if(!guard('edit','confirm uplifts')) return 0; const pr=uplProposals(), pl=uplPlan(); let n=0;
+function uplConfirm(nos, on, date){
+  if(!guard('edit','confirm uplifts')) return 0; const cc=uplCalc(), pr=cc.prop, pl=cc.plan; let n=0;
   nos.forEach(no=>{ const u=S.upl.items[no]; if(!u||u.closed) return;
-    if(on){ const x=pr[no]; if(!x) return; S.upl.conf[no]={date:x.date, by:FOLDER.user||'', ts:new Date().toISOString()}; uplHist(u,'Allocation confirmed (auto)',{date:x.date, route:x.day&&x.load?uplBayTxt(x):''}); n++; }
+    if(on){ const x=date?(cc.matches[no]||[]).find(m=>m.date===date):pr[no]; if(!x) return; S.upl.conf[no]={date:x.date, by:FOLDER.user||'', ts:new Date().toISOString()}; uplHist(u,'Allocation confirmed (auto)',{date:x.date, route:x.day&&x.load?uplBayTxt(x):''}); n++; }
     else { if(!S.upl.conf[no]) return; const x=pl[no]; delete S.upl.conf[no]; uplHist(u,'Confirmation removed',{date:x?x.date:'', route:x&&x.day&&x.load?uplBayTxt(x):''}); n++; } });
   if(n) uplChanged(); return n;
 }
@@ -2432,6 +2447,11 @@ function uplExportWorkbook(){
 const UC={view:'sum', f:'open', q:'', day:null, sel:new Set()};
 const ucDayKey = () => (UC.day && dayMap[UC.day]) ? UC.day : (dayMap[P.day] ? P.day : (DATA.days[0]?DATA.days[0].key:null));
 function ucCust(u){ const c=custMap[u.ship]; return `<b>${esc(u.name)}</b><div class="muted">${esc(u.ship)}${c&&c.addr?' · '+esc(c.addr):''}${c&&c.bay?' · '+esc(c.bay):''}</div>`; }
+// v0.12.2: the (i) icon (an italic i in a circle, drawn here — currentColor, so it follows the theme)
+const INFO_SVG='<svg class="info-ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="13.4" cy="6.9" r="1.55" fill="currentColor"/><path d="M10.2 10.6h3.4l-1.9 6.3c-.25.85.45 1.05 1.2.45l.75-.6.35.45c-1.35 1.35-2.4 1.85-3.45 1.85-1.2 0-1.75-.8-1.4-2.1l1.4-4.9h-1.2z" fill="currentColor"/></svg>';
+const infoBtn = no => `<button class="ibtn" data-uact="hist" data-no="${esc(no)}" title="History of order ${esc(no)}" aria-label="History of ${esc(no)}">${INFO_SVG}</button>`;
+// the last comment of the history (the note), with who and when
+function ucComment(u){ if(!u.note) return '<span class="muted">—</span>'; const h=(u.hist||[]).slice().reverse().find(x=>x.note===u.note && /comment|note/i.test(x.what)); return `<div class="uc-cm" title="${esc(u.note)}">${esc(u.note)}</div>${h?`<div class="muted small">${esc(h.by||'')}${h.by?' · ':''}${esc(fmtAt(String(h.ts).slice(0,16)).slice(0,9))}</div>`:''}`; }
 function ucTag(x){ return x.manual ? `<span class="flag mv">Manual${x.by?' · '+esc(x.by):''}</span>` : `<span class="flag ad">Auto${x.by?' · '+esc(x.by):''}</span>`; }
 function renderUplCtl(){
   const el=$('tab-upl'); const U=uplState(), cc=uplCalc(), pl=cc.plan, pr=cc.prop, all=uplList(), ro=!can('edit');
@@ -2449,13 +2469,13 @@ function renderUplCtl(){
     if(cl){ route=cl.route?`${esc(cl.route)}${cl.driver?`<div class="muted">${esc(cl.driver)}</div>`:''}`:'<span class="muted">—</span>'; day=`${cl.date?esc(dayLbl(cl.date)):'—'}<div><span class="flag">completed</span></div>`; }
     else if(x){ const li=x.day&&x.load?loadInfo(x.day,x.load):null; route=`<b>${esc(uplRouteTxt(x))}</b>${li?`<div class="muted">${esc([li.driver,li.helper].filter(Boolean).join(' + ')||'no driver')}</div>`:''}`;
       day=`${x.day?`<button class="btn sm" data-uact="goday" data-no="${esc(u.no)}" data-day="${esc(x.day)}" title="Open this day in Planning">${esc(dayLabel(x.day))}</button>`:esc(uplWhenTxt(x))}<div>${ucTag(x)}</div>`; }
-    else { route=`<b style="color:var(--danger)">Not Planned</b>${p?`<div class="muted small">matches ${esc(uplWhenTxt(p))} · ${esc(uplRouteTxt(p))} — <a href="#" data-ucgo="${esc(p.day||'')}">confirm in Planned days</a></div>`:'<div class="muted small">no delivery on the loaded days</div>'}`; day='<span class="muted">—</span>'; }
+    else { const more=(cc.matches[u.no]||[]).length-1; route=`<b style="color:var(--danger)">Not Planned</b>${p?`<div class="muted small">matches ${esc(uplWhenTxt(p))} · ${esc(uplRouteTxt(p))}${p.how==='addr'?' (same address)':''}${more>0?` · +${more} other day${more>1?'s':''}`:''} — <a href="#" data-ucgo="${esc(p.day||'')}">confirm in Planned days</a></div>`:'<div class="muted small">no delivery on the loaded days</div>'}`; day='<span class="muted">—</span>'; }
     const acts=cl||ro?'':`<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate</button>`;
-    return `<tr><td><span class="upl-no">${esc(u.no)}</span></td><td>${ucCust(u)}</td><td>${u.status!=null?esc(u.status):'—'}</td><td data-s="${u.value==null?'':u.value}" style="text-align:right;white-space:nowrap">${esc(money(u.value))}</td><td>${route}</td><td>${day}</td><td data-s="${esc(u.firstAt||'')}">${esc((fmtAt(u.firstAt)||'').slice(0,9))}</td><td data-s="${esc(u.lastAt||'')}">${esc((fmtAt(u.lastAt)||'').slice(0,9))}</td><td><button class="btn sm" data-uact="hist" data-no="${esc(u.no)}" title="History of this order" aria-label="History of ${esc(u.no)}">ⓘ</button></td><td class="no-print">${acts}</td></tr>`; };
+    return `<tr><td><span class="upl-no">${esc(u.no)}</span></td><td>${ucCust(u)}</td><td>${u.status!=null?esc(u.status):'—'}</td><td data-s="${u.value==null?'':u.value}" style="text-align:right;white-space:nowrap">${esc(money(u.value))}</td><td>${route}</td><td>${day}</td><td data-s="${esc(u.firstAt||'')}">${esc((fmtAt(u.firstAt)||'').slice(0,9))}</td><td data-s="${esc(u.lastAt||'')}">${esc((fmtAt(u.lastAt)||'').slice(0,9))}</td><td>${ucComment(u)}</td><td>${infoBtn(u.no)}</td><td class="no-print">${acts}</td></tr>`; };
   el.innerHTML=`<div class="rep">${head}
     <div class="kpis">${kpi('open',open.length,'outstanding')}${kpi('conf',cnt('conf'),'to confirm')}${kpi('none',cnt('none'),'not planned · no delivery')}${kpi('auto',cnt('auto'),'planned · auto')}${kpi('hand',cnt('hand'),'planned · manual')}${kpi('done',done.length,'completed (archive)')}${kpi('all',all.length,'all')}</div>
     <div class="card"><h2>↩ Uplift summary <span class="muted" style="font-weight:400">(${rows.length})</span><span class="spacer"></span><input type="search" id="ucQ" class="secf" placeholder="Search uplift, customer, ship to, bay…" value="${esc(UC.q)}"></h2>
-     ${rows.length?`<table class="uc-tbl" data-tbl="upl"><thead><tr><th>Uplift Order</th><th>Customer Name</th><th>Status</th><th style="text-align:right">Value</th><th>Route</th><th>Day Planned</th><th>First seen</th><th>Last seen</th><th></th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:'<div class="empty small">No uplifts here.</div>'}</div>
+     ${rows.length?`<table class="uc-tbl" data-tbl="upl"><thead><tr><th>Uplift Order</th><th>Customer Name</th><th>Status</th><th style="text-align:right">Value</th><th>Route</th><th>Day Planned</th><th>First seen</th><th>Last seen</th><th>Comments</th><th></th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:'<div class="empty small">No uplifts here.</div>'}</div>
     <div class="card"><h2>📥 Reports loaded <span class="muted" style="font-weight:400">(${reps.length})</span></h2>${reps.length?`<table><thead><tr><th>Report time</th><th>File</th><th>Uplifts</th><th>New</th><th>Completed</th><th>Loaded</th></tr></thead><tbody>${reps.map(r=>`<tr><td><b>${esc(fmtAt(r.at))}</b>${r.old?'<div class="muted">older than the newest — record only</div>':''}</td><td class="muted">${esc(r.path||r.file)}</td><td>${r.n}</td><td>${r.old?'—':r.added}</td><td>${r.old?'—':r.closed}</td><td class="muted">${esc(fmtTime(r.loadedAt))}${r.by?' · '+esc(r.by):''}</td></tr>`).join('')}</tbody></table>`:'<div class="empty small">None yet.</div>'}</div></div>`;
   const qi=$('ucQ'); if(qi) qi.oninput=e=>{ UC.q=e.target.value; const pos=e.target.selectionStart; renderUplCtl(); const n=$('ucQ'); n.focus(); n.setSelectionRange(pos,pos); };
 }
@@ -2463,15 +2483,15 @@ function renderUplCtl(){
 function ucDaysHtml(cc, ro){
   const dk=ucDayKey(); UC.day=dk; if(!dk) return '<div class="card"><div class="empty">No planning day loaded.</div></div>';
   const d=dayMap[dk], v=dayView(dk), pl=cc.plan, pr=cc.prop;
-  const rows=uplOpenList().map(u=>{ const x=pl[u.no], p=pr[u.no]; const y=(x&&x.date===d.date)?x:(p&&p.date===d.date)?p:null; return y?{u,x:y}:null; }).filter(Boolean);
+  const rows=uplOpenList().map(u=>{ const x=pl[u.no]; const y=(x&&x.date===d.date)?x:(!x?(cc.matches[u.no]||[]).find(m=>m.date===d.date):null); return y?{u,x:y}:null; }).filter(Boolean);
   const order=v.routes.map(r=>String(r.id||'')); rows.sort((a,b)=>order.indexOf(String(a.x.load||''))-order.indexOf(String(b.x.load||''))||a.u.name.localeCompare(b.u.name));
   UC.sel=new Set([...UC.sel].filter(no=>rows.some(r=>r.x.prop&&r.u.no===no)));
   const nP=rows.filter(r=>r.x.prop).length, nC=rows.filter(r=>r.x.conf).length, nM=rows.filter(r=>r.x.manual).length;
-  const tr=({u,x})=>{ const drop=v.routes.flatMap(r=>r.drops.map(dr=>({r,dr}))).find(o=>o.dr.ship===u.ship && String(o.dr.load||'')===String(x.load||'')); const li=x.load?loadInfo(dk,x.load):null;
+  const tr=({u,x})=>{ const sh=x.ship2||u.ship; const drop=v.routes.flatMap(r=>r.drops.map(dr=>({r,dr}))).find(o=>o.dr.ship===sh && String(o.dr.load||'')===String(x.load||'')); const li=x.load?loadInfo(dk,x.load):null;
     const st=x.prop?'<span class="flag dup">to confirm</span>':ucTag(x);
     const act=ro?'':x.prop?`<button class="btn sm pri" data-ucc="${esc(u.no)}">Confirm</button>`:x.conf?`<button class="btn sm" data-ucu="${esc(u.no)}">Unconfirm</button>`:`<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate</button>`;
     return `<tr><td>${x.prop&&!ro?`<input type="checkbox" data-ucs="${esc(u.no)}" ${UC.sel.has(u.no)?'checked':''}>`:''}</td><td><span class="upl-no">${esc(u.no)}</span><div class="muted small">${esc(uplProducts(u))}</div></td><td>${ucCust(u)}</td>
-      <td><b>${esc(x.load?routeName(dk,x.load):'not on a route')}</b>${li?`<div class="muted">${esc([li.driver,li.helper].filter(Boolean).join(' + ')||'no driver')}${li.truck?' · '+esc(li.truck):''}</div>`:''}${drop?`<div class="muted small">delivery: ${drop.dr.uids.map(x2=>esc(ORD[x2].o)).join(', ')}</div>`:(x.manual?'<div class="muted small">no delivery to this customer on this route (by hand)</div>':'')}</td>
+      <td><b>${esc(x.load?routeName(dk,x.load):'not on a route')}</b>${li?`<div class="muted">${esc([li.driver,li.helper].filter(Boolean).join(' + ')||'no driver')}${li.truck?' · '+esc(li.truck):''}</div>`:''}${drop?`<div class="muted small">delivery: ${drop.dr.uids.map(x2=>esc(ORD[x2].o)).join(', ')}${x.how==='addr'?` · <b>same address</b>, Ship To ${esc(drop.dr.ship)} ${esc(drop.dr.name)}`:''}</div>`:(x.manual?'<div class="muted small">no delivery to this customer on this route (by hand)</div>':'')}</td>
       <td>${st}</td><td class="no-print">${act}</td></tr>`; };
   return `<div class="rs-daybar" id="dbUpl">${dayBarHtml('upl')}</div>
    <div class="kpis"><div class="kpi"><b style="color:var(--warn)">${nP}</b><span>to confirm</span></div><div class="kpi"><b>${nC}</b><span>confirmed · auto</span></div><div class="kpi"><b>${nM}</b><span>manual</span></div><div class="kpi"><b>${rows.length}</b><span>uplifts on ${esc(d.label)}</span></div></div>
@@ -2485,13 +2505,13 @@ function openUplHist(no){
   const now=u.closed?`completed — not in the report of ${fmtAt(u.closed.at)}`:x?`planned ${uplWhenTxt(x)} · ${uplBayTxt(x)} · ${x.manual?'Manual':'Auto'}`:p?`to confirm: matches ${uplWhenTxt(p)} · ${uplRouteTxt(p)}`:'not planned';
   const ev=(u.hist||[]).slice().sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
   const det=h=>[h.kind==='report'?[h.status!=null&&'status '+h.status, h.value!=null&&'value '+money(h.value), h.shipment&&'shipment '+h.shipment, h.lines!=null&&h.lines+' line'+(h.lines!==1?'s':''), h.file].filter(Boolean).join(' · '):'', h.date?dayLbl(h.date):'', h.route||'', h.note?'note: '+h.note:''].filter(Boolean).join(' · ');
-  openModal(`<div class="mh"><h2>ⓘ Uplift <span class="upl-no" style="font-size:16px">${esc(no)}</span> · history</h2><div class="muted small">${esc(u.name)} · Ship To ${esc(u.ship)}${u.po?' · PO '+esc(u.po):''}${u.shipment?' · shipment '+esc(u.shipment):''}</div></div>
+  openModal(`<div class="mh"><h2 style="display:flex;align-items:center;gap:8px">${INFO_SVG} Uplift <span class="upl-no" style="font-size:16px">${esc(no)}</span> · history</h2><div class="muted small">${esc(u.name)} · Ship To ${esc(u.ship)}${u.po?' · PO '+esc(u.po):''}${u.shipment?' · shipment '+esc(u.shipment):''}</div></div>
    <div class="mb"><div class="note info">Now: <b>${esc(now)}</b><br>Status ${esc(u.status==null?'—':u.status)} · value ${esc(money(u.value)||'—')} · first seen ${esc(fmtAt(u.firstAt))} · last seen ${esc(fmtAt(u.lastAt))}${u.prev&&u.prev.route?`<br>Before (workbook): ${esc(u.prev.route)}${u.prev.date?' · '+esc(dayLbl(u.prev.date)):''}`:''}</div>
     <div><label>Lines</label><div class="mlist">${(u.lines||[]).map(l=>`<div><span>${esc(l.product)} ${esc(l.desc)} <span class="muted small">${esc(l.type||'')}</span></span><b>${esc(money(l.amount))}</b></div>`).join('')||'<div class="muted small">—</div>'}</div></div>
-    <div><label>Note</label>${ro?`<div>${esc(u.note||'—')}</div>`:`<input type="text" id="uhNote" value="${esc(u.note||'')}" placeholder="printed, try again… (the Status column of the workbook)">`}</div>
+    <div><label>Comments</label><div class="muted small" style="margin-bottom:4px">Last comment: ${esc(u.note||'—')}</div>${ro?'':`<input type="text" id="uhNote" value="" placeholder="Add a comment: printed, try again, customer closed…">`}</div>
     <div><label>History (${ev.length})</label>${ev.length?`<table class="ptbl"><thead><tr><th>When</th><th>What</th><th>Details</th><th>By</th></tr></thead><tbody>${ev.map(h=>`<tr><td style="white-space:nowrap">${esc(fmtAt(String(h.ts).slice(0,16)))}</td><td><b>${esc(h.what)}</b></td><td class="muted small">${esc(det(h))}</td><td class="muted small">${esc(h.by||'')}</td></tr>`).join('')}</tbody></table>`:'<div class="muted small">Nothing recorded yet.</div>'}</div></div>
-   <div class="mf">${ro?'':'<button class="btn" data-act="save">Save note</button>'}<button class="btn pri" data-act="close">Close</button></div>`,
-   {onAct:a=>{ if(a!=='save') return; if(!guard('edit','write notes')) return; const v=$('uhNote').value.trim(); if(v!==(u.note||'')){ u.note=v; uplHist(u,'Note changed',{note:v}); save(); toast('Note saved'); } closeModal(); if(curTab==='upl') renderUplCtl(); }});
+   <div class="mf">${ro?'':'<button class="btn" data-act="save">Add comment</button>'}<button class="btn pri" data-act="close">Close</button></div>`,
+   {onAct:a=>{ if(a!=='save') return; if(!guard('edit','write comments')) return; const v=$('uhNote').value.trim(); if(!v) return; u.note=v; uplHist(u,'Comment',{note:v}); save(); toast('Comment added'); closeModal(); if(curTab==='upl') renderUplCtl(); }});
   $('modal').classList.add('wide');
 }
 $('tab-upl').addEventListener('click',e=>{
@@ -2499,14 +2519,14 @@ $('tab-upl').addEventListener('click',e=>{
   const f=e.target.closest('[data-ucf]'); if(f){ UC.f=f.dataset.ucf; return renderUplCtl(); }
   const g=e.target.closest('[data-ucgo]'); if(g){ e.preventDefault(); UC.view='days'; if(g.dataset.ucgo) UC.day=g.dataset.ucgo; return renderUplCtl(); }
   const s_=e.target.closest('[data-ucs]'); if(s_){ s_.checked?UC.sel.add(s_.dataset.ucs):UC.sel.delete(s_.dataset.ucs); return renderUplCtl(); }
-  const c=e.target.closest('[data-ucc]'); if(c){ const n=uplConfirm([c.dataset.ucc],true); if(n) toast('Uplift '+c.dataset.ucc+' confirmed'); return; }
+  const c=e.target.closest('[data-ucc]'); if(c){ const d=dayMap[ucDayKey()]; const n=uplConfirm([c.dataset.ucc],true,UC.view==='days'&&d?d.date:null); if(n) toast('Uplift '+c.dataset.ucc+' confirmed'); return; }
   const un=e.target.closest('[data-ucu]'); if(un){ uplConfirm([un.dataset.ucu],false); return; }
   const b=e.target.closest('[data-uc]'); if(!b) return;
   if(b.dataset.uc==='load'){ if(!guard('edit','load reports')) return; return openFolderBrowser('data'); }
   if(b.dataset.uc==='export') return uplExportWorkbook();
   if(b.dataset.uc==='print'){ showTab('print'); jpMode('uplift'); return; }
-  if(b.dataset.uc==='confsel'||b.dataset.uc==='confall'){ const pr=uplProposals(), d=dayMap[ucDayKey()]; const nos=b.dataset.uc==='confall'?Object.values(pr).filter(x=>d&&x.date===d.date).map(x=>x.no):[...UC.sel];
-    const n=uplConfirm(nos,true); UC.sel.clear(); if(n) toast(`${n} uplift${n>1?'s':''} confirmed on ${d?d.label:''}`); renderUplCtl(); }
+  if(b.dataset.uc==='confsel'||b.dataset.uc==='confall'){ const cc=uplCalc(), d=dayMap[ucDayKey()]; const nos=b.dataset.uc==='confall'?Object.keys(cc.matches).filter(no=>!cc.plan[no] && d && cc.matches[no].some(m=>m.date===d.date)):[...UC.sel];
+    const n=uplConfirm(nos,true,d&&d.date); UC.sel.clear(); if(n) toast(`${n} uplift${n>1?'s':''} confirmed on ${d?d.label:''}`); renderUplCtl(); }
 });
 // ---------- Delivery Shortages (v0.11.4): the Power BI report, embedded; it opens with the account signed in to the browser ----------
 const BI={src:''};
@@ -2692,7 +2712,7 @@ function defaultDay(){
   if(UPLOADS.length){ const up=DATA.days.filter(d=>uploadOf(d.date)); const nx=up.find(d=>d.date>=t); return (nx||up[up.length-1]).key; }
   return dayMap['W39-2']?'W39-2':DATA.days[0].key;
 }
-const P={day:null, hidden:new Set(), show:new Set(), sel:new Set(), open:new Set(), q:'', upl:true};
+const P={day:null, hidden:new Set(), show:new Set(), sel:new Set(), open:new Set(), q:'', upl:true, uplPl:true};
 let UPLP={}, UPLPR={};   // v0.12.0: the uplift plan (and v0.12.1 the matches to confirm), worked out once per render of Planning
 const daySel=$('pDay');
 function buildDaySel(){
@@ -2717,6 +2737,8 @@ function initPMap(){
   if(NOMAP){ renderPlan(); return; }
   pMap=L.map('pMap',{preferCanvas:true}).setView([53.35,-6.3],10); tiles(pMap);
   pLayer=L.layerGroup().addTo(pMap);
+  pMap.createPane('uplPane').style.zIndex=390;   // v0.12.2: uplift triangles UNDER the delivery dots (overlay pane = 400)
+  pSvg=L.svg({padding:0.5});                      // the dots as SVG: the gaps between them let clicks reach the triangles below
   setupBoxSelect();
   renderPlan();
 }
@@ -2739,11 +2761,16 @@ function renderBanner(){
 function renderBayChips(){
   $('pBays').innerHTML = view.routes.map(r=>`<button class="chip ${mapVisible(r)?'':'off'}" data-r="${r.id}"><span class="sw" style="background:${r.color}"></span>${esc(r.deferred?'Unassigned':r.name)}</button>`).join('');
   $('pLegend').innerHTML = `<div><i style="background:#2f9e44"></i>Each bay has its own colour</div><div><i style="background:${DEF_COLOR};border:2px solid #f59e0b"></i>Deferred in, not on a bay</div><div><i style="background:#fff;border:3px solid #111"></i>Moved / inserted / split</div>`+(P.upl?`<div><i class="tri"></i>Uplift outstanding (route colour = planned · grey = not planned)</div>`:'');
-  const n=uplMapList().length; $('uplN').textContent=dayMap[P.day]?'('+n+')':''; $('uplBtn').classList.toggle('off',!P.upl); $('uplBtn').setAttribute('aria-pressed',P.upl?'true':'false');
+  // v0.12.2: Uplifts (x) = all outstanding (the same on every day) · Planned CU (x) = planned on this day
+  const d=dayMap[P.day], nPl=d?Object.values(UPLP).filter(x=>x.date===d.date).length:0;
+  $('uplN').textContent='('+uplOpenList().length+')'; $('uplPlN').textContent=d?'('+nPl+')':'';
+  $('uplBtn').classList.toggle('off',!P.upl); $('uplBtn').setAttribute('aria-pressed',P.upl?'true':'false'); $('uplPlBtn').classList.toggle('off',!P.uplPl); $('uplPlBtn').setAttribute('aria-pressed',P.uplPl?'true':'false');
 }
 // the outstanding uplifts the map can show for the day: those planned on it, and those not planned on any loaded day
-function uplMapList(){ const d=dayMap[P.day]; if(!d) return []; return uplOpenList().map(u=>({u, x:UPLP[u.no]||null, p:UPLPR[u.no]||null})).filter(o=>o.x ? o.x.date===d.date : (!o.p || o.p.date===d.date)); }
+// planned on this day (Planned CU) · every other outstanding uplift (Uplifts) — planned on another day, a match to confirm, or nothing
+function uplMapList(){ const d=dayMap[P.day]; if(!d) return []; return uplOpenList().map(u=>{ const x=UPLP[u.no]||null; return {u, x:x&&x.date===d.date?x:null, other:x&&x.date!==d.date?x:null, p:UPLPR[u.no]||null}; }).filter(o=>o.x?P.uplPl:P.upl); }
 $('uplBtn').addEventListener('click',()=>{ P.upl=!P.upl; refreshMap(); });
+$('uplPlBtn').addEventListener('click',()=>{ P.uplPl=!P.uplPl; refreshMap(); });
 // v0.11.2: which routes are on the map. None or all expanded = all; some expanded = only those; "show on map" adds or removes single routes.
 function mapVisible(r){ const id=r.id, n=view.routes.length, o=P.open.size; const base=(o===0||o>=n)?true:P.open.has(id); return (base && !P.hidden.has(id)) || P.show.has(id); }
 function refreshMap(){ renderBayChips(); renderPlanMap(); }
@@ -2874,29 +2901,29 @@ function renderPlanMap(){
       const opt = r.deferred ? {radius:sel?10:8,weight:sel?4:3,color:sel?'#111':'#f59e0b',fillColor:DEF_COLOR,fillOpacity:1}
         : {radius:sel?9:(changed?8:6),weight:sel?4:(changed?3:1.2),color:sel?'#111':(changed?'#111':'#fff'),fillColor:r.color,fillOpacity:.95};
       const off = d.grp ? 0.00015 : 0;   // nudge split lines so both markers are clickable
-      const m=L.circleMarker([c.lat+off,c.lng+off],opt).bindPopup(()=>dropPopup(d)).bindTooltip(`${esc(d.name)}${d.grp?' (split)':''} · ${esc(r.deferred?'Unassigned':r.name)} · ${kg(d.kg)} kg`);
+      const m=L.circleMarker([c.lat+off,c.lng+off],Object.assign({renderer:pSvg},opt)).bindPopup(()=>dropPopup(d)).bindTooltip(`${esc(d.name)}${d.grp?' (split)':''} · ${esc(r.deferred?'Unassigned':r.name)} · ${kg(d.kg)} kg`);
       m.addTo(pLayer); pMarkers[d.key]=m;
     });
   });
   // v0.12.0: outstanding uplifts as triangles (next to the customer's dot): route colour when planned on this day, grey when not planned
-  uMarkers={}; if(!P.upl) return;
+  uMarkers={}; if(!P.upl && !P.uplPl) return;
   const shown=new Set(view.routes.filter(mapVisible).map(r=>String(r.id||'')));
-  uplMapList().forEach(({u,x,p})=>{
+  uplMapList().forEach(({u,x,p,other})=>{
     if(x && !shown.has(String(x.load||''))) return;
     if(P.q && ![u.name,u.ship,u.no].some(v=>String(v).toLowerCase().includes(P.q))) return;
     const c=custMap[u.ship]; if(!c||c.lat==null) return;
     const col=x ? (x.load ? (routeColor[P.day+'|'+x.load]||'#888') : DEF_COLOR) : '#9ca3af';
-    const m=L.marker([c.lat,c.lng],{icon:uplIcon(col,!x), zIndexOffset:400, keyboard:false, title:''}).bindPopup(()=>uplPopup(u,x,p)).bindTooltip(`▲ Uplift ${esc(u.no)} · ${esc(u.name)} · ${x?esc(uplRouteTxt(x)):p?'to confirm · matches '+esc(uplRouteTxt(p)):'not planned'}`);
+    const m=L.marker([c.lat,c.lng],{icon:uplIcon(col,!x), pane:'uplPane', keyboard:false, title:''}).bindPopup(()=>uplPopup(u,x||other,p)).bindTooltip(`▲ Uplift ${esc(u.no)} · ${esc(u.name)} · ${x?esc(uplRouteTxt(x)):other?'planned '+esc(uplWhenTxt(other)):p?'to confirm · matches '+esc(uplRouteTxt(p)):'not planned'}`);
     m.addTo(pLayer); uMarkers[u.no]=m;
   });
 }
-let uMarkers={};
-const uplIcon=(col,none)=>L.divIcon({className:'upl-ic', html:`<svg width="18" height="16" viewBox="0 0 18 16" aria-label="Uplift"><polygon points="9,1.5 16.8,14.8 1.2,14.8" fill="${col}" stroke="${none?'#374151':'#111'}" stroke-width="1.6"${none?' stroke-dasharray="3 2"':''}/></svg>`, iconSize:[18,16], iconAnchor:[-3,17], popupAnchor:[6,-14]});
+let uMarkers={}, pSvg=null;
+const uplIcon=(col,none)=>L.divIcon({className:'upl-ic', html:`<svg width="13" height="12" viewBox="0 0 13 12" aria-label="Uplift"><polygon points="6.5,1.2 12.2,11 0.8,11" fill="${col}" stroke="${none?'#374151':'#111'}" stroke-width="1.3"${none?' stroke-dasharray="2.5 1.5"':''}/></svg>`, iconSize:[13,12], iconAnchor:[-2,12], popupAnchor:[4,-10]});
 function uplPopup(u,x,p){ const c=custMap[u.ship];
   return `<div class="pop"><h4>▲ Uplift <span class="upl-no" style="font-size:13px">${esc(u.no)}</span></h4><div class="muted">${esc(u.name)} · Ship To ${esc(u.ship)}${c&&c.addr?' · '+esc(c.addr):''}</div>
    <table><tr><td>Products</td><td>${esc(uplProducts(u))||'—'}</td></tr><tr><td>Reason</td><td>${esc(u.reason||'—')}</td></tr><tr><td>Raised</td><td>${u.raised?esc(dayLbl(u.raised)):'—'}</td></tr>
    <tr><td>Planned</td><td>${x?`<b>${esc(uplWhenTxt(x))}</b> · ${esc(uplRouteTxt(x))}<div class="muted">${x.manual?'allocated by hand'+(x.by?' by '+esc(x.by):''):(x.conf?'confirmed with the customer\'s delivery':'with the customer\'s delivery')}</div>`:p?`<b style="color:var(--warn)">To confirm</b><div class="muted">Matches the delivery on ${esc(uplWhenTxt(p))} · ${esc(uplRouteTxt(p))}</div>`:'<b style="color:var(--danger)">Not planned</b><div class="muted">No delivery for this customer on the loaded days</div>'}</td></tr></table>
-   <div class="acts" style="flex-wrap:wrap">${p&&!x?`<button class="btn sm pri" data-uact="confirm" data-no="${esc(u.no)}">Confirm with this delivery</button>`:''}<button class="btn sm ${p&&!x?'':'pri'}" data-uact="alloc" data-no="${esc(u.no)}">Allocate to a route…</button><button class="btn sm" data-uact="hist" data-no="${esc(u.no)}">ⓘ History</button>${x&&x.manual?`<button class="btn sm" data-uact="auto" data-no="${esc(u.no)}">Back to automatic</button>`:''}</div></div>`; }
+   <div class="acts" style="flex-wrap:wrap">${p&&!x?`<button class="btn sm pri" data-uact="confirm" data-no="${esc(u.no)}">Confirm with this delivery</button>`:''}<button class="btn sm ${p&&!x?'':'pri'}" data-uact="alloc" data-no="${esc(u.no)}">Allocate to a route…</button><button class="btn sm" data-uact="hist" data-no="${esc(u.no)}" style="display:inline-flex;gap:4px;align-items:center">${INFO_SVG} History</button>${x&&x.manual?`<button class="btn sm" data-uact="auto" data-no="${esc(u.no)}">Back to automatic</button>`:''}</div></div>`; }
 function uplLocate(no){ const m=uMarkers[no]; if(!m||!pMap){ toast('This uplift is not on the map (no location, hidden route or the Uplifts button is off)'); return; } pMap.setView(m.getLatLng(),14); m.openPopup(); }
 // allocate an outstanding uplift to any route of a loaded day (by hand), or put it back to automatic
 function openUplAlloc(no){

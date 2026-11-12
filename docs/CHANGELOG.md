@@ -4,6 +4,21 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.12.2 — 2026-11-12
+
+### Features
+- **Planning › Show on map:** two uplift buttons — **Uplifts (x)**, x = all uplifts outstanding (the same on every day), and **Planned CU (x)**, x = the uplifts planned on the day shown.
+- **Uplift Control:** new **Comments** column with the last comment of the order's history (who and when); comments are added in the history window.
+- **Matching by address:** an uplift also matches a delivery to the same customer address (same Eircode / postal code, or the same address) under another Ship To, shown as *same address*.
+
+### Bug fixes
+- **The Uplifts count on the map changed with the day selected** (it counted only what that day could show). It is now the total outstanding.
+
+### Edits
+- **Matches on any loaded planning day:** the planner approves each match, so the loaded day no longer has to come after the report. Planned days lists every match of the day.
+- **Map:** the uplift triangles are smaller and drawn under the delivery dots (the dots are SVG now, so a triangle can still be clicked where no dot covers it).
+- **(i) icon** for the history button (an italic *i* in a circle, drawn in the app; it follows the theme).
+
 ## v0.12.1 — 2026-11-12
 
 ### Features
