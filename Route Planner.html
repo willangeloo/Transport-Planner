@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.12.4</title>
+<title>Route Planner BETA v0.12.5</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -573,20 +573,22 @@ html[data-theme=dark] .uplbtn.off{background:transparent;color:#cbd5e1}
 .jp-uplift table{width:100%;border-collapse:collapse;font-size:12.5px}.jp-uplift th,.jp-uplift td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .jp-uplift .ugrp{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}.jp-uplift .ugrp h3{margin:0;padding:8px 12px;font-size:13px;background:var(--soft,#fafbfc);display:flex;gap:10px;align-items:baseline}
 .home{max-width:1400px;margin:0 auto;padding:22px}
-.home .hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:12px}
-.hball{text-align:left;border:1px solid var(--line);background:var(--card,#fff);border-radius:22px;padding:14px 16px 16px;cursor:pointer;font:inherit;color:var(--ink);box-shadow:0 2px 6px rgba(15,30,45,.08);transition:transform .12s,box-shadow .12s}
-.hball:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(15,30,45,.16)}
-.hball .hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}.hball .hd b{font-size:18px}.hball .hd .spacer{flex:1}
+.home .hgrid{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.hball{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:14px;width:100%;text-align:left;border:1px solid var(--line);background:var(--card,#fff);border-radius:16px;padding:12px 16px;cursor:pointer;font:inherit;color:var(--ink);box-shadow:0 2px 6px rgba(15,30,45,.08);transition:transform .12s,box-shadow .12s}
+.hball:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(15,30,45,.16)}
+.hball .hd{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.hball .hd b{font-size:18px}
 .hball .st{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600;white-space:nowrap}
-.hball dl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0}
-.hball dl>div{background:var(--bg);border-radius:10px;padding:5px 8px;min-width:0}
+.hball dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin:0}
+.hball dl>div{background:var(--bg);border-radius:10px;padding:6px 10px;min-width:0}
 .hball dt{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.hball dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hball dl>div.wide{grid-column:span 3;display:flex;gap:10px;align-items:baseline}.hball dl>div.wide dt{flex:0 0 62px}.hball dl>div.wide dd{flex:1}
-.hball dl>div.prod dd{display:flex;gap:12px}.hball dl>div.prod small,.hball dl>div.wide small{font-size:10px;color:var(--muted);font-weight:600}
-.hball dl>div.upl dd{color:#d11a2a} html[data-theme=dark] .hball dl>div.upl dd{color:#ff7070}
+.hball dd{margin:0;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1px}
+.hball .subs{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:11.5px;font-variant-numeric:tabular-nums}.hball .subs small{display:inline-block;min-width:72px;font-size:10.5px;color:var(--muted);font-weight:600}
+.hball dl>div.ord,.hball dl>div.prod,.hball dl>div.upl{grid-column:span 1}
+.hball dl>div.fromres{background:transparent;border:1px dashed var(--line)}.hball dl>div.fromres dt,.hball dl>div.fromres dd{color:var(--muted);font-weight:500}
+.hball dl>div.upl .subs{color:#d11a2a} html[data-theme=dark] .hball dl>div.upl .subs{color:#ff7070}
+@media (max-width:820px){ .hball{grid-template-columns:1fr} .hball .hd{flex-direction:row;align-items:center;gap:10px} }
 .hball.none{background:#d5dbe2;color:#566473;border-style:dashed;box-shadow:none}
-.hball.none .st{background:#bfc7d0;color:#3f4b57}.hball.none .empty-t{font-size:13px;margin-top:22px;margin-bottom:22px;text-align:center}
+.hball.none .st{background:#bfc7d0;color:#3f4b57}.hball.none .empty-t{font-size:13px}
 html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:#2a3846} html[data-theme=dark] .hball.none .st{background:#1a2430;color:#8a9aaa}
 .hball.today{outline:3px solid var(--accent);outline-offset:2px}
 .hwk{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -594,7 +596,7 @@ html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.4</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.5</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="home" class="on">Home</button>
     <button data-tab="plan">Planning</button>
@@ -2010,7 +2012,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.12.4';
+const APP_VERSION='0.12.5';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2291,15 +2293,15 @@ function parseCuRep(rows, h){
   const col=(...ks)=>{ for(const k of ks) if(h.idx[k]!=null) return h.idx[k]; return null; }, gv=(r,c)=>c==null?null:r[c];
   const c={no:col('ORDER NUMBER'), sh:col('SHIPMENT NUMBER','SHIPMENT'), ship:col('SHIP TO','ADDRESS NUMBER SHIP TO'), name:col('SHIP TO NAME','NAME'), po:col('CUSTOMER PO','CUSTOMER PO NO'), pick:col('SCHEDULED PICK'),
     ty:col('LN TY','LINE TYPE'), next:col('NEXT STATUS'), last:col('LAST STATUS'), amt:col('EXTENDED AMOUNT'), item:col('2ND ITEM NUMBER','ITEM NUMBER','2ND ITEM NO'), desc:col('DESCRIPTION 1','DESCRIPTION')};
-  const items={}, order=[]; let lines=0, skipped=0;
+  const items={}, order=[], seenLn=new Set(); let lines=0, skipped=0, repeated=0;
   rows.slice(h.row+1).forEach(r=>{ const no=toId(gv(r,c.no)); if(!no){ if(r.some(v=>v!=null&&v!=='')) skipped++; return; }   // the totals row and blank lines
-    lines++; const amt=toNum(gv(r,c.amt)), nx=toNum(gv(r,c.next));
+    lines++; const amt=toNum(gv(r,c.amt)), nx=toNum(gv(r,c.next)); const sig=JSON.stringify(h.idx?Object.values(c).map(k=>k==null?null:r[k]):r); if(seenLn.has(sig)) repeated++; seenLn.add(sig);   // v0.12.5: a line repeated exactly (same order, item, amount…) is counted and reported
     let it=items[no]; if(!it){ const ship=toId(gv(r,c.ship))||'';
       it=items[no]={no, ship, name:cleanStr(gv(r,c.name))||((custMap[ship]||{}).name)||ship, shipment:toId(gv(r,c.sh))||'', po:cleanStr(gv(r,c.po))||'', raised:parseDateCell(gv(r,c.pick)), reason:'', status:nx, value:0, lines:[]}; order.push(no); }
     if(nx!=null && (it.status==null || nx<it.status)) it.status=nx;                       // lowest Next Status
     if(amt!=null) it.value=Math.round((it.value+amt)*100)/100;                             // Extended Amount added up
     it.lines.push({product:cleanStr(gv(r,c.item))||'', desc:cleanStr(gv(r,c.desc))||'', qty:null, type:cleanStr(gv(r,c.ty))||'', amount:amt}); });
-  return {items:order.map(o=>items[o]), lines, skipped};
+  return {items:order.map(o=>items[o]), lines, skipped, repeated};
 }
 // the Summary and Archive sheets of the Uplift control workbook: the notes kept until now (Bay, Reschedule, Status / Comments, First seen …)
 function parseUplControl(wb){
@@ -2314,7 +2316,7 @@ function parseUplControl(wb){
 }
 function parseUplifts(f){
   for(const n of f.wb.SheetNames){ const rows=sheetRows(f.wb.Sheets[n]); const ch=cuHeader(rows);
-    if(ch){ const r=parseCuRep(rows,ch); return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(), nameAt:uplNameAt(f.name,f.week,f.mod), items:r.items, lines:r.lines, skipped:r.skipped, sheet:n, cu:true, control:parseUplControl(f.wb)}; }
+    if(ch){ const r=parseCuRep(rows,ch); return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(), nameAt:uplNameAt(f.name,f.week,f.mod), items:r.items, lines:r.lines, skipped:r.skipped, repeated:r.repeated, sheet:n, cu:true, control:parseUplControl(f.wb)}; }
     const h=uplHeader(rows); if(!h) continue;
     const col=(...ks)=>{ for(const k of ks) if(h.idx[k]!=null) return h.idx[k]; return null; }, gv=(r,c)=>c==null?null:r[c];
     const cNo=col('UPLIFT NUMBER','UPLIFT ORDER NUMBER','UPLIFT NO','UPLIFT'), cShip=col('SHIP TO','ADDRESS NUMBER SHIP TO'), cName=col('NAME','SHIP TO NAME','CUSTOMER NAME','CUSTOMER'),
@@ -2330,8 +2332,11 @@ function parseUplifts(f){
 }
 // a newer report sets what is outstanding; an older one is only kept as a record
 function uplApply(rep){
-  const U=uplState(); const latest=U.reports.filter(r=>!r.old).reduce((m,r)=>r.at>m?r.at:m,'');
-  const rec={file:rep.file, path:rep.path, hash:rep.hash, at:rep.at, loadedAt:new Date().toISOString(), by:FOLDER.user||'', n:rep.items.length, added:0, closed:0, reopened:0, old:false};
+  const U=uplState();
+  // v0.12.5: the same order is one uplift: keys written differently (spaces, 7700101.0) are merged into one before the report is applied
+  Object.keys(U.items).forEach(k=>{ const nk=toId(k); if(nk && nk!==k){ const a=U.items[k], b=U.items[nk]; if(!b) { a.no=nk; U.items[nk]=a; } else { b.hist=(b.hist||[]).concat(a.hist||[]); b.att=(b.att||[]).concat(a.att||[]); if(!b.note&&a.note) b.note=a.note; } delete U.items[k]; ['man','conf'].forEach(m=>{ if(U[m]&&U[m][k]){ if(!U[m][nk]) U[m][nk]=U[m][k]; delete U[m][k]; } }); } });
+  const latest=U.reports.filter(r=>!r.old).reduce((m,r)=>r.at>m?r.at:m,'');
+  const rec={file:rep.file, path:rep.path, hash:rep.hash, at:rep.at, loadedAt:new Date().toISOString(), by:FOLDER.user||'', n:rep.items.length, added:0, updated:0, closed:0, reopened:0, old:false, repeated:rep.repeated||0};
   U.reports=U.reports.filter(r=>!(r.file===rep.file && r.hash===rep.hash));
   if(latest && rep.at<latest){ rec.old=true; U.reports.push(rec); return rec; }
   const bc=uplCalc(), before=Object.assign({}, bc.prop, bc.plan); const seen=new Set();
@@ -2340,6 +2345,7 @@ function uplApply(rep){
   rep.items.forEach(x=>{ seen.add(x.no); let u=U.items[x.no], what='';
     if(!u){ u=U.items[x.no]={no:x.no, firstAt:rep.at, firstFile:rep.file, hist:[]}; rec.added++; what='First seen in the report'; }
     else if(u.closed){ u.closed=null; rec.reopened++; what='Back in the report — restored from the archive'; }
+    else rec.updated++;   // v0.12.5: already in Uplift Control: updated, not duplicated
     const old=JSON.stringify([u.status,u.value,u.shipment,(u.lines||[]).length]);
     Object.assign(u,{ship:x.ship, name:x.name, reason:x.reason||'', raised:x.raised||u.raised||null, lines:x.lines, lastAt:rep.at, lastFile:rep.file, po:x.po||'', shipment:x.shipment||'', status:x.status!=null?x.status:null, value:x.value!=null?x.value:null});
     if(!what && old!==JSON.stringify([u.status,u.value,u.shipment,(u.lines||[]).length])) what='Changed in the report';
@@ -2427,10 +2433,15 @@ function lookChanged(){ save(); indexDays(); if(pInit) renderPlan(); if(cInit) r
 // ---------- Home (v0.12.0): the days of a week as balloons — planned days with their totals, the others greyed out ----------
 const HM={wk:'', browse:false};
 function homeStats(dk, pl){
-  const v=dayView(dk), routes=v.routes.filter(r=>!r.deferred), drops=v.routes.flatMap(r=>r.drops), uids=drops.flatMap(d=>d.uids);
+  const v=dayView(dk), routes=v.routes.filter(r=>!r.deferred), drops=v.routes.flatMap(r=>r.drops), uids=drops.flatMap(d=>d.uids), d0=dayMap[dk];
   const pr={CS:0,EA:0,KEG:0}; let hasP=false; uids.forEach(u=>{ const t=S.prod.orders[String(ORD[u].o)]; if(t){ hasP=true; PROD_UNITS.forEach(k=>pr[k]+=t[k]||0); } });
   const sum=f=>routes.reduce((s,r)=>s+(toNum(r.load[f])||0),0);
-  return {bays:routes.length, drops:drops.length, orders:uids.length, kg:drops.reduce((s,d)=>s+d.kg,0), km:sum('km'), pallets:sum('pallets'), prod:hasP?pr:null, upl:uplOnDay(dk,pl).length, uplNos:uplOnDay(dk,pl).map(x=>x.no)};
+  // v0.12.5: what happened to the orders: deferred out (planned for this day, now on another), deferred in (from another day), reallocated (moved to another route within the day), P&W
+  let dOut=0, dIn=0, re=0, pw=0;
+  Object.values(ORD).forEach(o=>{ const c=curOf(o.uid), here=c.day===dk, from=o.day0===dk; if(from&&!here) dOut++; if(here&&!from) dIn++; if(here&&from&&String(c.load||'')!==String(o.load0||'')) re++; });
+  uids.forEach(u=>{ if(dockOf(u)==='PW') pw++; });
+  const plan=uplOnDay(dk,pl), done=Object.values(S.upl.items).filter(u=>u.closed && u.closed.planned!==false && d0 && u.closed.date===d0.date).length;
+  return {bays:routes.length, drops:drops.length, orders:uids.length, dOut, dIn, re, pw, kg:drops.reduce((s,d)=>s+d.kg,0), km:sum('km'), pallets:sum('pallets'), prod:hasP?pr:null, upl:plan.length, uplDone:done, uplNos:plan.map(x=>x.no)};
 }
 function renderHome(){
   const el=$('tab-home'); const pl=uplPlan(), t=todayStr();
@@ -2438,14 +2449,16 @@ function renderHome(){
   const weeks=[...new Set(DATA.days.map(d=>weekStart(d.date)).concat(HM.wk))].sort();
   const dates=[0,1,2,3,4,5,6].map(i=>addDays(HM.wk,i)).filter(d=>dateDow(d)<5 || dayKeyForDate(d));
   const n=x=>kg(x), wkTot={drops:0,orders:0,kg:0,upl:0}; let planned=0;
+  const sub=(t2,v2)=>`<span><small>${t2}</small> ${v2}</span>`;
   const balls=dates.map(d=>{ const k=dayKeyForDate(d), today=d===t?' today':'';
-    if(!k) return `<button class="hball none${today}" data-hdate="${d}" title="No plan for this day yet — click to create it"><div class="hd"><b>${esc(dayLbl(d))}</b><span class="spacer"></span><span class="st">no plan</span></div><div class="empty-t">No plan yet<br><span class="small">Click to create the plan for this day</span></div></button>`;
+    if(!k) return `<button class="hball none${today}" data-hdate="${d}" title="No plan for this day yet — click to create it"><div class="hd"><b>${esc(dayLbl(d))}</b><span class="st">no plan</span></div><div class="empty-t">No plan yet — click to create the plan for this day</div></button>`;
     const s=homeStats(k,pl); planned++; wkTot.drops+=s.drops; wkTot.orders+=s.orders; wkTot.kg+=s.kg; wkTot.upl+=s.upl;
-    const p=s.prod; const cell=(t2,v,cls)=>`<div class="${cls||''}"><dt>${t2}</dt><dd>${v}</dd></div>`;
-    return `<button class="hball${today}" data-hday="${esc(k)}" title="Open the plan of ${esc(dayLbl(d))}"><div class="hd"><b>${esc(dayLbl(d))}</b><span class="spacer"></span>${d===t?'<span class="st">today</span>':'<span class="st">plan open</span>'}</div>
-      <dl>${cell('Bays',s.bays)}${cell('Drops',n(s.drops))}${cell('Orders',n(s.orders))}${cell('Kgs',n(s.kg))}${cell('Km',n(s.km))}${cell('Pallets',n(s.pallets))}
-      <div class="wide prod"><dt>Products</dt><dd>${p?PROD_UNITS.map(u=>`<span><small>${u}</small> ${n(p[u])}</span>`).join(''):'<span class="muted" style="font-weight:400">not loaded</span>'}</dd></div>
-      <div class="wide upl"><dt>Uplifts</dt><dd title="${esc(s.uplNos.join(', '))}">${s.upl}${s.upl?` <small class="muted" style="font-weight:400">· ${esc(s.uplNos.join(', '))}</small>`:''}</dd></div></dl></button>`; }).join('');
+    const p=s.prod; const box=(t2,v2,cls,subs,tip)=>`<div class="${cls||''}"${tip?` title="${esc(tip)}"`:''}><dt>${t2}</dt><dd>${v2}</dd>${subs?`<div class="subs">${subs}</div>`:''}</div>`;
+    const res='From the Resources sheet — not changed by the planner';
+    return `<button class="hball${today}" data-hday="${esc(k)}" title="Open the plan of ${esc(dayLbl(d))}"><div class="hd"><b>${esc(dayLbl(d))}</b><span class="st">${d===t?'today':'plan open'}</span></div>
+      <dl>${box('Bays',s.bays)}${box('Drops',n(s.drops))}${box('Orders',n(s.orders),'ord',sub('Deferred out',s.dOut)+sub('Deferred in',s.dIn)+sub('Reallocated',s.re)+sub('P&amp;W',s.pw))}${box('Kgs',n(s.kg))}${box('Km',n(s.km),'fromres',null,res)}${box('Pallets',n(s.pallets),'fromres',null,res)}
+      ${box('Products',p?'':'<span class="muted" style="font-weight:400">not loaded</span>','prod',p?PROD_UNITS.map(u=>sub(u,n(p[u]))).join(''):'')}
+      ${box('Uplifts','','upl',sub('Planned',s.upl)+sub('Complete',s.uplDone),s.uplNos.join(', '))}</dl></button>`; }).join('');
   el.innerHTML=`<div class="home"><div class="rep-head" style="margin-bottom:6px"><div><div class="muted small">${companyName()?esc(companyName())+' · ':''}the days of the week · click a day to plan it</div><h1>Home</h1></div><div class="spacer"></div>
      <div class="hwk"><button class="rs-nav" data-hwnav="-1" title="Previous week" aria-label="Previous week">‹</button>${weeks.map(w=>`<button class="rs-wk ${w===HM.wk?'on':''}" data-hwk="${w}">Week ${isoWeek(w)}</button>`).join('')}<button class="rs-nav" data-hwnav="1" title="Next week" aria-label="Next week">›</button></div></div>
     <div class="muted small">Week ${isoWeek(HM.wk)} · ${planned} of ${dates.length} days planned${planned?` · ${n(wkTot.drops)} drops · ${n(wkTot.orders)} orders · ${n(wkTot.kg)} kg · <span class="upl-no" style="font-family:inherit">${wkTot.upl} uplift${wkTot.upl!==1?'s':''}</span>`:''} · ${uplOpenList().length} uplift${uplOpenList().length!==1?'s':''} outstanding</div>
@@ -3832,7 +3845,7 @@ function renderUpload(){
     if(p.cust){ const cu=p.cust, nb=new Set(cu.list.map(c=>c.bay).filter(Boolean)).size;
       body+=`<div class="note ${cu.noLoc?'warn':'info'}">👥 <b>Customer master:</b> ${cu.list.length} customers from ${esc(cu.file)} › ${esc(cu.sheet)} · ${nb} bays${cu.noLoc?` · <b>${cu.noLoc}</b> without coordinates (not on the map)`:''}.${MASTER?` Replaces the current master (${MASTER.list.length} customers from ${esc(MASTER.file)}). Customer edits made in the planner are kept.`:''} The page reloads after loading it.</div>`; }
     if(p.upl&&p.upl.length){ const latest=uplState().reports.filter(r=>!r.old).reduce((m,r)=>r.at>m?r.at:m,'');
-      body+=`<div class="note info">↩ <b>Uplifts outstanding:</b> ${p.upl.map(r=>`${esc(r.file)}${r.sheet&&r.cu?' › '+esc(r.sheet):''} <span class="muted">(${esc(fmtAt(r.at))})</span>: <b>${r.items.length}</b> order${r.items.length!==1?'s':''} from ${r.lines} line${r.lines!==1?'s':''}${r.skipped?` <span class="muted">· ${r.skipped} line${r.skipped>1?'s':''} without an order number left out (totals row)</span>`:''}${r.control?` · <b>notes of ${r.control.summary.length} uplifts and ${r.control.archive.length} archived</b> from the Summary / Archive sheets`:''}${latest&&r.at<latest?' <span class="muted">· older than the report already loaded, kept as a record only</span>':''}`).join('<br>')}<div class="muted small" style="margin-top:4px">One uplift per order: the first line's details, the lowest Next Status, the Extended Amount added up. The newest report says what is outstanding; an order it doesn't list any more is completed (archived with its notes). Uplifts are planned with the customer's delivery on the next day, or by hand in Uplift Control.</div></div>`; }
+      body+=`<div class="note info">↩ <b>Uplifts outstanding:</b> ${p.upl.map(r=>`${esc(r.file)}${r.sheet&&r.cu?' › '+esc(r.sheet):''} <span class="muted">(${esc(fmtAt(r.at))})</span>: <b>${r.items.length}</b> order${r.items.length!==1?'s':''} from ${r.lines} line${r.lines!==1?'s':''}${r.skipped?` <span class="muted">· ${r.skipped} line${r.skipped>1?'s':''} without an order number left out (totals row)</span>`:''}${(()=>{ const ex=r.items.filter(x=>S.upl.items[x.no]).length; return ` <span class="muted">· ${ex} already in Uplift Control — updated, not duplicated · ${r.items.length-ex} new</span>`; })()}${r.repeated?` <span class="warn">· ⚠ ${r.repeated} line${r.repeated>1?'s':''} repeated exactly in the file — check it</span>`:''}${r.control?` · <b>notes of ${r.control.summary.length} uplifts and ${r.control.archive.length} archived</b> from the Summary / Archive sheets`:''}${latest&&r.at<latest?' <span class="muted">· older than the report already loaded, kept as a record only</span>':''}`).join('<br>')}<div class="muted small" style="margin-top:4px">One uplift per order: the first line's details, the lowest Next Status, the Extended Amount added up. The newest report says what is outstanding; an order it doesn't list any more is completed (archived with its notes). Uplifts are planned with the customer's delivery on the next day, or by hand in Uplift Control.</div></div>`; }
     if(p.prod&&p.prod.length) body+=`<div class="note info">📦 <b>Products:</b> ${p.prod.map(r=>`${esc(r.file)}: ${Object.keys(r.orders).length} orders, ${r.lines} lines`).join(' · ')} — the CS / EA / KEG totals on the Home page.</div>`;
     const nAct=p.days.length+(p.resDays?p.resDays.length:0)+(p.fixed?1:0)+(p.cust?1:0)+(p.upl?p.upl.length:0)+(p.prod?p.prod.length:0);
     const lbl=[p.days.length?`Add ${p.days.length} day${p.days.length>1?'s':''}`:'', p.resDays&&p.resDays.length?'Apply RESOURCES':'', p.upl&&p.upl.length?'Load uplifts':'', p.prod&&p.prod.length?'Load products':'', p.fixed?'Apply fixed routes':'', p.cust?'Load customer master':''].filter(Boolean).join(' + ');
@@ -3943,7 +3956,7 @@ function uploadAct(a){
   const stored=saveUploads();
   // v0.12.0: uplifts outstanding (oldest report first, so the newest one decides) and products — after the days, so uplifts plan on them
   indexDays(); normalizeState();
-  const uplRecs=(p.upl||[]).map(r=>{ const rec=uplApply(r); logLoad({kind:'upl', day:'', files:[r.file], replaced:false, summary:rec.old?`${rec.n} uplifts · older than the newest report, record only`:`${rec.n} outstanding · ${rec.added} new · ${rec.closed} completed`}); return rec; });
+  const uplRecs=(p.upl||[]).map(r=>{ const rec=uplApply(r); logLoad({kind:'upl', day:'', files:[r.file], replaced:false, summary:rec.old?`${rec.n} uplifts · older than the newest report, record only`:`${rec.n} outstanding · ${rec.added} new · ${rec.updated+rec.reopened} updated (not duplicated) · ${rec.closed} completed`+(rec.repeated?` · ${rec.repeated} repeated line${rec.repeated>1?'s':''} in the file`:'')}); return rec; });
   (p.prod||[]).forEach(r=>{ prodApply(r,at); logLoad({kind:'prod', day:'', files:[r.file], replaced:false, summary:`${Object.keys(r.orders).length} orders, ${r.lines} lines`}); });
   const before=Object.values(S.cur).filter(c=>isPending(c.day)).length;
   afterDataChange();
@@ -4540,7 +4553,9 @@ $('userBtn').onclick=()=>{
 function manualAlert(title, text){ openModal(`<div class="mh"><h2>⚠ ${title}</h2></div><div class="mb"><div class="note warn">${text}</div></div><div class="mf"><button class="btn pri" data-act="close">OK</button></div>`); }
 // v0.10: the customer master and fixed routes are read from MASTER_DATA automatically when the folder
 // connects, and again only when the file there changes (it is not something to load every day).
-async function autoRef(win, chain){ if(chain===undefined) chain=true; const r=await autoRefCore(win,chain); if(win && r!=='stop') openDataWindow(chain); }
+// v0.12.5: after choosing the user the first window is “What are you planning?”; New Plan opens the reports window (chain = 'new'), then the planner with no day open
+function afterRef(chain){ if(chain===true) openStartWindow(); else openDataWindow(chain); }
+async function autoRef(win, chain){ if(chain===undefined) chain=true; const r=await autoRefCore(win,chain); if(win && r!=='stop') afterRef(chain); }
 async function autoRefCore(win, chain){
   if(EMB || typeof XLSX==='undefined' || FOLDER.status!=='ok' || !FOLDER.handle) return;
   try{
@@ -4567,9 +4582,9 @@ async function autoRefCore(win, chain){
       openModal(`<div class="mh"><h2>Updated in MASTER_DATA</h2><div class="muted small">These files were changed in the company folder after they were loaded</div></div>
        <div class="mb"><ul class="diffl">${ask.map(x=>`<li><b>${x.k==='cust'?'Customer master':'Fixed routes'}</b> — ${esc(x.n)}<br>${x.df.html}${x.k==='cust'?'<div class="muted small">Customer edits made in the planner are kept.</div>':''}</li>`).join('')}</ul></div>
        <div class="mf"><button class="btn" data-act="later" style="margin-right:auto">Not now</button><button class="btn pri" data-act="load">Load the new version${ask.length>1?'s':''}</button></div>`,
-       {onAct:a=>{ if(a==='later'){ ask.forEach(x=>{ try{ sessionStorage.setItem('rp.skip.'+x.k,x.hash); }catch(e){} }); closeModal(); if(win) openDataWindow(chain); return; }
+       {onAct:a=>{ if(a==='later'){ ask.forEach(x=>{ try{ sessionStorage.setItem('rp.skip.'+x.k,x.hash); }catch(e){} }); closeModal(); if(win) afterRef(chain); return; }
          if(a!=='load') return; let rl=false; ask.forEach(x=>{ if(x.apply()==='reload') rl=true; }); closeModal();
-         if(rl){ try{ sessionStorage.setItem('rp.msg','New customer master loaded from MASTER_DATA'); if(win) sessionStorage.setItem('rp.datawin','1'); }catch(e){} location.reload(); } else { toast('New fixed routes loaded from MASTER_DATA'); if(win) openDataWindow(chain); } }});
+         if(rl){ try{ sessionStorage.setItem('rp.msg','New customer master loaded from MASTER_DATA'); if(win) sessionStorage.setItem('rp.datawin','1'); }catch(e){} location.reload(); } else { toast('New fixed routes loaded from MASTER_DATA'); if(win) afterRef(chain); } }});
       $('modal').classList.add('wide');
       return 'stop';
     }
@@ -4605,35 +4620,20 @@ async function openDataWindow(chain){
   openModal(`<div class="mh">${companyName()?`<div class="coh">${esc(companyName())}</div>`:''}<h2>Master data &amp; reports</h2><div class="muted small">📁 ${esc(FOLDER.name)} · compared with what is loaded in the planner</div></div>
    <div class="mb"><div class="dwgrid"><div><h3 style="margin:0 0 8px;font-size:13px">Master data <span class="muted small">· MASTER_DATA</span></h3>${left}${mdNote}</div>
      <div><h3 style="margin:0 0 8px;font-size:13px">Reports <span class="muted small">· ${wk?'REPORTS › week '+wk:'REPORTS'}</span></h3>${right}</div></div></div>
-   <div class="mf">${mdOk?'':'<button class="btn" data-act="dmaster" style="margin-right:auto">Load master data</button>'}${can('edit')?'<button class="btn" data-act="dreports">📁 Load reports…</button>':''}<button class="btn pri" data-act="dgo">Continue</button></div>`,
-   {onAct:a=>{ if(a==='dgo'||a==='close'){ closeModal(); if(chain) openStartWindow(); return; } if(a==='dmaster'){ try{ sessionStorage.removeItem('rp.skip.cust'); sessionStorage.removeItem('rp.skip.fixed'); }catch(e){} closeModal(); return autoRef(true,false); }
+   <div class="mf">${chain?'<button class="btn" data-act="dback">← Go back</button>':''}${mdOk?'':'<button class="btn" data-act="dmaster" style="margin-left:8px;margin-right:auto">Load master data</button>'}<span style="flex:1"></span>${can('edit')?'<button class="btn" data-act="dreports">📁 Load reports…</button>':''}<button class="btn pri" data-act="dgo">Continue — choose the day in Home</button></div>`,
+   {onAct:a=>{ if(a==='dback') return openStartWindow(); if(a==='dgo'||a==='close'){ closeModal(); if(chain) showTab('home'); return; } if(a==='dmaster'){ try{ sessionStorage.removeItem('rp.skip.cust'); sessionStorage.removeItem('rp.skip.fixed'); }catch(e){} closeModal(); return autoRef(true,chain?'new':false); }
      if(a==='dreports') return openFolderBrowser('data'); }});
   $('modal').classList.add('wide');
 }
-// ---- v0.11.5: after the master data window: load a saved plan, or start a new week
-const NW={wk:''};
+// ---- v0.12.5: the first window after choosing the user: load a saved plan, or start a New Plan (the reports loaded, then the planner opens with no day open)
 function openStartWindow(){
   if(EMB||GATE) return;
   const edit=can('edit');
   openModal(`<div class="mh">${companyName()?`<div class="coh">${esc(companyName())}</div>`:''}<h2>What are you planning?</h2><div class="muted small">Choose how to start</div></div>
    <div class="mb"><div class="dwgrid"><button class="startcard" data-act="sload"><b>📂 Load a saved plan</b><span class="muted small">Continue a plan saved in PLANS › week_XX.</span></button>
-     ${edit?`<button class="startcard" data-act="snew"><b>🗓 New week</b><span class="muted small">Add the days of a new week, then choose its reports.</span></button>`:`<div class="startcard off"><b>🗓 New week</b><span class="muted small">Not available for your role.</span></div>`}</div></div>
-   <div class="mf"><button class="btn" data-act="sskip">Skip — start empty</button></div>`,
-   {onAct:a=>{ if(a==='sskip') return closeModal(); if(a==='sload'){ closeModal(); return openFolderBrowser('plan'); } if(a==='snew'){ NW.wk=''; return openNewWeek(); } }});
-  $('modal').classList.add('wide');
-}
-function openNewWeek(){
-  if(!guard('edit','create days')) return;
-  if(!NW.wk){ const last=DATA.days.length?DATA.days[DATA.days.length-1].date:todayStr(); NW.wk=weekStart(addDays(last,7)); }
-  const dates=[0,1,2,3,4].map(i=>addDays(NW.wk,i)); const have=dates.filter(d=>dayKeyForDate(d)).length;
-  openModal(`<div class="mh"><h2>🗓 New week</h2><div class="muted small">The days of the week are added to the planner; then you choose its reports.</div></div>
-   <div class="mb"><div class="rs-wkrow" style="justify-content:center;margin:6px 0 12px"><button class="rs-nav" data-act="nwprev" aria-label="Previous week">‹</button><b style="font-size:18px;min-width:170px;text-align:center">Week ${isoWeek(NW.wk)}</b><button class="rs-nav" data-act="nwnext" aria-label="Next week">›</button></div>
-    <div class="rs-dayrow" style="justify-content:center">${dates.map(d=>`<span class="rs-day ${dayKeyForDate(d)?'has':'none'}">${esc(dayLbl(d))}</span>`).join('')}</div>
-    <div class="note info" style="margin-top:12px">${have===5?'All five days are already in the planner.':have?`${have} of the 5 days are already in the planner; the others are added.`:'The five days are added with <b>no routes</b>: they come from each day\'s Resources.'}</div></div>
-   <div class="mf"><button class="btn" data-act="nwback" style="margin-right:auto">← Back</button><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="nwok">Create week ${isoWeek(NW.wk)} and choose reports</button></div>`,
-   {onAct:a=>{ if(a==='nwprev'){ NW.wk=addDays(NW.wk,-7); return openNewWeek(); } if(a==='nwnext'){ NW.wk=addDays(NW.wk,7); return openNewWeek(); } if(a==='nwback') return openStartWindow();
-     if(a!=='nwok') return; dates.forEach(d=>{ if(!dayKeyForDate(d) && !S.days.includes(d)) S.days.push(d); }); save(); closeModal(); afterDataChange(); showTab('plan'); selectDay(dayKeyForDate(dates[0]));
-     toast(`Week ${isoWeek(NW.wk)} added — choose its reports`); openFolderBrowser('data',{week:isoWeek(NW.wk)}); }});
+     ${edit?`<button class="startcard" data-act="snew"><b>🗓 New Plan</b><span class="muted small">See the master data and reports loaded, then open the planner and choose the day to plan.</span></button>`:`<div class="startcard off"><b>🗓 New Plan</b><span class="muted small">Not available for your role.</span></div>`}</div></div>
+   <div class="mf"><button class="btn" data-act="sback" style="margin-right:auto">← Go back</button><button class="btn" data-act="sskip">Skip — start empty</button></div>`,
+   {onAct:a=>{ if(a==='sback') return gatePicker(); if(a==='sskip') return closeModal(); if(a==='sload'){ closeModal(); return openFolderBrowser('plan'); } if(a==='snew') return openDataWindow('new'); }});
   $('modal').classList.add('wide');
 }
 

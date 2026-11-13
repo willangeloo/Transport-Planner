@@ -257,18 +257,17 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     ok(true,'Allow access goes on to “Who is planning?”'); await c3.close(); }
   // ---------- START WORKFLOW: after the master data window, load a saved plan or start a new week ----------
   { const c5=await demoContext(b,DEMO); const q=await c5.newPage(); const e5=[]; q.on('pageerror',e=>e5.push(e.message)); await q.goto('file://'+APP); ok(await enter(q,'Alex',{keepStart:true}),'Alex is at the start window');
-    ok(/Load a saved plan/.test(await q.textContent('#modal')) && /New week/.test(await q.textContent('#modal')),'start window: Load a saved plan / New week');
+    ok(/Load a saved plan/.test(await q.textContent('#modal')) && /New Plan/.test(await q.textContent('#modal')),'start window: Load a saved plan / New Plan');
     await q.click('#modal [data-act=sload]'); await q.waitForFunction(()=>/Saved plans/.test(document.getElementById('modal').textContent)); ok(/PLANS/.test(await q.textContent('#modal')) && /Saved plans/.test(await q.textContent('#modal')),'Load a saved plan shows the window of saved plans'); await q.click('#modal [data-act=close]');
     await q.evaluate(()=>{ document.getElementById('scrim').classList.remove('on'); });
-    // new week: default is the week after the last loaded one; go back to week 46 (its reports exist) and create it
-    await q.evaluate(()=>{ document.getElementById('scrim').classList.remove('on'); });
     await q.close(); await c5.close();
+    // v0.12.5: New Plan → the reports window (Go back returns), then the planner opens with no day open; the Home page lets the user pick the day
     const c6=await demoContext(b,DEMO); const r=await c6.newPage(); await r.goto('file://'+APP); await enter(r,'Alex',{keepStart:true});
-    await r.click('#modal [data-act=snew]'); await r.waitForSelector('#modal [data-act=nwok]'); const wk0=+(await r.textContent('#modal b[style*="18px"]')).replace(/\D/g,'');
-    await r.click('#modal [data-act=nwprev]'); const wk1=+(await r.textContent('#modal b[style*="18px"]')).replace(/\D/g,''); ok(wk1===wk0-1,'New week: the arrows move the week (Week '+wk0+' → '+wk1+')');
-    while(wk1!==46 && +(await r.textContent('#modal b[style*="18px"]')).replace(/\D/g,'')>46) await r.click('#modal [data-act=nwprev]');
-    await r.click('#modal [data-act=nwok]'); await r.waitForSelector('input[name=fb]');
-    ok((await r.$$eval('#pDay option',o=>o.length))===5 && /Week 46/.test(await r.textContent('#modal [data-act^="w:"].on')),'New week: its five days are in the application and the reports window opens on that week'); ok(!e5.length,'no script errors (start workflow)'); await c6.close(); }
+    ok(/Go back/.test(await r.textContent('#modal [data-act=sback]')),'the start window has a Go back button');
+    await r.click('#modal [data-act=snew]'); await r.waitForSelector('#modal [data-act=dgo]'); ok(/Master data/.test(await r.textContent('#modal')) && /Reports/.test(await r.textContent('#modal')) && await r.$('#modal [data-act=dback]'),'New Plan opens the reports loaded window (with Go back)');
+    await r.click('#modal [data-act=dback]'); await r.waitForSelector('#modal [data-act=snew]'); ok(true,'Go back returns to “What are you planning?”');
+    await r.click('#modal [data-act=snew]'); await r.waitForSelector('#modal [data-act=dgo]'); await r.click('#modal [data-act=dgo]');
+    ok((await r.$$eval('#pDay option',o=>o.filter(x=>x.value).length))===0 && await r.evaluate(()=>document.getElementById('tab-home').classList.contains('on')) && await r.$$eval('.hball:not(.none)',x=>x.length)===0,'the planner opens on Home with no planning day open (the user picks the day)'); ok(!e5.length,'no script errors (start workflow)'); await c6.close(); }
   // ---------- UPLOAD: a planning sheet (Fri) and a resources sheet (Wed) in one go ----------
   { const c7=await demoContext(b,DEMO); const r=await c7.newPage(); const e7=[]; r.on('pageerror',e=>e7.push(e.message)); await r.goto('file://'+APP); await enter(r,'Alex');
     const wedDriver=XLSX.utils.sheet_to_json(XLSX.readFile(path.join(DEMO,'REPORTS','week_46','RES_Wed.xlsx')).Sheets.Sheet1,{header:1})[1][2];
@@ -317,7 +316,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     // HOME: balloons with the totals
     await r.click('nav [data-tab=home]'); const balls=await r.$$eval('.hball',x=>x.map(e=>({cls:e.className, t:e.textContent.replace(/\s+/g,' ')})));
     ok(balls.length===5 && balls.every(x=>!/none/.test(x.cls)),'Home: the five days of week 46 are balloons with a plan open');
-    const wed=balls.find(x=>/Wed 11\.11/.test(x.t)).t; ok(['Bays','Drops','Orders','Kgs','Km','Pallets','Products','CS','EA','KEG','Uplifts'].every(w=>new RegExp(w,'i').test(wed)) && /Uplifts\s*6/.test(wed) && /CS\s*[\d,]+/.test(wed),'Home: each balloon shows bays, drops, orders, kgs, km, pallets, products (CS / EA / KEG) and uplifts — '+wed.slice(0,160));
+    const wed=balls.find(x=>/Wed 11\.11/.test(x.t)).t; ok(['Bays','Drops','Orders','Kgs','Km','Pallets','Products','CS','EA','KEG','Uplifts'].every(w=>new RegExp(w,'i').test(wed)) && /Planned\s*6/.test(wed) && /CS\s*[\d,]+/.test(wed),'Home: each balloon shows bays, drops, orders, kgs, km, pallets, products (CS / EA / KEG) and uplifts — '+wed.slice(0,160));
     await r.click('[data-hwnav="1"]'); const nxt=await r.$$eval('.hball',x=>x.map(e=>e.className)); ok(nxt.length===5 && nxt.every(c=>/none/.test(c)) && await r.evaluate(()=>{ const a=getComputedStyle(document.querySelector('.hball.none')).backgroundColor; return a!=='rgb(255, 255, 255)'; }),'Home: days with no plan (week 47) are greyed out');
     await r.click('.hball.none >> nth=0'); ok(/Open the plan for Mon 16\.11/.test(await r.textContent('#modal')),'Home: clicking a day with no plan opens the window to create it'); await r.click('#modal [data-act=close]');
     await r.click('[data-hwnav="-1"]'); await r.click('[data-hday="D2026-11-11"]'); ok(await r.evaluate(()=>document.getElementById('tab-plan').classList.contains('on')) && /Wed 11\.11/.test(await r.textContent('#dbPlan .rs-day.on')),'Home: clicking a planned day opens it in Planning');
@@ -385,7 +384,9 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
       // Thursday 08:00: the same report is uploaded again through the box — the uplifts are still outstanding after Wednesday: not done
       await r.clock.setFixedTime(new Date('2026-11-12T08:00:00')); await r.click('[data-ucv=sum]');
       await r.setInputFiles('#ucFile',path.join(DEMO,'REPORTS','week_46','UPLIFTS_Wed_AM.xlsx')); await r.waitForSelector('[data-act=add]',{timeout:20000});
-      ok(/Thu 12\.11 08:00/.test((await r.textContent('#modal')).replace(/\s+/g,' ')),'a report uploaded through the box is dated the moment of the upload (Thu 08:00), not by its name'); await r.click('[data-act=add]'); await r.waitForTimeout(900);
+      ok(/Thu 12\.11 08:00/.test((await r.textContent('#modal')).replace(/\s+/g,' ')),'a report uploaded through the box is dated the moment of the upload (Thu 08:00), not by its name');
+      const n0=await r.evaluate(()=>Object.keys(__rpUpl.state().items).length); ok(/6 already in Uplift Control — updated, not duplicated · 0 new/.test((await r.textContent('#modal')).replace(/\s+/g,' ')),'duplicate check: the orders already in Uplift Control are announced as updated, not duplicated');
+      await r.click('[data-act=add]'); await r.waitForTimeout(900); ok(await r.evaluate(()=>Object.keys(__rpUpl.state().items).length)===n0,'loading the same orders again updates them: no uplift is duplicated ('+n0+')');
       await r.click('nav [data-tab=plan]'); await r.click('.subnav [data-tab=upl]');
       const s2=await r.evaluate(()=>{ const it=Object.values(__rpUpl.state().items).filter(u=>!u.closed); return {open:it.length, att:it.map(u=>(u.att||[]).length), plan:Object.keys(__rpUpl.plan()).length}; });
       ok(s2.open===6 && s2.att.every(n=>n===1) && s2.plan===0,'still outstanding after Wednesday: the plan of each uplift is “not done” (1 attempt) and no longer planned');

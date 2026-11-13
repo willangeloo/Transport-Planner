@@ -72,7 +72,7 @@ Branch names, the PR flow and versioning are described in [CONTRIBUTING.md](CONT
 
 ## Versions
 
-There is one file name, `Route Planner.html`. The current version is **v0.12.4** (BETA). What changed in each version is in [docs/CHANGELOG.md](docs/CHANGELOG.md). The version shown in the app header comes from `APP_VERSION` in the file. Releases are tagged on `main` after merging (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+There is one file name, `Route Planner.html`. The current version is **v0.12.5** (BETA). What changed in each version is in [docs/CHANGELOG.md](docs/CHANGELOG.md). The version shown in the app header comes from `APP_VERSION` in the file. Releases are tagged on `main` after merging (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Customer master columns
 

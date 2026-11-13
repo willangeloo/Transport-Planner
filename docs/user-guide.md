@@ -47,24 +47,24 @@ The planner is **locked** when it opens. Nothing can be used, viewed or changed 
    - **⛔ Check failed:** the planner stays locked.
      - **Someone else's laptop, or no folder set for you:** there's only **← Go back**. A Master or Manager has to fix it (see below).
      - **Wrong folder linked:** **Continue — choose the folder** lets you pick the right one.
-6. **Master data & reports window.** After you continue, this window always opens (the customer master and fixed routes are read from `MASTER_DATA` first; if the folder has a changed version, the app shows what changed and asks before loading).
-   - **Left, Master data:** the customer master and fixed routes found in `MASTER_DATA`.
-   - **Right, Reports:** the DIPS Plan and RES files of the newest week in `REPORTS`.
-   - Every file has the same tag as in **Load day**: **✓ loaded** (this exact file is in the planner), **⚠ the folder has a different version**, or **not loaded**. A line under Master data says whether the planner has the version found in the folder.
-   - **Load master data** loads what is new or changed; **📁 Load reports…** opens Load day; **Continue** goes to the planner.
-   - Open it again any time from **📁 Reports › Master Data › Check master data…**.
-7. **Start window: load a plan or start a new week.** After **Continue**, choose how to start:
-   - **📂 Load a saved plan:** the window of saved plans (`PLANS › week_XX`) opens.
-   - **🗓 New week:** pick the week with ‹ › (it starts on the week after the last one in the planner), then **Create week**. The five days are added to the planner (with no routes: they come from each day's Resources) and the **reports window** opens on that week, so you can check and select the reports to import.
+6. **Start window: What are you planning?** After **Continue**, this is the first window (the customer master and fixed routes are read from `MASTER_DATA` first; if the folder has a changed version, the app shows what changed and asks before loading). **← Go back** returns to the choice of user.
+   - **📂 Load a saved plan:** the window of saved plans (`PLANS › week_XX`) opens, then the plan.
+   - **🗓 New Plan:** opens the **reports loaded** window (step 7). When you continue, the planner opens on **Home** with **no planning day open**: click the day you want to plan.
    - **Skip — start empty** goes straight to the planner (the **Home** page). Viewers can only load a plan.
+7. **Master data & reports window** (New Plan). **← Go back** returns to step 6.
+   - **Left, Master data:** the customer master and fixed routes found in `MASTER_DATA`.
+   - **Right, Reports:** the DIPS Plan, RES, Products and Uplifts files of the newest week in `REPORTS`.
+   - Every file has the same tag as in **Load day**: **✓ loaded** (this exact file is in the planner), **⚠ the folder has a different version**, or **not loaded**. A line under Master data says whether the planner has the version found in the folder.
+   - **Load master data** loads what is new or changed; **📁 Load reports…** opens Load day; **Continue — choose the day in Home** goes to the planner.
+   - Open it again any time from **📁 Reports › Master Data › Check master data…**.
 
-![Start window](img/05-start-window.png)
+![Start window](img/04-start-window.png)
 
 **Company name.** It's read from `users.json` (`company`); if the file has none, it comes from the file's name (`users_Acme.json` → **Acme**). It's shown top left next to the version, as the heading of the start windows and in 👤 → **Manage users…** (a Master can change it there).
 
 | Master data & reports | A master data file changed in the folder |
 |---|---|
-| ![Master data window](img/04-data-window.png) | ![Changed master data](img/07-data-window-changed.png) |
+| ![Master data window](img/05-data-window.png) | ![Changed master data](img/07-data-window-changed.png) |
 
 | Link the folder | Who is planning? | Checks |
 |---|---|---|
@@ -362,9 +362,14 @@ The link is **not** built into the app (this repository is public). A **Master**
 
 ## 19. Home page
 
-The planner opens on **Home**, the first tab. It shows the days of a week as **balloons** (‹ › and the week buttons change the week; it opens on this week when it is loaded).
+The planner opens on **Home**, the first tab. It shows the days of a week **one above the other**, each as a wide box (‹ › and the week buttons change the week; it opens on this week when it is loaded).
 
-- A **planned day** (a plan is open for it) shows its totals: **Bays, Drops, Orders, Kgs, Km, Pallets, Products** (**CS**, **EA**, **KEG**, from the Products report) and **Uplifts** (the uplifts planned that day, in red). Click it to open that day in Planning. Today has a coloured outline.
+- A **planned day** (a plan is open for it) shows its summary boxes. Click it to open that day in Planning. Today has a coloured outline.
+  - **Bays**, **Drops**, **Orders** — with, under Orders: **Deferred out** (orders of this day now planned for another day), **Deferred in** (orders from another day delivered on this day), **Reallocated** (orders moved to another route within the day) and **P&W** (Pink & White orders).
+  - **Kgs**.
+  - **Km** and **Pallets**, in **light grey**: they come from the Resources sheet and are not changed by the planner.
+  - **Products** — **CS** (cases), **EA** (singles), **KEG** (kegs), from the Products report.
+  - **Uplifts** — **Planned** (planned for the day) and **Complete** (completed, i.e. charged after being planned for the day).
 - A **day with no plan** is greyed out. Click it to open the window that creates the plan for that day (Master, Manager and User).
 - The line under the title adds up the week and says how many uplifts are outstanding.
 
@@ -381,7 +386,51 @@ An **uplift** is a pick-up at a customer (empty kegs, damaged stock). The **upli
 **The Uplift control workbook itself** (`Uplift_v2.5.xlsx`) can be imported too, once, to bring your history over: its `CU_Rep` sheet is the report, and the **Summary** (Bay, Reschedule, Status, First seen) and **Archive** sheets are kept as notes and archived records. Its Planning and Resources sheets are not used: load the DIPS Plan and RES files as usual.
 
 1. **Load it:** drop the file on the **box at the top of Uplift Control** (or click the box to choose it), or like the other reports (**⤒ Load day**, **📁 Reports**, **Uplift Control › 📁 From the company folder**). The **time of a report is the moment you upload it** — not the file name and not a date inside the file. You can load several at once: they are read in the order their names suggest (`_AM` before `_PM`).
-2. **The newest report decides** (script 1). An order it lists is **outstanding** (its details and Last seen are refreshed; your note stays); a new order is added with First seen = the report; an order it doesn't list any more is treated as charged: **archived** with its notes and the day and route it was planned on. If it comes back, it is restored with its notes and First seen. A report older than the newest one is kept as a record only.
+2. **No duplicated orders.** An order that is already in Uplift Control is **updated**, never added twice: the import preview says how many orders were already there (updated) and how many are new, and warns when the file repeats a line exactly. Orders are matched by Order Number.
+3. **The newest report decides** (script 1). An order it lists is **outstanding** (its details and Last seen are refreshed; your note stays); a new order is added with First seen = the report; an order it doesn't list any more is treated as charged: **archived** with its notes and the day and route it was planned on. If it comes back, it is restored with its notes and First seen. A report older than the newest one is kept as a record only.
+4. **Matched with the deliveries** (script 2). An outstanding uplift is matched with **every loaded planning day** where the customer has a delivery — by **Ship To**, or by the **customer's address** (same Eircode / postal code, or same address, under another Ship To; shown as *same address*). It doesn't matter which day of planning is loaded, because you approve each one. The match suggested in the summary is the customer's first delivery from the report on (a morning report = that day, an afternoon report = the next day), else the latest one loaded. A match is only a **proposal**: the uplift stays **Not Planned** until you **confirm** it in **Uplift Control › Planned days**. Only a match **today or later** is flagged *to confirm* (and only in Planned days); deliveries of days that have passed are not proposed. Then it is planned with that delivery (tag **Auto**) and follows it if the delivery is moved to another route on that day. If the customer has no delivery on the loaded days, there is no match.
+5. **Allocate by hand.** Any outstanding uplift can be put on **any route of any loaded day**: **Allocate** in Uplift Control, in the uplift's map popup, or on an *uplift only* stop (tag **Manual · your name**). **Back to automatic** removes it (its match is then to confirm again). Allocating and confirming need the Master, Manager or User role.
+
+Only **planned** uplifts (confirmed or manual) are shown in Planning, Printing › Uplift, the Change report and on Home.
+
+**Planning.** The left side shows the day buttons with the **search box** under them (as wide as the buttons), and the routes / drops / kg boxes with **Show on map** under them, so **Routes & orders** starts higher. The whole left side scrolls as one page. The route list has an **UPLIFT** column between **Orders** and **Kg**: the uplift numbers, in red, on the customer's drop. Like the orders, several numbers of one customer are separated by commas, **at most 3 per line**. An uplift put on a route that doesn't deliver that customer is an **uplift only** stop on that route. Each route counts its uplifts. On the map, uplifts are small **triangles** next to the customer, drawn **under** the delivery dots (the dots stay on top; a triangle can be clicked where no dot covers it). Two buttons under the bay buttons in *Show on map* show or hide them:
+- **▲ Uplifts (x)**: x = every uplift outstanding (the same number on every day). Their triangles are grey (dashed) unless planned on the day shown. Dark grey in the light theme, light grey in the dark theme.
+- **▲ Planned CU (x)**: x = the uplifts planned on the day shown; triangles in the route's colour.
+
+Click a triangle for the details, **Confirm with this delivery**, **Allocate to a route…** or the history.
+
+**Uplift Control** is a sub heading of **Planning** (Planning › Uplift Control). It has two views:
+
+- **Uplift summary** (opens first): one row per uplift order with **Uplift Order**, **Customer Name** (Ship To and bay; no address), **Status** (the report's Next Status), **Value**, **Route** (bay and driver when planned, just **Not Planned** when not), **Day Planned** (a button that opens the day in Planning, with a tag below: **Auto** when a match was confirmed, **Manual · name** when allocated by hand; Auto shows no name), **Attempt** (1st, 2nd, 3rd… and the days that were not done), **First seen**, **Last seen**, **Comments** (the last comment of the history, with who and when), the **(i)** button and **Allocate**. The boxes on top filter it (outstanding, to confirm, not planned, planned auto / manual, completed, all). **Reports loaded** lists each report with how many uplifts were new or completed.
+- **Attempts.** An uplift planned for a day but still in a **newer report** after that day (or put on another day by the planner: **Allocate** / **Confirm**) was **not done**: the plan goes to its historic (*Not done on Wed 11.11 (1st attempt)*), the day shows it as **not done** in Planned days, and the next plan is the **2nd attempt** (then 3rd…). The attempt is shown in the **Attempt** column, in the Change report and, in **Printing › Uplift**, as a **2nd attempt** tag in the list and on the route cover, so the driver knows it is a repeat.
+- **Product lines:** the **›** button under an order number opens its product lines (Ln Ty, product, description, amount); press it again (▾) to close them. The same in Planned days.
+- **Planned days** (the same week and day buttons as the other tabs): a day lists the deliveries that match an outstanding uplift — uplift, customer, route, driver and the delivery's orders. Tick some and **Confirm selected**, or **Confirm all**; each row also has **Confirm** (and **Unconfirm** once confirmed). Only after confirming is the uplift planned (Auto). **An uplift stays on its day:** when it is charged the line shows **completed**, and when it was **not done** (see Attempts) it shows **not done**; only the status changes. The **boxes** on top (to confirm, confirmed · auto, manual, completed, not done, all) filter the list, and every line has the **(i)** historic button and an **Attempt** column.
+- **(i)** opens the **history** of the order: a snapshot each time a report showed it new or changed (status, value, shipment, lines, file), when it was archived or came back, allocations and confirmations (who and when), and the **comments**. Type a comment and **Add comment**: it becomes the order's last comment (the Comments column, and the Status column of the workbook export).
+- **🖨 Printing › Uplift** takes you to the uplift dockets: upload the PDF there, and the app organises it with a front page (cover) per route.
+- **⤓ Export Excel** writes **Summary** and **Archive** sheets in the layout of the Uplift control workbook (**Bay** = route - driver + helper, e.g. `BAY 01 - Driver 21 + Helper 21`, **Reschedule** = the day planned, Status = your note, First seen, Last seen; Archive with Comments and Archived on).
+
+**Printing › Uplift** organises the **uplift dockets** of the day like the deliveries. This section is only on the **Uplift** screen (not under Delivery or Reprint a Docket).
+
+1. **Import the uplift docket PDF** printed by JDE (*DELIVERY DOCKET … REPRINT … \*\*\*UPLIFT\*\*\**, one page per uplift order): **📁 Choose from CHECK_SHEETS › UPLIFTS** or drop it on the box. An uplift PDF dropped in **Delivery** is sent here instead, so dockets and check sheets are never mixed.
+2. **Each docket is matched with the uplifts report** by its **Order No**, and checked: **Load No** = Shipment Number, **Customer Number** = Ship To, **Customer PO** and the **product codes**. The table shows **where to collect** it (day and route, e.g. `Wed 11.11 · BAY 02 - Driver 22 + Helper 22`), and flags a docket that isn't in the report, one already completed, one not planned, or a detail that differs (⚠).
+3. **Organise uplift PDF:** one cover per route in the order of the day's plan, then each uplift's **original JDE page**; an uplift with no page in the imported PDFs gets a docket made by the planner (customer, address, products, boxes for the quantity collected and the signatures). Check the preview, then **Print** or **Download**. It is a PDF of its own and is saved in **CHECK_SHEETS › Organised** as `date_time_user_UPLIFTS.pdf`.
+
+**Reprint a Docket** also finds the uplift dockets: type the order number, the customer number or part of the name; uplift dockets are tagged **UPLIFT**.
+
+**Change report › Uplifts planned** lists the uplifts planned for the chosen day (see [section 12](#12-change-report-and-exporting-changes)).
+
+| Uplift Control › Planned days: confirm the matches | Planning: UPLIFT column and triangles | Uplift Control › summary |
+|---|---|---|
+| ![Planned days](img/34-uplift-days.png) | ![Planning with uplifts](img/36-plan-uplifts.png) | ![Uplift Control](img/37-uplift-control.png) |
+
+| Allocate by hand | Uplift dockets matched with the report |
+|---|---|
+| ![Allocate an uplift](img/38-uplift-allocate.png) | ![Uplift dockets](img/39-uplift-dockets.png) |
+
+| Printing › Uplift | Change report |
+|---|---|
+| ![Organised uplift PDF](img/40-print-uplift.png) | ![Uplifts planned](img/41-report-uplifts.png) |
+ An order it lists is **outstanding** (its details and Last seen are refreshed; your note stays); a new order is added with First seen = the report; an order it doesn't list any more is treated as charged: **archived** with its notes and the day and route it was planned on. If it comes back, it is restored with its notes and First seen. A report older than the newest one is kept as a record only.
 3. **Matched with the deliveries** (script 2). An outstanding uplift is matched with **every loaded planning day** where the customer has a delivery — by **Ship To**, or by the **customer's address** (same Eircode / postal code, or same address, under another Ship To; shown as *same address*). It doesn't matter which day of planning is loaded, because you approve each one. The match suggested in the summary is the customer's first delivery from the report on (a morning report = that day, an afternoon report = the next day), else the latest one loaded. A match is only a **proposal**: the uplift stays **Not Planned** until you **confirm** it in **Uplift Control › Planned days**. Only a match **today or later** is flagged *to confirm* (and only in Planned days); deliveries of days that have passed are not proposed. Then it is planned with that delivery (tag **Auto**) and follows it if the delivery is moved to another route on that day. If the customer has no delivery on the loaded days, there is no match.
 4. **Allocate by hand.** Any outstanding uplift can be put on **any route of any loaded day**: **Allocate** in Uplift Control, in the uplift's map popup, or on an *uplift only* stop (tag **Manual · your name**). **Back to automatic** removes it (its match is then to confirm again). Allocating and confirming need the Master, Manager or User role.
 

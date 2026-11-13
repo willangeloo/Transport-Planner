@@ -4,6 +4,15 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.12.5 — 2026-11-13
+
+### Features
+- **Home:** the days are one above the other, each as wide as the page. New summary boxes: under **Orders** — Deferred out, Deferred in, Reallocated and P&W; **Km** and **Pallets** in light grey (fed from Resources, not changed by the planner); **Uplifts** — Planned and Complete.
+- **Uplift Control:** duplicate check. An order already in Uplift Control is updated, not duplicated; the import preview and the log say how many were updated / new and warn about lines repeated exactly in the file.
+
+### Edits
+- **Start workflow:** after choosing the user the first window is **What are you planning?** (it was after the reports window). It has a **← Go back** button (to the choice of user). **New week** is now **New Plan**: it opens the master data & reports window (with **← Go back**) and then the planner opens on Home with **no planning day open**; the user picks the day. (The old week-creating window is gone.)
+
 ## v0.12.4 — 2026-11-13
 
 ### Features
