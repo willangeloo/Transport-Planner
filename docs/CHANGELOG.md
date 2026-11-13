@@ -4,6 +4,14 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.12.6 — 2026-11-13
+
+### Bug fixes
+- **Uplifts planned for a day were listed twice** (Planned days; seen in a snapshot: 29 uplifts, 58 lines on Friday). A report loaded on Friday afternoon marked Friday's plan as *not done*; the planner then confirmed Friday again, so the day held a 1st and a 2nd attempt. Now:
+  - an uplift is only *not done* when the report is from a **later day** than the one it was planned for (a report of the same afternoon still lists what is being collected today);
+  - the **1st and 2nd attempt can never be on the same day**: a day that was *not done* is not offered again (no match to confirm, Allocate refuses it);
+  - plans saved with the old mistake are **repaired** when opened: the wrong *not done* mark is removed and the history says so (both lines stay in the history).
+
 ## v0.12.5 — 2026-11-13
 
 ### Features

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.12.5</title>
+<title>Route Planner BETA v0.12.6</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -596,7 +596,7 @@ html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.5</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.6</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="home" class="on">Home</button>
     <button data-tab="plan">Planning</button>
@@ -2012,7 +2012,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.12.5';
+const APP_VERSION='0.12.6';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2236,7 +2236,12 @@ function uplHist(u, what, extra){ (u.hist=u.hist||[]).push(Object.assign({ts:new
 // delivery to the same address under another Ship To number
 const normKey = v => String(v||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
 function addrKey(ship, fallback){ const c=custMap[ship]; const pc=normKey(c&&c.pc); if(pc.length>=5) return 'pc:'+pc; const a=normKey((c&&c.addr)||fallback); return a.length>=6?'ad:'+a:''; }
+// v0.12.6: the 1st and the 2nd attempt can never be on the same day. A “not done” mark on the very day the uplift is (again) planned or completed was a mistake of v0.12.4
+// (a report of that afternoon): the mark is removed — the history keeps both lines — and the day is not duplicated in Planned days.
+function uplRepair(){ const U=uplState(); Object.values(U.items).forEach(u=>{ if(!u.att||!u.att.length) return; const pc=U.man[u.no]||U.conf[u.no], cd=pc?pc.date:(u.closed&&u.closed.planned!==false?u.closed.date:'');
+  if(!cd || !u.att.some(a=>a.date===cd)) return; u.att=u.att.filter(a=>a.date!==cd); uplHist(u,`“Not done” on ${dayLbl(cd)} removed — the uplift is planned that same day again (1st and 2nd attempt can't be on the same day)`,{date:cd}); }); }
 function uplCalc(){
+  uplRepair();
   const out={}, prop={}, matches={}, bySh={}, byAd={}, today=todayStr();
   Object.values(ORD).forEach(o=>{ const c=curOf(o.uid); const d=dayMap[c.day]; if(!d) return; const ld=c.load||'';
     const put=(m,k)=>{ if(!k) return; const day=(m[d.date]=m[d.date]||{}); const ls=(day[k]=day[k]||[]); if(!ls.some(x=>x.load===ld&&x.ship===o.s)) ls.push({load:ld, ship:o.s}); };
@@ -2247,7 +2252,7 @@ function uplCalc(){
     const k=addrKey(u.ship); const a=k&&(byAd[date]||{})[k]; if(a&&a.length){ const x=a.find(y=>y.load)||a[0]; return {date, load:x.load||null, how:'addr', ship2:x.ship}; } return null; };
   uplOpenList().forEach(u=>{
     const msAll=dates.map(dt=>matchOn(u,dt)).filter(Boolean).map(m=>Object.assign({no:u.no, day:dayKeyForDate(m.date), manual:false, prop:true},m));
-    const ms=msAll.filter(m=>m.date>=today); matches[u.no]=ms;   // v0.12.3: only a match today or later is flagged “to confirm”
+    const nd=new Set((u.att||[]).map(a=>a.date)); const ms=msAll.filter(m=>m.date>=today && !nd.has(m.date)); matches[u.no]=ms;   // v0.12.6: a day already not done is not offered again   // v0.12.3: only a match today or later is flagged “to confirm”
     const man=S.upl.man[u.no];
     if(man){ const k=dayKeyForDate(man.date); out[u.no]={no:u.no, date:man.date, day:k, load:man.load||null, manual:true, by:man.by||''}; return; }
     const cf=S.upl.conf[u.no], cm=cf&&msAll.find(m=>m.date===cf.date);
@@ -2260,7 +2265,7 @@ function uplCalc(){
 function uplConfirm(nos, on, date){
   if(!guard('edit','confirm uplifts')) return 0; const cc=uplCalc(), pr=cc.prop, pl=cc.plan; let n=0;
   nos.forEach(no=>{ const u=S.upl.items[no]; if(!u||u.closed) return;
-    if(on){ const x=date?(cc.matches[no]||[]).find(m=>m.date===date):pr[no]; if(!x) return; const old=pl[no]; if(old && old.date!==x.date){ uplMiss(u,old,'moved to another day'); delete S.upl.man[no]; } S.upl.conf[no]={date:x.date, by:FOLDER.user||'', ts:new Date().toISOString()}; uplHist(u,'Allocation confirmed (auto)',{date:x.date, route:x.day&&x.load?uplBayTxt(x):''}); n++; }
+    if(on){ const x=date?(cc.matches[no]||[]).find(m=>m.date===date):pr[no]; if(!x) return; if((u.att||[]).some(a=>a.date===x.date)) return; const old=pl[no]; if(old && old.date!==x.date){ uplMiss(u,old,'moved to another day'); delete S.upl.man[no]; } S.upl.conf[no]={date:x.date, by:FOLDER.user||'', ts:new Date().toISOString()}; uplHist(u,'Allocation confirmed (auto)',{date:x.date, route:x.day&&x.load?uplBayTxt(x):''}); n++; }
     else { if(!S.upl.conf[no]) return; const x=pl[no]; delete S.upl.conf[no]; uplHist(u,'Confirmation removed',{date:x?x.date:'', route:x&&x.day&&x.load?uplBayTxt(x):''}); n++; } });
   if(n) uplChanged(); return n;
 }
@@ -2350,8 +2355,8 @@ function uplApply(rep){
     Object.assign(u,{ship:x.ship, name:x.name, reason:x.reason||'', raised:x.raised||u.raised||null, lines:x.lines, lastAt:rep.at, lastFile:rep.file, po:x.po||'', shipment:x.shipment||'', status:x.status!=null?x.status:null, value:x.value!=null?x.value:null});
     if(!what && old!==JSON.stringify([u.status,u.value,u.shipment,(u.lines||[]).length])) what='Changed in the report';
     if(what) snap(u,what);
-    // v0.12.4: still outstanding after the day it was planned for (the report is later than that day's routes) = not done: the plan goes to the historic
-    const pc=S.upl.man[u.no]||S.upl.conf[u.no]; if(pc && pc.date && pc.date<uplFrom(u)){ uplMiss(u, bc.plan[u.no]||{date:pc.date, manual:!!S.upl.man[u.no], by:pc.by}, 'still outstanding in the report of '+fmtAt(rep.at)); delete S.upl.man[u.no]; delete S.upl.conf[u.no]; rec.missed=(rec.missed||0)+1; } });
+    // v0.12.4: still outstanding after the day it was planned for = not done: the plan goes to the historic. v0.12.6: only when the report is from a LATER day (a report of the same afternoon still lists what was collected today)
+    const pc=S.upl.man[u.no]||S.upl.conf[u.no]; if(pc && pc.date && pc.date<rep.at.slice(0,10)){ uplMiss(u, bc.plan[u.no]||{date:pc.date, manual:!!S.upl.man[u.no], by:pc.by}, 'still outstanding in the report of '+fmtAt(rep.at)); delete S.upl.man[u.no]; delete S.upl.conf[u.no]; rec.missed=(rec.missed||0)+1; } });
   Object.values(U.items).forEach(u=>{ if(u.closed || seen.has(u.no)) return; const p=before[u.no];
     u.closed={at:rep.at, file:rep.file, date:p?p.date:'', load:p?p.load:'', route:p?uplRouteTxt(p):'', driver:p&&p.day&&p.load?loadInfo(p.day,p.load).driver:'', truck:p&&p.day&&p.load?loadInfo(p.day,p.load).truck:'', manual:!!(p&&p.manual), planned:!!(bc.plan[u.no])};
     delete U.man[u.no]; delete U.conf[u.no]; snap(u,'Not in the report any more — archived (charged)'); rec.closed++; });
@@ -3010,6 +3015,7 @@ function openUplAlloc(no){
       <div><label>Route</label><select id="uaLoad">${v.routes.filter(r=>!r.deferred).map(r=>{ const has=r.drops.some(d=>d.ship===u.ship); return `<option value="${esc(r.id)}" ${x&&x.day===dk&&String(x.load)===String(r.id)?'selected':''}>${esc(r.name)} — ${esc(r.load.driver||'no driver')}${has?' · delivers this customer':''}</option>`; }).join('')||'<option value="">No routes on this day</option>'}</select></div></div>
      <div class="mf">${x&&x.manual?'<button class="btn" data-act="auto" style="margin-right:auto">Back to automatic</button>':''}<button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok" ${v.routes.some(r=>!r.deferred)?'':'disabled'}>Allocate</button></div>`,
      {onAct:a=>{ if(a==='auto'){ uplSetAuto(no); closeModal(); return; } if(a!=='ok') return; const ld=$('uaLoad').value; if(!ld) return;
+       if((u.att||[]).some(a=>a.date===dayMap[dk].date)){ toast(`Uplift ${no} was not done on ${dayMap[dk].label}: choose another day (1st and 2nd attempt can't be on the same day)`); return; }
        if(x && x.date!==dayMap[dk].date){ uplMiss(u,x,'allocated to another day'); delete S.upl.conf[no]; }
        S.upl.man[no]={date:dayMap[dk].date, load:ld, by:FOLDER.user||'', ts:new Date().toISOString()}; (u.hist=u.hist||[]).push({ts:new Date().toISOString(), by:FOLDER.user||'', what:`Allocated by hand to ${dayMap[dk].label} · ${routeName(dk,ld)}`});
        closeModal(); uplChanged(); toast(`Uplift ${no} allocated to ${dayMap[dk].label} · ${routeName(dk,ld)}`); }});
