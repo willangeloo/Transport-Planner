@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Route Planner BETA v0.12.3</title>
+<title>Route Planner BETA v0.12.4</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -553,7 +553,16 @@ html[data-theme=dark] .uplbtn{background:#cbd5e1;color:#111827;border-color:#e2e
 html[data-theme=dark] .uplbtn.off{background:transparent;color:#cbd5e1}
 .upl-ic{background:none!important;border:0!important}.upl-ic svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
 .legend .tri{width:0!important;height:0!important;border-radius:0!important;background:none!important;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #4b5563}
-.uc-tbl td{vertical-align:top}.uc-tg{border:1px solid var(--line);background:var(--card,#fff);color:var(--muted);border-radius:6px;font-size:11px;padding:0 6px;margin-top:3px;cursor:pointer}.uc-tg.on{color:var(--ink);border-color:var(--muted)}
+.uc-tbl td{vertical-align:top}
+#tab-upl .rep{max-width:none;padding:18px clamp(12px,2vw,32px)}
+#tab-upl .rep .card{overflow-x:auto}
+#tab-upl .uc-tbl{min-width:900px}
+#tab-upl .uc-cm{max-width:clamp(160px,18vw,420px)}
+#tab-upl .uc-miss td{background:rgba(209,26,42,.05)}
+.att-flag{font-size:10.5px}
+.kpi.click{cursor:pointer}
+@media (max-width:900px){ #tab-upl .rep{padding:12px} }
+.uc-tg{border:1px solid var(--line);background:var(--card,#fff);color:var(--muted);border-radius:6px;font-size:11px;padding:0 6px;margin-top:3px;cursor:pointer}.uc-tg.on{color:var(--ink);border-color:var(--muted)}
 .uc-lines>td{background:var(--soft,#fafbfc);padding-top:0}.uc-ltbl{width:100%;font-size:12px;border-collapse:collapse}.uc-ltbl th,.uc-ltbl td{padding:3px 8px;border-bottom:1px solid var(--line)}.uc-cm{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ibtn{border:0;background:none;color:var(--ink);cursor:pointer;padding:2px;border-radius:50%;line-height:0}.ibtn:hover{background:var(--hover,#eef1f4)}.ibtn .info-ic{display:block}
 .uplrow .uplbtn.pl{background:#1f2937}.uplrow .uplbtn.pl.off{background:transparent;color:#1f2937} html[data-theme=dark] .uplrow .uplbtn.pl{background:#e5e7eb;color:#111827} html[data-theme=dark] .uplrow .uplbtn.pl.off{background:transparent;color:#e5e7eb}
@@ -585,7 +594,7 @@ html[data-theme=dark] .hball.none{background:#0a1016;color:#6b7c8c;border-color:
 </head>
 <body>
 <header>
-  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.3</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
+  <div class="brandwrap"><div class="brand">Route Planner <span class="tag">BETA v0.12.4</span><span class="co" id="coName" hidden></span></div><div class="lineage" id="lineage"></div></div>
   <nav>
     <button data-tab="home" class="on">Home</button>
     <button data-tab="plan">Planning</button>
@@ -2001,7 +2010,7 @@ const DATA = {customers:[], days:[]};   // customers come from MASTER_DEL_DETAIL
 <script>
 (function(){
 'use strict';
-const APP_VERSION='0.12.3';
+const APP_VERSION='0.12.4';
 // Pristine copy of this page (taken before the app touches the page) — used to write snapshot files.
 const PRISTINE = (()=>{ const c=document.documentElement.cloneNode(true); const e=c.querySelector('#embeddedPlan'); if(e) e.remove(); return '<!doctype html>\n'+c.outerHTML; })();
 let EMB=null; try{ const el=document.getElementById('embeddedPlan'); if(el) EMB=JSON.parse(el.textContent); }catch(e){ EMB=null; }
@@ -2214,6 +2223,12 @@ function uplFrom(u){ const at=u.lastAt||''; let d=at.slice(0,10); if(d && +at.sl
 // uplCalc() → {plan:{no:{date, day, load, manual, by}}, prop:{no:{date, day, load}}}
 function uplPlan(){ return uplCalc().plan; }
 function uplProposals(){ return uplCalc().prop; }
+// v0.12.4: attempts. A plan that was not carried out (the uplift is still in a newer report, or the planner moved it to another day) is kept in u.att
+// as "not done"; the plan in force is attempt att.length+1.
+const ordinal = n => n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th';
+const uplAttNo = u => ((u&&u.att)||[]).length+1;
+function uplMiss(u, x, why){ const route=x.day&&x.load?uplBayTxt(x):(x.route||''); (u.att=u.att||[]).push({date:x.date, load:x.load||'', route, manual:!!x.manual, by:x.by||'', ts:new Date().toISOString(), why});
+  uplHist(u,`Not done on ${dayLbl(x.date)} (${ordinal(u.att.length)} attempt) — ${why}`,{date:x.date, route}); }
 function uplHist(u, what, extra){ (u.hist=u.hist||[]).push(Object.assign({ts:new Date().toISOString(), by:FOLDER.user||'', what}, extra||{})); if(u.hist.length>300) u.hist.splice(0,u.hist.length-300); }
 // v0.12.2: the customer's address key — the Eircode / postal code when there is one, else the address — so an uplift also matches a
 // delivery to the same address under another Ship To number
@@ -2243,7 +2258,7 @@ function uplCalc(){
 function uplConfirm(nos, on, date){
   if(!guard('edit','confirm uplifts')) return 0; const cc=uplCalc(), pr=cc.prop, pl=cc.plan; let n=0;
   nos.forEach(no=>{ const u=S.upl.items[no]; if(!u||u.closed) return;
-    if(on){ const x=date?(cc.matches[no]||[]).find(m=>m.date===date):pr[no]; if(!x) return; S.upl.conf[no]={date:x.date, by:FOLDER.user||'', ts:new Date().toISOString()}; uplHist(u,'Allocation confirmed (auto)',{date:x.date, route:x.day&&x.load?uplBayTxt(x):''}); n++; }
+    if(on){ const x=date?(cc.matches[no]||[]).find(m=>m.date===date):pr[no]; if(!x) return; const old=pl[no]; if(old && old.date!==x.date){ uplMiss(u,old,'moved to another day'); delete S.upl.man[no]; } S.upl.conf[no]={date:x.date, by:FOLDER.user||'', ts:new Date().toISOString()}; uplHist(u,'Allocation confirmed (auto)',{date:x.date, route:x.day&&x.load?uplBayTxt(x):''}); n++; }
     else { if(!S.upl.conf[no]) return; const x=pl[no]; delete S.upl.conf[no]; uplHist(u,'Confirmation removed',{date:x?x.date:'', route:x&&x.day&&x.load?uplBayTxt(x):''}); n++; } });
   if(n) uplChanged(); return n;
 }
@@ -2257,8 +2272,10 @@ const by3 = (arr, f) => { const out=[]; for(let i=0;i<arr.length;i+=3) out.push(
 const uplNoHtml = nos => by3(nos, n=>`<span class="upl-no">${esc(n)}</span>`);
 function uplRouteTxt(x){ if(!x) return ''; if(!x.day) return 'day not loaded'; if(!x.load) return 'not on a route yet'; return loadMap[x.day+'|'+x.load] ? routeName(x.day,x.load) : 'Load '+x.load+' (not on the day)'; }
 function uplWhenTxt(x){ return x ? (x.day?dayLabel(x.day):dayLbl(x.date)+' (not loaded)') : ''; }
-// the time of a report: from its name (…_AM = 08:00, …_PM = 15:00, or a time like 0800 / 14h30), else when the file was saved
-function uplReportAt(name, week, mod){
+// v0.12.4: the time of a report is the moment it is uploaded (loaded into the planner) — not the file name, not the date inside the file
+function uplReportAt(){ const n=new Date(), z=x=>String(x).padStart(2,'0'); return ymd(n.getFullYear(),n.getMonth()+1,n.getDate())+'T'+z(n.getHours())+':'+z(n.getMinutes()); }
+// only to put reports loaded in the same batch in order (the time a name suggests: …_AM = 08:00, …_PM = 15:00); it is never the time of the report
+function uplNameAt(name, week, mod){
   const s=String(name).replace(/\.[a-z]+$/i,'').replace(/(^|[^a-z])v\d+(\.\d+)+/ig,'$1'); const nd=nameDate(s, week); let hm=null;   // "Uplift_v2.5" is a version, not a date
   const ap=s.match(/(?:^|[^A-Z])(AM|PM)(?:[^A-Z]|$)/i); if(ap) hm=ap[1].toUpperCase()==='AM'?'08:00':'15:00';
   const ts=[...s.matchAll(/(?:^|[_ -])([01]\d|2[0-3])[:h.]?([0-5]\d)(?=$|[_ -])/ig)].filter(t=>!(t.index===0 && /^\d{1,2}\.\d{1,2}\s*-\s*[a-z]{3}\b/i.test(s))); const t=ts[ts.length-1]; if(t) hm=t[1]+':'+t[2];   // the last time in the name (not the MM.DD at the start)
@@ -2297,7 +2314,7 @@ function parseUplControl(wb){
 }
 function parseUplifts(f){
   for(const n of f.wb.SheetNames){ const rows=sheetRows(f.wb.Sheets[n]); const ch=cuHeader(rows);
-    if(ch){ const r=parseCuRep(rows,ch); return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(f.name,f.week,f.mod), items:r.items, lines:r.lines, skipped:r.skipped, sheet:n, cu:true, control:parseUplControl(f.wb)}; }
+    if(ch){ const r=parseCuRep(rows,ch); return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(), nameAt:uplNameAt(f.name,f.week,f.mod), items:r.items, lines:r.lines, skipped:r.skipped, sheet:n, cu:true, control:parseUplControl(f.wb)}; }
     const h=uplHeader(rows); if(!h) continue;
     const col=(...ks)=>{ for(const k of ks) if(h.idx[k]!=null) return h.idx[k]; return null; }, gv=(r,c)=>c==null?null:r[c];
     const cNo=col('UPLIFT NUMBER','UPLIFT ORDER NUMBER','UPLIFT NO','UPLIFT'), cShip=col('SHIP TO','ADDRESS NUMBER SHIP TO'), cName=col('NAME','SHIP TO NAME','CUSTOMER NAME','CUSTOMER'),
@@ -2307,7 +2324,7 @@ function parseUplifts(f){
       const no=toId(gv(r,cNo))||('U'+ship+(prod?'-'+prod:'')); lines++;
       const it=items[no]||(items[no]={no, ship, name:cleanStr(gv(r,cName))||((custMap[ship]||{}).name)||ship, reason:cleanStr(gv(r,cReason))||'', raised:parseDateCell(gv(r,cRaised)), lines:[]});
       it.lines.push({product:prod, desc:cleanStr(gv(r,cDesc))||'', qty:toNum(gv(r,cQty))}); });
-    return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(f.name,f.week,f.mod), items:Object.values(items), lines};
+    return {file:f.name, path:f.path||'', hash:f.hash||'', at:uplReportAt(), nameAt:uplNameAt(f.name,f.week,f.mod), items:Object.values(items), lines};
   }
   return null;
 }
@@ -2318,6 +2335,7 @@ function uplApply(rep){
   U.reports=U.reports.filter(r=>!(r.file===rep.file && r.hash===rep.hash));
   if(latest && rep.at<latest){ rec.old=true; U.reports.push(rec); return rec; }
   const bc=uplCalc(), before=Object.assign({}, bc.prop, bc.plan); const seen=new Set();
+
   const snap=(u,what)=>{ (u.hist=u.hist||[]).push({ts:rep.at, by:FOLDER.user||'', what, file:rep.file, kind:'report', status:u.status, value:u.value, shipment:u.shipment||'', lines:(u.lines||[]).length}); };
   rep.items.forEach(x=>{ seen.add(x.no); let u=U.items[x.no], what='';
     if(!u){ u=U.items[x.no]={no:x.no, firstAt:rep.at, firstFile:rep.file, hist:[]}; rec.added++; what='First seen in the report'; }
@@ -2325,9 +2343,11 @@ function uplApply(rep){
     const old=JSON.stringify([u.status,u.value,u.shipment,(u.lines||[]).length]);
     Object.assign(u,{ship:x.ship, name:x.name, reason:x.reason||'', raised:x.raised||u.raised||null, lines:x.lines, lastAt:rep.at, lastFile:rep.file, po:x.po||'', shipment:x.shipment||'', status:x.status!=null?x.status:null, value:x.value!=null?x.value:null});
     if(!what && old!==JSON.stringify([u.status,u.value,u.shipment,(u.lines||[]).length])) what='Changed in the report';
-    if(what) snap(u,what); });
+    if(what) snap(u,what);
+    // v0.12.4: still outstanding after the day it was planned for (the report is later than that day's routes) = not done: the plan goes to the historic
+    const pc=S.upl.man[u.no]||S.upl.conf[u.no]; if(pc && pc.date && pc.date<uplFrom(u)){ uplMiss(u, bc.plan[u.no]||{date:pc.date, manual:!!S.upl.man[u.no], by:pc.by}, 'still outstanding in the report of '+fmtAt(rep.at)); delete S.upl.man[u.no]; delete S.upl.conf[u.no]; rec.missed=(rec.missed||0)+1; } });
   Object.values(U.items).forEach(u=>{ if(u.closed || seen.has(u.no)) return; const p=before[u.no];
-    u.closed={at:rep.at, file:rep.file, date:p?p.date:'', load:p?p.load:'', route:p?uplRouteTxt(p):'', driver:p&&p.day&&p.load?loadInfo(p.day,p.load).driver:'', truck:p&&p.day&&p.load?loadInfo(p.day,p.load).truck:'', manual:!!(p&&p.manual)};
+    u.closed={at:rep.at, file:rep.file, date:p?p.date:'', load:p?p.load:'', route:p?uplRouteTxt(p):'', driver:p&&p.day&&p.load?loadInfo(p.day,p.load).driver:'', truck:p&&p.day&&p.load?loadInfo(p.day,p.load).truck:'', manual:!!(p&&p.manual), planned:!!(bc.plan[u.no])};
     delete U.man[u.no]; delete U.conf[u.no]; snap(u,'Not in the report any more — archived (charged)'); rec.closed++; });
   if(rep.control) rec.notes=uplControlApply(rep.control, rep);
   U.reports.push(rec); return rec;
@@ -2451,9 +2471,9 @@ function uplExportWorkbook(){
   XLSX.writeFile(wb,`Uplift_${todayStr()}.xlsx`); toast(`Exported Uplift_${todayStr()}.xlsx (Summary ${sum.length-1} · Archive ${arc.length-1})`);
 }
 // ---------- Uplift Control (v0.12.0): every uplift outstanding and the records of completed ones, with the day and route planned ----------
-const UC={view:'sum', f:'open', q:'', day:null, sel:new Set(), open:new Set()};
+const UC={view:'sum', f:'open', df:'all', q:'', day:null, sel:new Set(), open:new Set()};
 const ucDayKey = () => (UC.day && dayMap[UC.day]) ? UC.day : (dayMap[P.day] ? P.day : (DATA.days[0]?DATA.days[0].key:null));
-function ucCust(u){ const c=custMap[u.ship]; return `<b>${esc(u.name)}</b><div class="muted">${esc(u.ship)}${c&&c.addr?' · '+esc(c.addr):''}${c&&c.bay?' · '+esc(c.bay):''}</div>`; }
+function ucCust(u){ const c=custMap[u.ship]; return `<b>${esc(u.name)}</b><div class="muted">${esc(u.ship)}${c&&c.bay?' · '+esc(c.bay):''}</div>`; }   // v0.12.4: no address in the uplift lists
 // v0.12.2: the (i) icon (an italic i in a circle, drawn here — currentColor, so it follows the theme)
 const INFO_SVG='<svg class="info-ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="13.4" cy="6.9" r="1.55" fill="currentColor"/><path d="M10.2 10.6h3.4l-1.9 6.3c-.25.85.45 1.05 1.2.45l.75-.6.35.45c-1.35 1.35-2.4 1.85-3.45 1.85-1.2 0-1.75-.8-1.4-2.1l1.4-4.9h-1.2z" fill="currentColor"/></svg>';
 const infoBtn = no => `<button class="ibtn" data-uact="hist" data-no="${esc(no)}" title="History of order ${esc(no)}" aria-label="History of ${esc(no)}">${INFO_SVG}</button>`;
@@ -2462,16 +2482,21 @@ function ucComment(u){ if(!u.note) return '<span class="muted">—</span>'; cons
 // v0.12.3: the product lines of an order open under it (› under the order number; press again to close)
 const ucToggle = u => `<div><button class="uc-tg ${UC.open.has(u.no)?'on':''}" data-uctg="${esc(u.no)}" aria-expanded="${UC.open.has(u.no)}" title="${UC.open.has(u.no)?'Hide':'Show'} the product lines">${UC.open.has(u.no)?'▾':'›'} <span>${(u.lines||[]).length} line${(u.lines||[]).length!==1?'s':''}</span></button></div>`;
 const ucLines = (u,cols) => !UC.open.has(u.no) ? '' : `<tr class="uc-lines"><td></td><td colspan="${cols-1}"><table class="uc-ltbl"><thead><tr><th>Ln Ty</th><th>Product</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>${(u.lines||[]).map(l=>`<tr><td>${esc(l.type||'—')}</td><td><b>${esc(l.product||'—')}</b></td><td>${esc(l.desc||'')}${l.qty!=null?' · ×'+esc(l.qty):''}</td><td style="text-align:right">${esc(money(l.amount))}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No lines in the report.</td></tr>'}</tbody></table></td></tr>`;
-function ucTag(x){ return x.manual ? `<span class="flag mv">Manual${x.by?' · '+esc(x.by):''}</span>` : `<span class="flag ad">Auto${x.by?' · '+esc(x.by):''}</span>`; }
+function ucTag(x){ return x.manual ? `<span class="flag mv">Manual${x.by?' · '+esc(x.by):''}</span>` : `<span class="flag ad">Auto</span>`; }   // v0.12.4: Auto needs no user name
+// v0.12.4: the attempt of an uplift: 1st, 2nd, 3rd… (the plan in force), with the earlier ones that were not done
+function ucAttempt(u, x){ const att=u.att||[], miss=att.length?`<div class="muted small" title="${esc(att.map(a=>dayLbl(a.date)+(a.route?' · '+a.route:'')).join('\n'))}">✗ ${att.map(a=>esc(dayLbl(a.date))).join(', ')}</div>`:'';
+  if(u.closed) return (u.closed.planned!==false&&u.closed.date)||att.length ? `<b>${ordinal(att.length+(u.closed.planned!==false&&u.closed.date?1:0))}</b>${miss}` : '<span class="muted">—</span>';
+  return x ? `<b>${ordinal(att.length+1)}</b>${miss}` : (att.length?`<span class="muted">${att.length} not done</span>${miss}`:'<span class="muted">—</span>'); }
 function renderUplCtl(){
   const el=$('tab-upl'); const U=uplState(), cc=uplCalc(), pl=cc.plan, pr=cc.prop, all=uplList(), ro=!can('edit');
   const open=all.filter(u=>!u.closed), done=all.filter(u=>u.closed);
   const reps=U.reports.slice().sort((a,b)=>b.at.localeCompare(a.at)||b.loadedAt.localeCompare(a.loadedAt)); const last=reps.find(r=>!r.old);
   const head=`<div class="rep-head"><div><div class="muted small">Planning › Uplift Control · uplifts outstanding from the newest report, matched with the deliveries; a match is planned once you confirm it</div><h1>Uplift Control</h1></div><div class="spacer"></div>
-    <button class="btn no-viewer" data-uc="load" title="Load an uplifts outstanding report from REPORTS › week_XX">⤒ Load uplifts report</button><button class="btn" data-uc="print" title="Upload the uplift docket PDF and print by route">🖨 Printing › Uplift</button><button class="btn" data-uc="export" title="Summary and Archive sheets, in the layout of the Uplift control workbook">⤓ Export Excel</button></div>
+    <button class="btn no-viewer" data-uc="load" title="Load an uplifts outstanding report from REPORTS › week_XX">📁 From the company folder</button><button class="btn" data-uc="print" title="Upload the uplift docket PDF and print by route">🖨 Printing › Uplift</button><button class="btn" data-uc="export" title="Summary and Archive sheets, in the layout of the Uplift control workbook">⤓ Export Excel</button></div>
     <div class="jp-modes" style="margin-bottom:12px;display:inline-flex"><button data-ucv="sum" class="${UC.view==='sum'?'on':''}">Uplift summary</button><button data-ucv="days" class="${UC.view==='days'?'on':''}">Planned days</button></div>
+    ${ro?'':`<label class="jp-drop no-viewer" id="ucDrop" tabindex="0" style="margin-bottom:12px;padding:14px 12px"><input type="file" id="ucFile" accept=".xlsx,.xls,.xlsm" multiple hidden><strong>Drop the uplifts report here</strong><span>or click to choose the file. The time of the report is the moment you upload it (now: ${esc(fmtAt(uplReportAt()))}).</span></label>`}
     ${last?`<div class="note info" style="margin-bottom:12px">Outstanding as of the report of <b>${esc(fmtAt(last.at))}</b> (${esc(last.file)}). <b>${Object.keys(pr).length}</b> match${Object.keys(pr).length!==1?'es':''} with a delivery to confirm in <b>Planned days</b>.</div>`:'<div class="note warn" style="margin-bottom:12px">No uplifts report loaded yet. Load the newest <b>UPLIFTS</b> / <b>CU_Rep</b> report from REPORTS › week_XX.</div>'}`;
-  if(UC.view==='days'){ el.innerHTML=`<div class="rep">${head}${ucDaysHtml(cc,ro)}</div>`; return; }
+  if(UC.view==='days'){ el.innerHTML=`<div class="rep">${head}${ucDaysHtml(cc,ro)}</div>`; ucWireDrop(); return; }
   const F={open:u=>!u.closed, conf:u=>!u.closed&&!!pr[u.no], none:u=>!u.closed&&!pl[u.no]&&!pr[u.no], auto:u=>!u.closed&&pl[u.no]&&!pl[u.no].manual, hand:u=>!u.closed&&pl[u.no]&&pl[u.no].manual, done:u=>!!u.closed, all:()=>true};
   const q=UC.q.toLowerCase(); const rows=all.filter(F[UC.f]||F.open).filter(u=>!q||[u.no,u.ship,u.name,u.note,u.po,u.shipment,uplProducts(u),(custMap[u.ship]||{}).bay].some(v=>String(v||'').toLowerCase().includes(q)));
   const kpi=(f,n,t)=>`<div class="kpi click ${UC.f===f?'on2':''}" data-ucf="${f}"><b>${n}</b><span>${t}</span></div>`; const cnt=f=>all.filter(F[f]).length;
@@ -2481,33 +2506,55 @@ function renderUplCtl(){
       day=`${x.day?`<button class="btn sm" data-uact="goday" data-no="${esc(u.no)}" data-day="${esc(x.day)}" title="Open this day in Planning">${esc(dayLabel(x.day))}</button>`:esc(uplWhenTxt(x))}<div>${ucTag(x)}</div>`; }
     else { route='<b style="color:var(--danger)">Not Planned</b>'; day='<span class="muted">—</span>'; }   // v0.12.3: the matches to confirm are flagged in Planned days only
     const acts=cl||ro?'':`<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate</button>`;
-    return `<tr><td><span class="upl-no">${esc(u.no)}</span>${ucToggle(u)}</td><td>${ucCust(u)}</td><td>${u.status!=null?esc(u.status):'—'}</td><td data-s="${u.value==null?'':u.value}" style="text-align:right;white-space:nowrap">${esc(money(u.value))}</td><td>${route}</td><td>${day}</td><td data-s="${esc(u.firstAt||'')}">${esc((fmtAt(u.firstAt)||'').slice(0,9))}</td><td data-s="${esc(u.lastAt||'')}">${esc((fmtAt(u.lastAt)||'').slice(0,9))}</td><td>${ucComment(u)}</td><td>${infoBtn(u.no)}</td><td class="no-print">${acts}</td></tr>${ucLines(u,11)}`; };
+    return `<tr><td><span class="upl-no">${esc(u.no)}</span>${ucToggle(u)}</td><td>${ucCust(u)}</td><td>${u.status!=null?esc(u.status):'—'}</td><td data-s="${u.value==null?'':u.value}" style="text-align:right;white-space:nowrap">${esc(money(u.value))}</td><td>${route}</td><td>${day}</td><td data-s="${u.closed?'':(u.att||[]).length+1}">${ucAttempt(u,x)}</td><td data-s="${esc(u.firstAt||'')}">${esc((fmtAt(u.firstAt)||'').slice(0,9))}</td><td data-s="${esc(u.lastAt||'')}">${esc((fmtAt(u.lastAt)||'').slice(0,9))}</td><td>${ucComment(u)}</td><td>${infoBtn(u.no)}</td><td class="no-print">${acts}</td></tr>${ucLines(u,12)}`; };
   el.innerHTML=`<div class="rep">${head}
     <div class="kpis">${kpi('open',open.length,'outstanding')}${kpi('conf',cnt('conf'),'to confirm')}${kpi('none',cnt('none'),'not planned · no delivery')}${kpi('auto',cnt('auto'),'planned · auto')}${kpi('hand',cnt('hand'),'planned · manual')}${kpi('done',done.length,'completed (archive)')}${kpi('all',all.length,'all')}</div>
     <div class="card"><h2>↩ Uplift summary <span class="muted" style="font-weight:400">(${rows.length})</span><span class="spacer"></span><input type="search" id="ucQ" class="secf" placeholder="Search uplift, customer, ship to, bay…" value="${esc(UC.q)}"></h2>
-     ${rows.length?`<table class="uc-tbl" data-tbl="upl"><thead><tr><th>Uplift Order</th><th>Customer Name</th><th>Status</th><th style="text-align:right">Value</th><th>Route</th><th>Day Planned</th><th>First seen</th><th>Last seen</th><th>Comments</th><th></th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:'<div class="empty small">No uplifts here.</div>'}</div>
+     ${rows.length?`<table class="uc-tbl" data-tbl="upl"><thead><tr><th>Uplift Order</th><th>Customer Name</th><th>Status</th><th style="text-align:right">Value</th><th>Route</th><th>Day Planned</th><th>Attempt</th><th>First seen</th><th>Last seen</th><th>Comments</th><th></th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:'<div class="empty small">No uplifts here.</div>'}</div>
     <div class="card"><h2>📥 Reports loaded <span class="muted" style="font-weight:400">(${reps.length})</span></h2>${reps.length?`<table><thead><tr><th>Report time</th><th>File</th><th>Uplifts</th><th>New</th><th>Completed</th><th>Loaded</th></tr></thead><tbody>${reps.map(r=>`<tr><td><b>${esc(fmtAt(r.at))}</b>${r.old?'<div class="muted">older than the newest — record only</div>':''}</td><td class="muted">${esc(r.path||r.file)}</td><td>${r.n}</td><td>${r.old?'—':r.added}</td><td>${r.old?'—':r.closed}</td><td class="muted">${esc(fmtTime(r.loadedAt))}${r.by?' · '+esc(r.by):''}</td></tr>`).join('')}</tbody></table>`:'<div class="empty small">None yet.</div>'}</div></div>`;
   const qi=$('ucQ'); if(qi) qi.oninput=e=>{ UC.q=e.target.value; const pos=e.target.selectionStart; renderUplCtl(); const n=$('ucQ'); n.focus(); n.setSelectionRange(pos,pos); };
+  ucWireDrop();
 }
+// v0.12.4: the box on top of Uplift Control: drop (or choose) the uplifts report; it is saved in its folder and imported — its time is the upload time
+async function uplDrop(files){
+  if(!guard('edit','load reports')) return; if(typeof XLSX==='undefined') return toast('The Excel library needs an internet connection');
+  const ok=[], bad=[];
+  for(const f of Array.from(files)){ if(!/\.xls[xm]?$/i.test(f.name)){ bad.push(`“${f.name}” is not an Excel file`); continue; }
+    try{ const wb=await readWorkbook(f); if(classifyWorkbook(wb)==='upl') ok.push(f); else bad.push(`“${f.name}” is not an uplifts report`); }catch(e){ bad.push(`“${f.name}” could not be read`); } }
+  if(bad.length) toast(bad.join(' · ')); if(ok.length) uploadFromComputer(ok);
+}
+function ucWireDrop(){ const dz=$('ucDrop'), fi=$('ucFile'); if(!dz||!fi) return;
+  fi.onchange=()=>{ const fs_=Array.from(fi.files); fi.value=''; if(fs_.length) uplDrop(fs_); };
+  dz.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fi.click(); } });
+  dz.addEventListener('dragover',e=>{ e.preventDefault(); dz.classList.add('over'); }); dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer&&e.dataTransfer.files.length) uplDrop(e.dataTransfer.files); }); }
 // Planned days: the deliveries of a day that match an outstanding uplift — the planner confirms them (then they are planned, "Auto")
 function ucDaysHtml(cc, ro){
   const dk=ucDayKey(); UC.day=dk; if(!dk) return '<div class="card"><div class="empty">No planning day loaded.</div></div>';
   const d=dayMap[dk], v=dayView(dk), pl=cc.plan, pr=cc.prop;
-  const rows=uplOpenList().map(u=>{ const x=pl[u.no]; const y=(x&&x.date===d.date)?x:(!x?(cc.matches[u.no]||[]).find(m=>m.date===d.date):null); return y?{u,x:y}:null; }).filter(Boolean);
-  const order=v.routes.map(r=>String(r.id||'')); rows.sort((a,b)=>order.indexOf(String(a.x.load||''))-order.indexOf(String(b.x.load||''))||a.u.name.localeCompare(b.u.name));
-  UC.sel=new Set([...UC.sel].filter(no=>rows.some(r=>r.x.prop&&r.u.no===no)));
-  const nP=rows.filter(r=>r.x.prop).length, nC=rows.filter(r=>r.x.conf).length, nM=rows.filter(r=>r.x.manual).length;
-  const tr=({u,x})=>{ const sh=x.ship2||u.ship; const drop=v.routes.flatMap(r=>r.drops.map(dr=>({r,dr}))).find(o=>o.dr.ship===sh && String(o.dr.load||'')===String(x.load||'')); const li=x.load?loadInfo(dk,x.load):null;
-    const st=x.prop?'<span class="flag dup">to confirm</span>':ucTag(x);
-    const act=ro?'':x.prop?`<button class="btn sm pri" data-ucc="${esc(u.no)}">Confirm</button>`:x.conf?`<button class="btn sm" data-ucu="${esc(u.no)}">Unconfirm</button>`:`<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate</button>`;
-    return `<tr><td>${x.prop&&!ro?`<input type="checkbox" data-ucs="${esc(u.no)}" ${UC.sel.has(u.no)?'checked':''}>`:''}</td><td><span class="upl-no">${esc(u.no)}</span>${ucToggle(u)}</td><td>${ucCust(u)}</td>
-      <td><b>${esc(x.load?routeName(dk,x.load):'not on a route')}</b>${li?`<div class="muted">${esc([li.driver,li.helper].filter(Boolean).join(' + ')||'no driver')}${li.truck?' · '+esc(li.truck):''}</div>`:''}${drop?`<div class="muted small">delivery: ${drop.dr.uids.map(x2=>esc(ORD[x2].o)).join(', ')}${x.how==='addr'?` · <b>same address</b>, Ship To ${esc(drop.dr.ship)} ${esc(drop.dr.name)}`:''}</div>`:(x.manual?'<div class="muted small">no delivery to this customer on this route (by hand)</div>':'')}</td>
-      <td>${st}</td><td class="no-print">${act}</td></tr>${ucLines(u,6)}`; };
+  // v0.12.4: an uplift stays on the day it was planned for: when it is completed (charged) or not done the line only changes status
+  const all=[];
+  uplList().forEach(u=>{
+    if(!u.closed){ const x=pl[u.no]; const y=(x&&x.date===d.date)?x:(!x?(cc.matches[u.no]||[]).find(m=>m.date===d.date):null); if(y) all.push({u,x:y,st:y.prop?'prop':y.manual?'man':'auto'}); }
+    else if(u.closed.date===d.date && u.closed.planned!==false) all.push({u, x:{date:d.date, day:dk, load:u.closed.load||null, manual:u.closed.manual}, st:'done'});
+    (u.att||[]).forEach((a,i)=>{ if(a.date===d.date) all.push({u, x:{date:d.date, day:dk, load:a.load||null, manual:a.manual, by:a.by}, st:'miss', n:i+1}); }); });
+  const order=v.routes.map(r=>String(r.id||'')); all.sort((a,b)=>order.indexOf(String(a.x.load||''))-order.indexOf(String(b.x.load||''))||a.u.name.localeCompare(b.u.name));
+  const cnt=k=>all.filter(r=>r.st===k).length, nP=cnt('prop');
+  const flt=UC.df||'all', rows=flt==='all'?all:all.filter(r=>r.st===flt);
+  UC.sel=new Set([...UC.sel].filter(no=>all.some(r=>r.st==='prop'&&r.u.no===no)));
+  const tr=({u,x,st,n})=>{ const sh=x.ship2||u.ship; const drop=v.routes.flatMap(r=>r.drops.map(dr=>({r,dr}))).find(o=>o.dr.ship===sh && String(o.dr.load||'')===String(x.load||'')); const li=x.load?loadInfo(dk,x.load):null;
+    const stH=st==='prop'?'<span class="flag dup">to confirm</span>':st==='done'?'<span class="flag">completed</span>'+(x.manual?' <span class="flag mv">Manual</span>':''):st==='miss'?'<span class="flag dup" style="background:#fde8ea;color:#b4232f">not done</span>'+(x.manual?' <span class="flag mv">Manual'+(x.by?' · '+esc(x.by):'')+'</span>':''):ucTag(x);
+    const att=st==='miss'?`<b>${ordinal(n)}</b>`:st==='done'?`<b>${ordinal((u.att||[]).length+1)}</b>`:`<b>${ordinal((u.att||[]).length+1)}</b>`;
+    const act=ro||st==='done'||st==='miss'?'':st==='prop'?`<button class="btn sm pri" data-ucc="${esc(u.no)}">Confirm</button>`:st==='auto'?`<button class="btn sm" data-ucu="${esc(u.no)}">Unconfirm</button>`:`<button class="btn sm" data-uact="alloc" data-no="${esc(u.no)}">Allocate</button>`;
+    return `<tr class="${st==='miss'?'uc-miss':''}"><td>${st==='prop'&&!ro?`<input type="checkbox" data-ucs="${esc(u.no)}" ${UC.sel.has(u.no)?'checked':''}>`:''}</td><td><span class="upl-no">${esc(u.no)}</span>${ucToggle(u)}</td><td>${ucCust(u)}</td>
+      <td><b>${esc(x.load?routeName(dk,x.load):'not on a route')}</b>${li?`<div class="muted">${esc([li.driver,li.helper].filter(Boolean).join(' + ')||'no driver')}${li.truck?' · '+esc(li.truck):''}</div>`:''}${drop?`<div class="muted small">delivery: ${drop.dr.uids.map(x2=>esc(ORD[x2].o)).join(', ')}${x.how==='addr'?` · <b>same address</b>, Ship To ${esc(drop.dr.ship)} ${esc(drop.dr.name)}`:''}</div>`:(x.manual&&st!=='miss'&&st!=='done'?'<div class="muted small">no delivery to this customer on this route (by hand)</div>':'')}</td>
+      <td>${stH}</td><td>${att}</td><td>${infoBtn(u.no)}</td><td class="no-print">${act}</td></tr>${ucLines(u,8)}`; };
+  const kb=(k,n,t,col)=>`<div class="kpi click ${flt===k?'on2':''}" data-ucdf="${k}"><b${col?` style="color:${col}"`:''}>${n}</b><span>${t}</span></div>`;
   return `<div class="rs-daybar" id="dbUpl">${dayBarHtml('upl')}</div>
-   <div class="kpis"><div class="kpi"><b style="color:var(--warn)">${nP}</b><span>to confirm</span></div><div class="kpi"><b>${nC}</b><span>confirmed · auto</span></div><div class="kpi"><b>${nM}</b><span>manual</span></div><div class="kpi"><b>${rows.length}</b><span>uplifts on ${esc(d.label)}</span></div></div>
+   <div class="kpis">${kb('prop',nP,'to confirm','var(--warn)')}${kb('auto',cnt('auto'),'confirmed · auto')}${kb('man',cnt('man'),'manual')}${kb('done',cnt('done'),'completed')}${kb('miss',cnt('miss'),'not done')}${kb('all',all.length,'uplifts on '+esc(d.label))}</div>
    <div class="card"><h2>${esc(d.label)} · deliveries with an uplift <span class="spacer"></span>${ro||!nP?'':`<button class="btn sm" data-uc="confsel" ${UC.sel.size?'':'disabled'}>Confirm selected${UC.sel.size?' ('+UC.sel.size+')':''}</button><button class="btn sm pri" data-uc="confall">Confirm all (${nP})</button>`}</h2>
-    <p class="muted small" style="margin:0 16px 8px">The customer has a delivery on this day and an uplift outstanding. Confirm to plan it with that delivery (status <b>Auto</b>): it then shows in Planning, Printing › Uplift and the Change report, and follows the delivery if it is moved on this day. Allocate by hand to put an uplift on any other route.</p>
-    ${rows.length?`<table class="uc-tbl" data-tbl="upld"><thead><tr><th></th><th>Uplift</th><th>Customer</th><th>Route · delivery</th><th>Status</th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:`<div class="empty small">No delivery on ${esc(d.label)} matches an outstanding uplift.</div>`}</div>`;
+    <p class="muted small" style="margin:0 16px 8px">The customer has a delivery on this day and an uplift outstanding. Confirm to plan it with that delivery (status <b>Auto</b>): it then shows in Planning, Printing › Uplift and the Change report, and follows the delivery if it is moved on this day. Allocate by hand to put an uplift on any other route. An uplift stays on its day: when it is charged it shows <b>completed</b>, when it is still outstanding after the day it shows <b>not done</b> and the next day planned is the next attempt. The boxes filter the list.</p>
+    ${rows.length?`<table class="uc-tbl" data-tbl="upld"><thead><tr><th></th><th>Uplift</th><th>Customer</th><th>Route · delivery</th><th>Status</th><th>Attempt</th><th></th><th class="no-print"></th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table>`:`<div class="empty small">${all.length?'No uplift with this status on '+esc(d.label)+'.':'No delivery on '+esc(d.label)+' matches an outstanding uplift.'}</div>`}</div>`;
 }
 // the history of one uplift order: the reports it was in (snapshots) and what planners did
 function openUplHist(no){
@@ -2528,6 +2575,7 @@ $('tab-upl').addEventListener('click',e=>{
   const v=e.target.closest('[data-ucv]'); if(v){ UC.view=v.dataset.ucv; return renderUplCtl(); }
   const tg=e.target.closest('[data-uctg]'); if(tg){ const no=tg.dataset.uctg; UC.open.has(no)?UC.open.delete(no):UC.open.add(no); return renderUplCtl(); }
   const f=e.target.closest('[data-ucf]'); if(f){ UC.f=f.dataset.ucf; return renderUplCtl(); }
+  const df=e.target.closest('[data-ucdf]'); if(df){ UC.df=UC.df===df.dataset.ucdf?'all':df.dataset.ucdf; return renderUplCtl(); }
   const g=e.target.closest('[data-ucgo]'); if(g){ e.preventDefault(); UC.view='days'; if(g.dataset.ucgo) UC.day=g.dataset.ucgo; return renderUplCtl(); }
   const s_=e.target.closest('[data-ucs]'); if(s_){ s_.checked?UC.sel.add(s_.dataset.ucs):UC.sel.delete(s_.dataset.ucs); return renderUplCtl(); }
   const c=e.target.closest('[data-ucc]'); if(c){ const d=dayMap[ucDayKey()]; const n=uplConfirm([c.dataset.ucc],true,UC.view==='days'&&d?d.date:null); if(n) toast('Uplift '+c.dataset.ucc+' confirmed'); return; }
@@ -2949,6 +2997,7 @@ function openUplAlloc(no){
       <div><label>Route</label><select id="uaLoad">${v.routes.filter(r=>!r.deferred).map(r=>{ const has=r.drops.some(d=>d.ship===u.ship); return `<option value="${esc(r.id)}" ${x&&x.day===dk&&String(x.load)===String(r.id)?'selected':''}>${esc(r.name)} — ${esc(r.load.driver||'no driver')}${has?' · delivers this customer':''}</option>`; }).join('')||'<option value="">No routes on this day</option>'}</select></div></div>
      <div class="mf">${x&&x.manual?'<button class="btn" data-act="auto" style="margin-right:auto">Back to automatic</button>':''}<button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="ok" ${v.routes.some(r=>!r.deferred)?'':'disabled'}>Allocate</button></div>`,
      {onAct:a=>{ if(a==='auto'){ uplSetAuto(no); closeModal(); return; } if(a!=='ok') return; const ld=$('uaLoad').value; if(!ld) return;
+       if(x && x.date!==dayMap[dk].date){ uplMiss(u,x,'allocated to another day'); delete S.upl.conf[no]; }
        S.upl.man[no]={date:dayMap[dk].date, load:ld, by:FOLDER.user||'', ts:new Date().toISOString()}; (u.hist=u.hist||[]).push({ts:new Date().toISOString(), by:FOLDER.user||'', what:`Allocated by hand to ${dayMap[dk].label} · ${routeName(dk,ld)}`});
        closeModal(); uplChanged(); toast(`Uplift ${no} allocated to ${dayMap[dk].label} · ${routeName(dk,ld)}`); }});
     $('uaDay').onchange=e=>{ dk=e.target.value; draw(); }; };
@@ -3829,7 +3878,7 @@ async function takeFiles(files){
     UP.parsed = (plans.length||ress.length) ? parseDays(plans, ress, cmap) : {days:[], resDays:[], issues:[]};
     UP.parsed.fixed=null; UP.parsed.cust=cust; UP.parsed.cmap=cmap;
     if(fx.length){ UP.parsed.fixed=parseFixed(fx[fx.length-1]); if(!UP.parsed.fixed) errs.push(`“${fx[fx.length-1].name}”: no “Trip Tag” / “Day” rows found.`); }
-    UP.parsed.upl=UP.files.filter(f=>f.kind==='upl').map(f=>{ const r=parseUplifts(f); if(!r) errs.push(`“${f.name}”: no uplift rows found.`); return r; }).filter(Boolean).sort((a,b)=>a.at.localeCompare(b.at));
+    UP.parsed.upl=UP.files.filter(f=>f.kind==='upl').map(f=>{ const r=parseUplifts(f); if(!r) errs.push(`“${f.name}”: no uplift rows found.`); return r; }).filter(Boolean).sort((a,b)=>a.at.localeCompare(b.at)||(a.nameAt||'').localeCompare(b.nameAt||''));
     UP.parsed.prod=UP.files.filter(f=>f.kind==='prod').map(f=>{ const r=parseProducts(f); if(!r) errs.push(`“${f.name}”: no product rows found.`); return r; }).filter(Boolean);
   }catch(e){ errs.push('Could not read the file: '+(e&&e.message||e)); }
   UP.err=errs.join(' '); UP.busy=false; renderUpload();
@@ -4089,12 +4138,12 @@ function reportUplifts(){ const pl=uplPlan(); const q=R.q; const d=R.day&&dayMap
 function reportUplHtml(rows){
   if(!rows.length && !uplOpenList().length) return '';
   const col=R.col.has('upl');
-  const body=rows.length?`<table data-tbl="uplr"><thead><tr><th>Day</th><th>Uplift</th><th>Customer</th><th>Products</th><th>Reason</th><th>Route</th><th>Driver · truck</th><th>Planned</th></tr></thead><tbody>${rows.map(x=>{ const li=x.load?loadInfo(x.day,x.load):null;
-      return `<tr><td data-s="${esc(x.date)}">${esc(dayLabel(x.day))}</td><td><span class="upl-no">${esc(x.no)}</span></td><td><b>${esc(x.u.name)}</b><div class="muted">${esc(x.u.ship)}</div></td><td>${esc(uplProducts(x.u))}</td><td>${esc(x.u.reason||'—')}</td><td><b>${esc(uplRouteTxt(x))}</b>${x.load?`<div class="muted">${esc(loadTxt(x.load))}</div>`:''}</td><td>${li?esc([li.driver,li.truck].filter(Boolean).join(' · ')||'—'):'—'}</td><td>${x.manual?'by hand'+(x.by?`<div class="muted">${esc(x.by)}</div>`:''):'with the delivery'}</td></tr>`; }).join('')}</tbody></table>`
+  const body=rows.length?`<table data-tbl="uplr"><thead><tr><th>Day</th><th>Uplift</th><th>Customer</th><th>Products</th><th>Reason</th><th>Route</th><th>Driver · truck</th><th>Planned</th><th>Attempt</th></tr></thead><tbody>${rows.map(x=>{ const li=x.load?loadInfo(x.day,x.load):null;
+      return `<tr><td data-s="${esc(x.date)}">${esc(dayLabel(x.day))}</td><td><span class="upl-no">${esc(x.no)}</span></td><td><b>${esc(x.u.name)}</b><div class="muted">${esc(x.u.ship)}</div></td><td>${esc(uplProducts(x.u))}</td><td>${esc(x.u.reason||'—')}</td><td><b>${esc(uplRouteTxt(x))}</b>${x.load?`<div class="muted">${esc(loadTxt(x.load))}</div>`:''}</td><td>${li?esc([li.driver,li.truck].filter(Boolean).join(' · ')||'—'):'—'}</td><td>${x.manual?'by hand'+(x.by?`<div class="muted">${esc(x.by)}</div>`:''):'with the delivery'}</td><td>${ordinal(uplAttNo(x.u))}</td></tr>`; }).join('')}</tbody></table>`
     : `<div class="empty small">No uplifts planned ${R.day?'for '+esc(dayLabel(R.day)):'on the loaded days'}.</div>`;
   return `<div class="card rsec ${col?'collapsed':''}" data-sec="upl"><h2 data-tog="upl"><span class="chev2">▾</span>↩ Uplifts planned <span class="muted" style="font-weight:400">(${rows.length})</span><span class="spacer"></span><button class="btn sm no-print" data-uplx="1" title="Export the uplifts planned to Excel">⤓ Export</button></h2><div class="secbody">${body}</div></div>`;
 }
-$('rBody').addEventListener('click',e=>{ if(!e.target.closest('[data-uplx]')) return; writeXlsx(reportUplifts().map(x=>{ const li=x.load?loadInfo(x.day,x.load):{}; return {'Day':dayLabel(x.day),'Uplift Number':x.no,'Ship To':x.u.ship,'Customer':x.u.name,'Products':uplProducts(x.u),'Reason':x.u.reason||'','Route':uplRouteTxt(x),'Load':x.load||'','Driver':li.driver||'','Truck':li.truck||'','Planned':x.manual?'by hand':'with the delivery'}; }),`Uplifts_planned_${repTag()}.xlsx`,[12,12,10,28,24,14,16,10,14,10,14]); });
+$('rBody').addEventListener('click',e=>{ if(!e.target.closest('[data-uplx]')) return; writeXlsx(reportUplifts().map(x=>{ const li=x.load?loadInfo(x.day,x.load):{}; return {'Day':dayLabel(x.day),'Uplift Number':x.no,'Ship To':x.u.ship,'Customer':x.u.name,'Products':uplProducts(x.u),'Reason':x.u.reason||'','Route':uplRouteTxt(x),'Load':x.load||'','Driver':li.driver||'','Truck':li.truck||'','Planned':x.manual?'by hand':'with the delivery','Attempt':ordinal(uplAttNo(x.u))}; }),`Uplifts_planned_${repTag()}.xlsx`,[12,12,10,28,24,14,16,10,14,10,14,9]); });
 // sort a section's rows by the clicked column (text A→Z, numbers and dates in order)
 R.sort={};
 const sortMark=(id,i)=>{ const o=R.sort[id]; return o&&o.col===i?(o.dir>0?' ▲':' ▼'):''; };
@@ -5702,7 +5751,7 @@ function jpRenderUplift(){
   if(!dk){ box.innerHTML='<p class="jp-empty">Load a planning day first.</p>'; $('jpUpGo').disabled=true; $('jpUpHint').textContent=''; return; }
   box.innerHTML=groups.length?groups.map(g=>`<div class="ugrp"><h3>${esc(g.name)}<span class="muted small" style="font-weight:400">${[g.driver&&'Driver: '+g.driver,g.helper&&'Helper: '+g.helper,g.truck&&'Truck: '+g.truck,g.load&&'Load '+g.load].filter(Boolean).map(esc).join(' · ')||(g.none?'not on a route yet — allocate them in Uplift Control':'')}</span><span class="spacer"></span><b class="upl-no">${g.items.length}</b></h3>
      <table class="jp-up-tbl"><thead><tr><th>Uplift</th><th>Customer</th><th>Ship To</th><th>Products</th><th>Planned</th><th>Docket</th></tr></thead><tbody>${g.items.map(x=>{ const d=uplDocketOf(x.no);
-       return `<tr><td><span class="upl-no">${esc(x.no)}</span></td><td><b>${esc(x.u.name)}</b>${x.u.po?`<div class="muted small">PO ${esc(x.u.po)}</div>`:''}</td><td>${esc(x.u.ship)}</td><td>${esc(uplProducts(x.u))}</td><td>${x.manual?'by hand':'with the delivery'}</td><td>${d?`<span class="${d.diffs.length?'warn':'ok'}">${d.diffs.length?'⚠':'✓'} JDE docket</span><div class="muted small">${esc(d.src.name)} · page ${d.pages.map(p=>p+1).join(', ')}</div>${d.diffs.map(t=>`<div class="small warn">${esc(t)}</div>`).join('')}`:'<span class="muted">not in the PDFs · made by the planner</span>'}</td></tr>`; }).join('')}</tbody></table></div>`).join('')
+       return `<tr><td><span class="upl-no">${esc(x.no)}</span>${uplAttNo(x.u)>1?`<div><span class="flag dup att-flag">${ordinal(uplAttNo(x.u))} attempt</span></div>`:''}</td><td><b>${esc(x.u.name)}</b>${x.u.po?`<div class="muted small">PO ${esc(x.u.po)}</div>`:''}</td><td>${esc(x.u.ship)}</td><td>${esc(uplProducts(x.u))}</td><td>${x.manual?'by hand':'with the delivery'}${uplAttNo(x.u)>1?`<div class="muted small">not done: ${(x.u.att||[]).map(a=>esc(dayLbl(a.date))).join(', ')}</div>`:''}</td><td>${d?`<span class="${d.diffs.length?'warn':'ok'}">${d.diffs.length?'⚠':'✓'} JDE docket</span><div class="muted small">${esc(d.src.name)} · page ${d.pages.map(p=>p+1).join(', ')}</div>${d.diffs.map(t=>`<div class="small warn">${esc(t)}</div>`).join('')}`:'<span class="muted">not in the PDFs · made by the planner</span>'}</td></tr>`; }).join('')}</tbody></table></div>`).join('')
     : `<div class="note info">No uplifts planned for ${esc(dayLabel(dk))}. Load the uplifts outstanding report, or allocate uplifts in <b>Uplift Control</b>.</div>`;
   const nd=groups.reduce((s,g)=>s+g.items.filter(x=>uplDocketOf(x.no)).length,0);
   $('jpUpGo').disabled=!n; $('jpUpHint').textContent=n?`${n} uplift${n>1?'s':''} on ${groups.length} route${groups.length>1?'s':''}: ${groups.length} cover${groups.length>1?'s':''} and ${n} docket${n>1?'s':''} (${nd} from the JDE PDF${nd!==n?`, ${n-nd} made by the planner`:''}).`:'';
@@ -5776,11 +5825,11 @@ async function uplPdf(dk, groups){
     txt(p,g.name,M,y,{bold:true,size:26}); y-=22;
     txt(p,[g.driver&&'Driver: '+g.driver,g.helper&&'Helper: '+g.helper,g.truck&&'Truck: '+g.truck,g.load&&'Load '+g.load].filter(Boolean).join('   -   ')||(g.none?'Not on a route yet':''),M,y,{size:11,color:MUT}); y-=16;
     txt(p,g.items.length+' uplift'+(g.items.length>1?'s':'')+' to collect - a docket for each follows this cover. Not mixed with the delivery check sheets.',M,y,{size:9,color:MUT}); y-=26;
-    const cols=[['#',22],['Uplift',62],['Customer',170],['Ship To',62],['Products',138],['Docket',61]];
+    const cols=[['#',22],['Uplift',92],['Customer',150],['Ship To',62],['Products',128],['Docket',61]];
     const head=()=>{ p.drawRectangle({x:M,y:y-5,width:W-2*M,height:18,color:SOFT}); let x=M+4; cols.forEach(([t,w])=>{ txt(p,t,x,y,{bold:true,size:8.5,color:MUT,w:w-4}); x+=w; }); y-=20; };
     head();
     g.items.forEach((it,i)=>{ if(y<70){ foot(p,g.name+' (cover)'); p=doc.addPage([W,H]); y=H-M-6; txt(p,g.name+' (continued)',M,y,{bold:true,size:13}); y-=26; head(); }
-      const vals=[String(i+1),it.no,it.u.name,it.u.ship,uplProducts(it.u),uplDocketOf(it.no)?'JDE':'made here']; let x=M+4;
+      const vals=[String(i+1),it.no+(uplAttNo(it.u)>1?' - '+ordinal(uplAttNo(it.u))+' attempt':''),it.u.name,it.u.ship,uplProducts(it.u),uplDocketOf(it.no)?'JDE':'made here']; let x=M+4;
       cols.forEach(([t,w],ci)=>{ txt(p,vals[ci],x,y,{size:9,bold:ci===1,color:ci===1?RED:INK,w:w-6}); x+=w; }); y-=6; p.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.4,color:LINE}); y-=12; });
     foot(p,g.name+' (cover)'); manifest.push({route:g.name,type:'cover'});
     // one docket per uplift
@@ -5793,7 +5842,7 @@ async function uplPdf(dk, groups){
       txt(q,'Uplift '+u.no,M,yy,{bold:true,size:28,color:RED}); yy-=30;
       txt(q,u.name,M,yy,{bold:true,size:16}); yy-=18;
       txt(q,'Ship To '+u.ship+(c.addr?'   -   '+c.addr:'')+(c.pc?'   '+c.pc:''),M,yy,{size:10,color:MUT}); yy-=28;
-      const kv=[['Day',dayLabel(dk)],['Route',g.name],['Driver',[g.driver,g.helper].filter(Boolean).join(' + ')||'-'],['Truck',g.truck||'-'],['Time window',c.tw||'-'],['Raised',u.raised?dayLbl(u.raised):'-'],['Reason',u.reason||'-'],['Planned',it.manual?'allocated by hand':'with the delivery to this customer']];
+      const kv=[['Day',dayLabel(dk)],['Route',g.name],['Driver',[g.driver,g.helper].filter(Boolean).join(' + ')||'-'],['Truck',g.truck||'-'],['Time window',c.tw||'-'],['Raised',u.raised?dayLbl(u.raised):'-'],['Reason',u.reason||'-'],['Planned',(it.manual?'allocated by hand':'with the delivery to this customer')+(uplAttNo(u)>1?' - '+ordinal(uplAttNo(u)).toUpperCase()+' ATTEMPT':'')]];
       kv.forEach(([k,v2],i)=>{ const col=i%2, x=M+col*((W-2*M)/2); if(col===0&&i) yy-=0; txt(q,k,x,yy,{size:8.5,color:MUT,w:80}); txt(q,v2,x+80,yy,{size:10,bold:k==='Route',w:(W-2*M)/2-90}); if(col===1) yy-=18; }); yy-=14;
       q.drawRectangle({x:M,y:yy-5,width:W-2*M,height:18,color:SOFT}); [['Product',M+4],['Description',M+100],['Qty to collect',W-M-160],['Qty collected',W-M-80]].forEach(([t,x])=>txt(q,t,x,yy,{bold:true,size:8.5,color:MUT,w:110})); yy-=22;
       (u.lines||[]).forEach(l=>{ txt(q,l.product||'-',M+4,yy,{size:10,w:92}); txt(q,l.desc||'',M+100,yy,{size:10,w:W-2*M-270}); txt(q,l.qty==null?'-':String(l.qty),W-M-160,yy,{size:11,bold:true,w:70}); q.drawRectangle({x:W-M-80,y:yy-4,width:70,height:16,borderColor:LINE,borderWidth:.8}); yy-=8; q.drawLine({start:{x:M,y:yy},end:{x:W-M,y:yy},thickness:.4,color:LINE}); yy-=14; });

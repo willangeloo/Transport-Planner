@@ -4,6 +4,20 @@ What changed in each version, grouped as **Features**, **Bug fixes** and **Edits
 
 > Versions before 0.9.1 were built before this repository existed. They contained company data, so they aren't published or documented here.
 
+## v0.12.4 — 2026-11-13
+
+### Features
+- **Uplift Control › drop box:** a box on top of the page to drop (or click to choose) the uplifts report. The file is saved in `REPORTS/week_XX` and imported.
+- **Attempts:** an uplift that was planned but not carried out is flagged **not done** in its history (and on that day in Planned days) when it is still in a newer report after its day, or when the planner allocates / confirms it on another day. The next plan is the **2nd** attempt, then 3rd… New **Attempt** column (after Day Planned) in the summary and Planned days, in the Change report, and **2nd attempt** tags in Printing › Uplift (list and cover).
+- **Planned days keep their uplifts:** an uplift does not leave the day it was planned for: when it is charged the line shows **completed**, when it was not done it shows **not done** — only the status changes. The boxes on top (to confirm, confirmed · auto, manual, completed, not done, all) filter the list.
+- **Historic (i) button** on every Planned days line.
+
+### Edits
+- **Time of a report = the time of the upload** (not the file name, not the file's own date). Reports loaded together are still read in the order their names suggest (`_AM` before `_PM`).
+- **Day Planned tag:** **Auto** no longer shows the user name (Manual still does).
+- **No customer address** in the uplift lists.
+- **Wider lists:** Uplift Control uses the full width of the screen and scrolls sideways only when it must. The folder button is now **📁 From the company folder**.
+
 ## v0.12.3 — 2026-11-12
 
 ### Features

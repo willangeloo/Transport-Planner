@@ -286,7 +286,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     ok(!(await r.isDisabled('input[value="REPORTS/week_46/UPLIFTS_Mon_AM.xlsx"]')) && !(await r.isDisabled('input[value="REPORTS/week_46/PROD_Mon.xlsx"]')) && await r.isDisabled('input[value="REPORTS/week_46/POD_Mon.xlsx"]'),'Reports: Uplifts and Products can be imported (POD is still blocked)');
     for(const wd of ['Mon','Tue','Wed','Thu','Fri']) for(const k of ['DIPS_Plan','RES','PROD']) await r.check(`input[value="REPORTS/week_46/${k}_${wd}.xlsx"]`);
     for(const f of ['Mon_AM','Mon_PM','Tue_AM','Tue_PM','Wed_AM']) await r.check(`input[value="REPORTS/week_46/UPLIFTS_${f}.xlsx"]`);
-    await r.click('#fbOk'); await r.waitForSelector('[data-act=add]'); ok(/Uplifts outstanding:[\s\S]*UPLIFTS_Wed_AM\.xlsx › CU_Rep \(Wed 11\.11 08:00\): 6 orders from 6 lines · 1 line without an order number left out/.test((await r.textContent('#modal')).replace(/\s+/g,' ')),'the CU report (CU_Rep layout) is recognised; its time is read from its name (…_AM = 08:00); the totals row is left out');
+    await r.click('#fbOk'); await r.waitForSelector('[data-act=add]'); ok(/Uplifts outstanding:[\s\S]*UPLIFTS_Wed_AM\.xlsx › CU_Rep \(Wed 11\.11 07:30\): 6 orders from 6 lines · 1 line without an order number left out/.test((await r.textContent('#modal')).replace(/\s+/g,' ')),'the CU report (CU_Rep layout) is recognised; its time is the moment of the upload (the page clock, Wed 07:30); the totals row is left out');
     await r.click('[data-act=add]'); await r.waitForTimeout(800);
     const st=await r.evaluate(()=>{ const s=__rpUpl.state(), pl=__rpUpl.plan(); const it=Object.values(s.items); return {n:it.length, open:it.filter(u=>!u.closed).map(u=>u.no), done:it.filter(u=>u.closed).length, pl, reps:s.reports.length}; });
     { const chk=await r.evaluate(()=>{ const it=Object.values(__rpUpl.state().items); const multi=it.filter(u=>u.lines.length>1);
@@ -297,7 +297,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     // PLANNING › UPLIFT CONTROL (sub heading of Planning): summary, planned days (confirm), history
     await r.click('nav [data-tab=plan]'); ok((await r.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Planning|Uplift Control','Planning has a sub heading: Planning | Uplift Control');
     await r.click('.subnav [data-tab=upl]'); ok(await r.$eval('nav [data-tab=plan]',e=>e.classList.contains('on')),'Uplift Control is a sub heading of Planning (the parent stays highlighted)');
-    ok((await r.$$eval('table[data-tbl=upl] thead th',x=>x.map(e=>e.textContent.trim()).filter(Boolean))).join('|')==='Uplift Order|Customer Name|Status|Value|Route|Day Planned|First seen|Last seen|Comments','Uplift summary columns: Uplift Order, Customer Name, Status, Value, Route, Day Planned, First seen, Last seen, Comments (+ (i) and Allocate)');
+    ok((await r.$$eval('table[data-tbl=upl] thead th',x=>x.map(e=>e.textContent.trim()).filter(Boolean))).join('|')==='Uplift Order|Customer Name|Status|Value|Route|Day Planned|Attempt|First seen|Last seen|Comments','Uplift summary columns: Uplift Order, Customer Name, Status, Value, Route, Day Planned, First seen, Last seen, Comments (+ (i) and Allocate)');
     ok(await r.$$eval('table[data-tbl=upl] .ibtn svg.info-ic',x=>x.length)===6,'the history button is the (i) icon');
     ok((await r.$$eval('table[data-tbl=upl] > tbody > tr',x=>x.filter(t=>/Not Planned/.test(t.textContent)).length))===6 && !/confirm in Planned days|no delivery on the loaded days/.test(await r.textContent('table[data-tbl=upl]')) && await r.$$eval('table[data-tbl=upl] [data-uact=hist]',x=>x.length)===6 && await r.$$eval('table[data-tbl=upl] [data-uact=alloc]',x=>x.length)===6,'until confirmed, the summary just says “Not Planned” (no match message); each row has (i) and Allocate');
     { const t0=await r.$$eval('table[data-tbl=upl] .uc-lines',x=>x.length); await r.click('table[data-tbl=upl] [data-uctg] >> nth=0'); const lt=await r.textContent('table[data-tbl=upl] .uc-lines'); await r.click('table[data-tbl=upl] [data-uctg] >> nth=0');
@@ -308,7 +308,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     await r.click('#dbUpl [data-dbday="D2026-11-10"]'); ok(!(await r.$('table[data-tbl=upld] .flag.dup')),'a day before today has nothing “to confirm”'); await r.click('#dbUpl [data-dbday="D2026-11-11"]');
     await r.check('[data-ucs] >> nth=0'); await r.click('[data-uc=confsel]'); ok(Object.keys(await r.evaluate(()=>__rpUpl.plan())).length===1,'“Confirm selected” confirms one');
     await r.click('[data-uc=confall]'); const pl2=await r.evaluate(()=>__rpUpl.plan()); ok(Object.values(pl2).length===6 && Object.values(pl2).every(x=>x.date==='2026-11-11' && !x.manual),'“Confirm all”: every match is planned, status Auto');
-    await r.click('[data-ucv=sum]'); ok((await r.$$eval('table[data-tbl=upl] tbody tr',x=>x.filter(t=>/Auto · Alex/.test(t.textContent)).length))===6,'Day Planned shows the tag “Auto” (and who confirmed)');
+    await r.click('[data-ucv=sum]'); ok((await r.$$eval('table[data-tbl=upl] tbody tr',x=>x.filter(t=>/Auto/.test(t.textContent) && !/Auto · /.test(t.textContent)).length))===6,'Day Planned shows the tag “Auto” (without the user name)');
     await r.click(`table[data-tbl=upl] [data-uact=hist][data-no="${st.open[0]}"]`); const hm=await r.textContent('#modal'); ok(/history/.test(hm) && /First seen in the report/.test(hm) && /Allocation confirmed \(auto\)/.test(hm) && /status 560/.test(hm),'(i) opens the history of the order: report snapshots and the confirmation');
     await r.fill('#uhNote','printed, keys at the bar'); await r.click('#modal [data-act=save]'); await r.waitForTimeout(200);
     ok(/printed, keys at the bar\s*Alex ·/.test(await r.textContent(`table[data-tbl=upl] tbody tr:has([data-no="${st.open[0]}"])`)),'Comments column: the last comment of the history, with who and when');
@@ -336,7 +336,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     await r.evaluate(()=>{ document.documentElement.dataset.theme='dark'; }); ok(await r.$eval('#uplBtn',e=>getComputedStyle(e).backgroundColor==='rgb(203, 213, 225)'),'… light grey in the dark theme'); await r.evaluate(()=>{ document.documentElement.dataset.theme='light'; });
     // UPLIFT CONTROL (sub heading of Resources): allocate by hand to a route without a delivery for that customer
     await r.click('nav [data-tab=res]'); ok((await r.$$eval('#subnav button',x=>x.map(b=>b.textContent.trim()))).join('|')==='Resources sheet|Customers','Resources sub heading: Resources sheet | Customers');
-    await r.click('nav [data-tab=plan]'); await r.click('.subnav [data-tab=upl]'); const uc=await r.textContent('#tab-upl'); ok(/Uplift Control/.test(uc) && /6\s*outstanding/.test(uc) && /8\s*completed/.test(uc) && /Wed 11\.11 08:00/.test(uc),'Uplift Control: summary of the outstanding uplifts and the records');
+    await r.click('nav [data-tab=plan]'); await r.click('.subnav [data-tab=upl]'); const uc=await r.textContent('#tab-upl'); ok(/Uplift Control/.test(uc) && /6\s*outstanding/.test(uc) && /8\s*completed/.test(uc) && /Wed 11\.11 07:30/.test(uc),'Uplift Control: summary of the outstanding uplifts and the records');
     ok(await r.$$eval('#tab-upl tbody tr',x=>x.length)>=6 && await r.$$eval('[data-uact=goday]',x=>x.length)===6,'Uplift Control: each outstanding uplift shows the day planned (a button to open it) and its route');
     const no=st.open[0]; await r.click(`#tab-upl [data-uact=alloc][data-no="${no}"]`); await r.waitForSelector('#uaDay'); await r.selectOption('#uaDay','D2026-11-12'); await r.waitForTimeout(100);
     const ld=await r.$$eval('#uaLoad option',x=>{ const o=x.find(e=>!/delivers this customer/.test(e.textContent)); return o?o.value:x[0].value; }); await r.selectOption('#uaLoad',ld); await r.click('#modal [data-act=ok]'); await r.waitForTimeout(200);
@@ -365,10 +365,44 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
     // CHANGE REPORT: the uplifts planned for the day
     await r.click('nav [data-tab=report]'); await r.click('#dbRep [data-dbday="D2026-11-11"]'); ok(await r.$$eval('table[data-tbl=uplr] tbody tr',x=>x.length)===5 && /Uplifts planned/.test(await r.textContent('#rBody')),'Change report: Uplifts section lists the uplifts planned for the day (5 on Wed)');
     // the next report (Wed 15:00): the uplifts collected on Wednesday are completed
+    await r.clock.setFixedTime(new Date('2026-11-11T15:00:00'));
     await r.click('#reportsBtn'); await r.waitForSelector('input[name=fb]'); await r.check('input[value="REPORTS/week_46/UPLIFTS_Wed_PM.xlsx"]'); await r.click('#fbOk'); await r.waitForSelector('[data-act=add]'); await r.click('[data-act=add]'); await r.waitForTimeout(600);
     const st2=await r.evaluate(()=>{ const it=Object.values(__rpUpl.state().items); return {open:it.filter(u=>!u.closed).length, man:Object.keys(__rpUpl.state().man).length}; });
     ok(st2.open===2 && st2.man===0,'the Wed 15:00 report: Wednesday\'s uplifts are completed, 2 new ones are outstanding; the one put on Thursday was collected too, so its allocation is closed');
     ok(!e8.length,'no script errors (uplifts)'+(e8.length?': '+e8.join(' | '):'')); await c8.close(); }
+    // ---- v0.12.4: Uplift Control rework: drop box, attempts, planned days keep their uplifts, no address ----
+    { const c10=await demoContext(b,DEMO); const r=await c10.newPage(); const e10=[]; r.on('pageerror',e=>e10.push(e.message)); await r.goto('file://'+APP); ok(await enter(r,'Alex'),'Alex is in (uplift attempts)'); await r.clock.setFixedTime(new Date('2026-11-11T07:30:00'));
+      await r.click('#reportsBtn'); await r.waitForSelector('input[name=fb]');
+      for(const wd of ['Mon','Tue','Wed','Thu','Fri']) for(const k of ['DIPS_Plan','RES','PROD']) await r.check(`input[value="REPORTS/week_46/${k}_${wd}.xlsx"]`);
+      await r.check('input[value="REPORTS/week_46/UPLIFTS_Wed_AM.xlsx"]'); await r.click('#fbOk'); await r.waitForSelector('[data-act=add]'); await r.click('[data-act=add]'); await r.waitForTimeout(800);
+      await r.click('nav [data-tab=plan]'); await r.click('.subnav [data-tab=upl]');
+      ok(await r.$('#ucDrop #ucFile') && /Drop the uplifts report here/.test(await r.textContent('#ucDrop')),'Uplift Control: a box to drop the uplifts report');
+      ok(!/Dublin|Cork|Road|Street/i.test(await r.textContent('table[data-tbl=upl]')) && await r.evaluate(()=>{ const t=document.querySelector('#tab-upl .rep'); return t.getBoundingClientRect().width>=innerWidth*0.9; }),'the uplift list has no customer address and uses the width of the screen');
+      await r.click('[data-ucv=days]'); await r.click('#dbUpl [data-dbwk="2026-11-09"]'); await r.click('#dbUpl [data-dbday="D2026-11-11"]'); await r.click('[data-uc=confall]');
+      ok(await r.$$eval('table[data-tbl=upld] [data-uact=hist]',x=>x.length)===6 && (await r.$$eval('table[data-tbl=upld] thead th',x=>x.map(e=>e.textContent.trim()).filter(Boolean))).join('|')==='Uplift|Customer|Route · delivery|Status|Attempt','Planned days: a historic (i) button on every line and an Attempt column');
+      ok(await r.$$eval('table[data-tbl=upld] tbody tr .flag.ad',x=>x.every(e=>e.textContent.trim()==='Auto')),'Planned days: the Auto tag shows no user name');
+      await r.click('[data-ucdf=auto]'); ok(await r.$$eval('table[data-tbl=upld] > tbody > tr',x=>x.length)===6,'a box on Planned days filters the list (confirmed · auto: 6)'); await r.click('[data-ucdf=man]'); ok(await r.$$eval('table[data-tbl=upld] > tbody > tr',x=>x.length)===0,'… (manual: none)'); await r.click('[data-ucdf=man]');
+      // Thursday 08:00: the same report is uploaded again through the box — the uplifts are still outstanding after Wednesday: not done
+      await r.clock.setFixedTime(new Date('2026-11-12T08:00:00')); await r.click('[data-ucv=sum]');
+      await r.setInputFiles('#ucFile',path.join(DEMO,'REPORTS','week_46','UPLIFTS_Wed_AM.xlsx')); await r.waitForSelector('[data-act=add]',{timeout:20000});
+      ok(/Thu 12\.11 08:00/.test((await r.textContent('#modal')).replace(/\s+/g,' ')),'a report uploaded through the box is dated the moment of the upload (Thu 08:00), not by its name'); await r.click('[data-act=add]'); await r.waitForTimeout(900);
+      await r.click('nav [data-tab=plan]'); await r.click('.subnav [data-tab=upl]');
+      const s2=await r.evaluate(()=>{ const it=Object.values(__rpUpl.state().items).filter(u=>!u.closed); return {open:it.length, att:it.map(u=>(u.att||[]).length), plan:Object.keys(__rpUpl.plan()).length}; });
+      ok(s2.open===6 && s2.att.every(n=>n===1) && s2.plan===0,'still outstanding after Wednesday: the plan of each uplift is “not done” (1 attempt) and no longer planned');
+      const no=await r.evaluate(()=>Object.values(__rpUpl.state().items).find(u=>!u.closed).no);
+      await r.click(`#tab-upl [data-uact=alloc][data-no="${no}"]`); await r.waitForSelector('#uaDay'); await r.selectOption('#uaDay','D2026-11-13'); await r.waitForTimeout(100); await r.selectOption('#uaLoad',{index:0}); await r.click('#modal [data-act=ok]'); await r.waitForTimeout(300);
+      ok(/2nd/.test(await r.textContent(`#tab-upl table[data-tbl=upl] tbody tr:has([data-no="${no}"])`)),'allocated again (Fri): the Attempt column says 2nd, with the day that was not done');
+      await r.click(`table[data-tbl=upl] [data-uact=hist][data-no="${no}"]`); ok(/Not done on Wed 11\.11 \(1st attempt\)/.test(await r.textContent('#modal')),'the historic flags Wednesday as not done'); await r.click('#modal [data-act=close]');
+      await r.click('[data-ucv=days]'); await r.click('#dbUpl [data-dbday="D2026-11-11"]');
+      ok(await r.$$eval('table[data-tbl=upld] > tbody > tr',x=>x.length)===6 && await r.$$eval('table[data-tbl=upld] .flag.dup',x=>x.filter(e=>/not done/.test(e.textContent)).length)===6,'Planned days: Wednesday keeps its 6 uplifts, now with the status “not done”');
+      await r.click('[data-ucdf=miss]'); ok(await r.$$eval('table[data-tbl=upld] > tbody > tr',x=>x.length)===6,'box filter: not done (6)'); await r.click('[data-ucdf=miss]');
+      await r.click('nav [data-tab=print]'); await r.click('#dbPrint [data-dbday="D2026-11-13"]'); await r.click('[data-jpmode=uplift]');
+      ok(/2nd attempt/.test(await r.textContent('#jpUpList')),'Printing › Uplift: the uplift on its second attempt is marked “2nd attempt”');
+      // an uplift that is no longer in the next report is completed: it stays on its day, status completed
+      await r.clock.setFixedTime(new Date('2026-11-12T15:00:00')); await r.click('#reportsBtn'); await r.waitForSelector('input[name=fb]'); await r.check('input[value="REPORTS/week_46/UPLIFTS_Wed_PM.xlsx"]'); await r.click('#fbOk'); await r.waitForSelector('[data-act=add]'); await r.click('[data-act=add]'); await r.waitForTimeout(700);
+      await r.click('nav [data-tab=plan]'); await r.click('.subnav [data-tab=upl]'); await r.click('[data-ucv=days]'); await r.click('#dbUpl [data-dbday="D2026-11-13"]');
+      ok(/completed/.test(await r.textContent('table[data-tbl=upld]')) && /Uplift/.test(await r.textContent('table[data-tbl=upld]')),'Planned days: a completed uplift stays on its day, only its status changes (completed)');
+      ok(!e10.length,'no script errors (uplift attempts)'+(e10.length?': '+e10.join(' | '):'')); await c10.close(); }
   // ---------- UPLIFT MATCH BY ADDRESS (v0.12.2): same Eircode, another Ship To — any loaded planning day ----------
   { const D3=path.join(TMP,'addr'); fs.cpSync(DEMO,D3,{recursive:true});
     const rd=f=>XLSX.utils.sheet_to_json(XLSX.readFile(path.join(D3,f)).Sheets[XLSX.readFile(path.join(D3,f)).SheetNames[0]],{header:1});
