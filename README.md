@@ -23,6 +23,7 @@ Open `Route Planner.html` in Chrome or Edge.
 | [docs/users-config.md](docs/users-config.md) | The users file (`users.json`) and roles |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | What changed in each version |
 | [docs/backend-blueprint.md](docs/backend-blueprint.md) | How to build the production version with a backend |
+| [docs/presentation.html](docs/presentation.html) | Slides for the managers' team: what is built (v0.12.6) and where the app can go next |
 
 ## No data in this repository
 
